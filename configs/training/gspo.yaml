@@ -1,9 +1,10 @@
-n_completions_per_state: 8   # G — completions sampled per state
-clip_eps: 0.2
+# ms-swift GRPOTrainer with importance_sampling_level=sequence (GSPO)
+n_completions_per_state: 8      # num_generations (G)
+clip_eps: 3.0e-4                # epsilon (lower bound)
+clip_eps_high: 4.0e-4           # epsilon_high (upper bound, asymmetric clipping)
+steps_per_generation: 4         # minibatch gradient steps per rollout batch
+kl_coeff: 0.04                  # beta — KL penalty against reference policy
 lr: 1.0e-5
-max_steps_per_episode: 2016
-episodes_per_update: 16
-kl_coeff: 0.01
-ref_policy: frozen_init       # frozen_init | rolling
-n_updates: 1000
 grad_clip: 1.0
+n_updates: 1000
+episodes_per_update: 16         # used by rollout dataset collector

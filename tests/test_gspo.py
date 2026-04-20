@@ -1,43 +1,54 @@
-"""Shape and correctness tests for the GSPO loss function."""
+"""Tests for GSPO-related utilities.
+
+GSPO training itself is handled by ms-swift (GRPOTrainer +
+importance_sampling_level='sequence'). These tests cover the ORM plugin
+and the observation serialization that feeds ms-swift's dataset pipeline.
+"""
+import json
+import numpy as np
 import pytest
 
 
-def test_gspo_loss_is_scalar():
-    torch = pytest.importorskip("torch")
-    from gridzero.training.gspo import gspo_loss
+def test_obs_to_prompt_is_string():
+    from gridzero.env.observation import ObsData
+    from gridzero.env.serialization import obs_to_prompt
 
-    G, B = 8, 4
-    log_probs = torch.randn(B * G)
-    old_log_probs = torch.randn(B * G)
-    rewards = torch.randn(B * G)
-    group_ids = torch.repeat_interleave(torch.arange(B), G)
+    obs = ObsData(
+        flat=np.zeros(100, dtype=np.float32),
+        graph=None,
+        n_lines=5, n_loads=3, n_gens=2, n_substations=4,
+    )
+    # Attach minimal attributes that serialization tries to read
+    obs.rho = np.array([0.5, 0.6, 0.7, 0.8, 0.9])
+    obs.line_status = np.array([True] * 5)
+    obs.load_p = np.array([10.0, 12.0, 8.0])
+    obs.gen_p = np.array([20.0, 15.0])
+    obs.v_or = np.array([1.0] * 5)
 
-    loss, metrics = gspo_loss(log_probs, old_log_probs, rewards, group_ids)
-    assert loss.shape == ()
-    assert not torch.isnan(loss)
-    assert "loss" in metrics
-    assert "clip_fraction" in metrics
-
-
-def test_gspo_loss_no_nan_with_equal_probs():
-    torch = pytest.importorskip("torch")
-    from gridzero.training.gspo import gspo_loss
-
-    probs = torch.zeros(16)
-    rewards = torch.ones(16)
-    group_ids = torch.repeat_interleave(torch.arange(2), 8)
-    loss, _ = gspo_loss(probs, probs, rewards, group_ids)
-    assert not torch.isnan(loss)
+    prompt = obs_to_prompt(obs)
+    assert isinstance(prompt, str)
+    assert "assistant" in prompt  # chat template present
+    assert "rho" in prompt
 
 
-def test_group_normalize():
-    torch = pytest.importorskip("torch")
-    from gridzero.training.gspo import _group_normalize
+def test_obs_to_dataset_row_has_prompt():
+    from gridzero.env.observation import ObsData
+    from gridzero.env.serialization import obs_to_dataset_row
 
-    rewards = torch.tensor([1.0, 2.0, 3.0, 4.0, 10.0, 20.0])
-    group_ids = torch.tensor([0, 0, 0, 0, 1, 1])
-    advantages = _group_normalize(rewards, group_ids)
-    # Group 0 should have mean ~0
-    assert advantages[:4].mean().abs() < 1e-5
-    # Group 1: only 2 elements, std=5, advantages should be ±1
-    assert advantages[4:].abs().allclose(torch.ones(2))
+    obs = ObsData(
+        flat=np.zeros(50, dtype=np.float32),
+        graph=None,
+        n_lines=3, n_loads=2, n_gens=1, n_substations=3,
+    )
+    row = obs_to_dataset_row(obs, env_id=42)
+    assert "prompt" in row
+    assert row["env_id"] == 42
+    assert isinstance(row["obs_flat"], list)
+
+
+def test_orm_plugin_registers():
+    """Importing the ORM plugin should register 'grid_composite' in orms."""
+    pytest.importorskip("swift")
+    from swift.plugin import orms  # type: ignore[import]
+    import gridzero.rewards.orm_plugin  # noqa: F401
+    assert "grid_composite" in orms

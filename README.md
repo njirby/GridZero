@@ -28,9 +28,9 @@ env.step(action)  →  reward, next observation
 
 **Policy**: Randomly initialized Qwen3-4B architecture. No pretraining — the model builds operational intuition from scratch via environment signals alone.
 
-**Training**: GSPO — for each grid state, G completions are sampled, rewards evaluated, and a sequence-level clipped importance-weighted gradient update is applied. No value function or critic needed.
+**Training**: GSPO via [ms-swift](https://github.com/modelscope/ms-swift)'s `GRPOTrainer` with `importance_sampling_level='sequence'`. For each grid state, G completions are sampled, scored by a custom grid2op ORM reward plugin, and a sequence-level clipped importance-weighted gradient update is applied. No value function or critic needed.
 
-**Inference**: vLLM hosts the model for rollout efficiency. The graph encoder (PyTorch + PyG) runs separately and injects embeddings via vLLM's multimodal embedding API.
+**Inference (rollouts)**: ms-swift handles generation internally. The graph encoder + vLLM embedding injection path is reserved for Phase 2; Phase 1 serializes the grid state as a compact JSON prompt.
 
 ## Project Structure
 
@@ -67,14 +67,23 @@ tests/                      pytest smoke tests
 ## Quickstart
 
 ```bash
-# Install
 pip install -e ".[dev]"
 
-# Start vLLM server (after saving a checkpoint, or point at a HF model dir)
-GRIDZERO_MODEL_PATH=Qwen/Qwen3-4B bash scripts/serve_vllm.sh
-
-# Train
+# Collect rollout dataset + launch GSPO training (via ms-swift)
 python scripts/train.py
+
+# Or invoke ms-swift directly for full control:
+swift rlhf \
+    --rlhf_type grpo \
+    --importance_sampling_level sequence \
+    --model Qwen/Qwen3-4B \
+    --external_plugins gridzero/rewards/orm_plugin.py \
+    --reward_funcs grid_composite \
+    --num_generations 8 \
+    --epsilon 3e-4 \
+    --epsilon_high 4e-4 \
+    --steps_per_generation 4 \
+    --dataset_path outputs/rollout_dataset.jsonl
 
 # Evaluate
 python scripts/evaluate.py n_eval_episodes=20
@@ -122,8 +131,9 @@ Constrained generation (`guided_json`) guarantees every model output is a syntac
 ## Dependencies
 
 - [grid2op](https://github.com/rte-france/Grid2Op) + [lightsim2grid](https://github.com/BDonnot/lightsim2grid)
+- [ms-swift](https://github.com/modelscope/ms-swift) ≥ 3.7 — GSPO via `GRPOTrainer` + `importance_sampling_level='sequence'`
 - [PyTorch](https://pytorch.org/) + [PyG](https://pyg.org/)
-- [vLLM](https://github.com/vllm-project/vllm) ≥ 0.5
+- [vLLM](https://github.com/vllm-project/vllm) ≥ 0.5 (Phase 2 encoder embedding injection)
 - [HuggingFace Transformers](https://github.com/huggingface/transformers) ≥ 4.45
 - [Pydantic](https://docs.pydantic.dev/) v2
 - [Hydra](https://hydra.cc/) for config management
