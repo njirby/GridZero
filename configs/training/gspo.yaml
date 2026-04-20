@@ -1,0 +1,9 @@
+n_completions_per_state: 8   # G — completions sampled per state
+clip_eps: 0.2
+lr: 1.0e-5
+max_steps_per_episode: 2016
+episodes_per_update: 16
+kl_coeff: 0.01
+ref_policy: frozen_init       # frozen_init | rolling
+n_updates: 1000
+grad_clip: 1.0

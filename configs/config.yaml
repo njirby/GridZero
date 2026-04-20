@@ -1,0 +1,10 @@
+defaults:
+  - env: l2rpn_case14
+  - encoder: graph
+  - policy: qwen3_4b
+  - training: gspo
+  - reward: default
+  - _self_
+
+seed: 42
+output_dir: outputs/

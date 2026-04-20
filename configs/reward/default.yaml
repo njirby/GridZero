@@ -1,0 +1,4 @@
+weights:
+  survival: 1.0
+  load_served: 0.5
+  line_margin: 0.2
