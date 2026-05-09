@@ -12,10 +12,10 @@ per_device_train_batch_size: 1
 gradient_accumulation_steps: 4
 logging_steps: 1
 save_steps: 250
-report_to: tensorboard
+report_to: wandb
 log_completions: true
+gradient_checkpointing: true
 dataset_size: 256
-n_chronics: 1004
 
 # vLLM colocate mode (single GPU)
 use_vllm: true

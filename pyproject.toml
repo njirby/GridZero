@@ -26,6 +26,7 @@ dependencies = [
     "jmespath",
     "outlines>=1.0",
     "peft",
+    "wandb>=0.18",
     "pytest",
     "pytest-asyncio",
 ]

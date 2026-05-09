@@ -5,7 +5,7 @@ Usage:
 """
 from __future__ import annotations
 
-import torch
+import wandb
 from datasets import Dataset
 from omegaconf import OmegaConf
 from trl import GRPOConfig
@@ -18,7 +18,7 @@ from gridzero.training.reward import grid_reward
 def main():
     encoder_cfg = OmegaConf.create({
         "type": "flat",
-        "d_model": 1024,
+        "d_model": None,
         "seq_len": 16,
         "n_layers": 1,
     })
@@ -30,6 +30,7 @@ def main():
 
     config = GRPOConfig(
         output_dir="outputs/smoke_embedding",
+        run_name="smoke-embedding-wandb",
         num_generations=8,
         generation_batch_size=8,
         max_completion_length=64,
@@ -38,12 +39,12 @@ def main():
         epsilon=0.2,
         beta=0.0,
         learning_rate=1e-4,
-        max_steps=20,
+        max_steps=10,
         per_device_train_batch_size=1,
         gradient_accumulation_steps=1,
         logging_steps=1,
-        save_steps=20,
-        report_to="tensorboard",
+        save_steps=10,
+        report_to="wandb",
         use_vllm=True,
         vllm_mode="colocate",
         vllm_gpu_memory_utilization=0.3,
@@ -56,6 +57,22 @@ def main():
         gradient_checkpointing=True,
     )
 
+    wandb.init(
+        project="gridzero",
+        name="smoke-embedding-wandb",
+        config={
+            "encoder": OmegaConf.to_container(encoder_cfg),
+            "model": "Qwen/Qwen3-0.6B",
+            "env": "l2rpn_case14_sandbox",
+            "max_steps": 10,
+            "num_generations": 8,
+            "learning_rate": 1e-4,
+            "epsilon": 0.2,
+            "beta": 0.0,
+        },
+        save_code=True,
+    )
+
     trainer = EmbeddingGRPOTrainer(
         model="Qwen/Qwen3-0.6B",
         args=config,
@@ -64,6 +81,7 @@ def main():
         reward_funcs=grid_reward,
     )
     trainer.train()
+    wandb.finish()
 
 
 if __name__ == "__main__":
