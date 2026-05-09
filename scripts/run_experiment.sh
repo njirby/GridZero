@@ -8,7 +8,7 @@
 set -euo pipefail
 
 # ─── Experiment Identity ─────────────────────────────────────────────────
-EXPERIMENT=""                        # optional prefix (e.g. "high-lr", "long-seq")
+EXPERIMENT="toy_poc"                        # optional prefix (e.g. "high-lr", "long-seq")
 WANDB_PROJECT="gridzero"             # wandb project
 WANDB_TAGS="baseline,case14"         # comma-separated tags for filtering
 SEED=42
@@ -16,6 +16,7 @@ GPU=0                                # CUDA device index
 
 # ─── Model ───────────────────────────────────────────────────────────────
 MODEL="Qwen/Qwen3-0.6B"             # HF model name or local path
+RANDOM_INIT=true                     # true = train from scratch, false = fine-tune pretrained
 
 # ─── Observation Encoder ─────────────────────────────────────────────────
 ENCODER_TYPE="flat"                  # "flat" or "graph"
@@ -42,7 +43,7 @@ MAX_COMPLETION_LENGTH=128            # max tokens per completion
 MAX_TOOL_ITERATIONS=1                # tool call rounds per completion
 
 # ─── Schedule ────────────────────────────────────────────────────────────
-MAX_STEPS=200                       # total training steps
+MAX_STEPS=500                       # total training steps
 WARMUP_STEPS=0                       # number of LR warmup steps
 SAVE_STEPS=50                       # checkpoint every N steps
 LOGGING_STEPS=1                      # log metrics every N steps
@@ -79,7 +80,8 @@ exec python scripts/train_embeds.py \
     seed="${SEED}" \
     output_dir="${OUTPUT_DIR}" \
     policy.model_name="${MODEL}" \
-    encoder.type="${ENCODER_TYPE}" \
+    policy.random_init="${RANDOM_INIT}" \
+    encoder="${ENCODER_TYPE}" \
     encoder.seq_len="${ENCODER_SEQ_LEN}" \
     encoder.n_layers="${ENCODER_N_LAYERS}" \
     env.env_name="${ENV_NAME}" \

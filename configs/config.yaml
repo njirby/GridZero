@@ -1,7 +1,7 @@
 defaults:
   - env: l2rpn_case14
-  - encoder: graph
-  - policy: qwen3_4b
+  - encoder: flat
+  - policy: qwen3_0_6b
   - training: gspo
   - reward: default
   - _self_

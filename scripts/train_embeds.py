@@ -40,6 +40,7 @@ def main(cfg: DictConfig) -> None:
         train_dataset=dataset,
         encoder_cfg=cfg.encoder,
         env_name=cfg.env.env_name,
+        random_init=bool(cfg.policy.get("random_init", False)),
         reward_funcs=grid_reward,
     )
     trainer.train()

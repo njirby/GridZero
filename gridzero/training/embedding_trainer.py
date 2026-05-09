@@ -60,6 +60,20 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
     to vLLM via ``EmbedsPrompt``.
     """
 
+    @staticmethod
+    def _random_init_model(model_name: str, output_dir: str) -> str:
+        """Create a randomly initialized model and save it so vLLM can load it."""
+        from transformers import AutoConfig, AutoModelForCausalLM
+        config = AutoConfig.from_pretrained(model_name)
+        model = AutoModelForCausalLM.from_config(config)
+        path = os.path.join(output_dir, "random_init")
+        model.save_pretrained(path)
+        # Copy tokenizer files so vLLM can load the full model
+        from transformers import AutoTokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        tokenizer.save_pretrained(path)
+        return path
+
     def __init__(
         self,
         model: str,
@@ -67,9 +81,13 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
         train_dataset: Dataset,
         encoder_cfg: DictConfig,
         env_name: str = "l2rpn_case14_sandbox",
+        random_init: bool = False,
         reward_funcs=None,
         **kwargs,
     ):
+        if random_init:
+            model = self._random_init_model(model, args.output_dir)
+
         reward_funcs = reward_funcs or grid_reward
         # Do NOT pass environment_factory — we manage environments ourselves
         kwargs.pop("environment_factory", None)
