@@ -1,10 +1,23 @@
-# ms-swift GRPOTrainer with importance_sampling_level=sequence (GSPO)
-n_completions_per_state: 8      # num_generations (G)
-clip_eps: 3.0e-4                # epsilon (lower bound)
-clip_eps_high: 4.0e-4           # epsilon_high (upper bound, asymmetric clipping)
-steps_per_generation: 4         # minibatch gradient steps per rollout batch
-kl_coeff: 0.04                  # beta — KL penalty against reference policy
-lr: 1.0e-5
-grad_clip: 1.0
-n_updates: 1000
-episodes_per_update: 16         # used by rollout dataset collector
+# TRL GRPOTrainer config for grid control
+num_generations: 8
+max_completion_length: 128
+max_tool_calling_iterations: 1
+loss_type: grpo
+epsilon: 0.2
+beta: 0.04
+learning_rate: 1.0e-5
+max_grad_norm: 1.0
+max_steps: 1000
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 4
+logging_steps: 1
+save_steps: 250
+report_to: tensorboard
+log_completions: true
+dataset_size: 256
+n_chronics: 1004
+
+# vLLM colocate mode (single GPU)
+use_vllm: true
+vllm_mode: colocate
+vllm_gpu_memory_utilization: 0.3

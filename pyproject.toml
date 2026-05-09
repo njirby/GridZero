@@ -12,9 +12,9 @@ dependencies = [
     "grid2op>=1.10",
     "lightsim2grid",
     "torch>=2.3",
-    "transformers>=4.45",
-    "ms-swift>=3.7",
-    "vllm>=0.5",
+    "transformers>=5.2",
+    "trl>=0.29",
+    "vllm>=0.12",
     "pydantic>=2.0",
     "numpy",
     "gymnasium",
@@ -23,6 +23,9 @@ dependencies = [
     "torch-geometric",
     "aiohttp",
     "tqdm",
+    "jmespath",
+    "outlines>=1.0",
+    "peft",
     "pytest",
     "pytest-asyncio",
 ]
@@ -36,3 +39,9 @@ packages = ["gridzero"]
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+
+[tool.pytest.ini_options]
+markers = [
+    "smoke: end-to-end smoke tests that require external dependencies and GPU",
+    "vllm_live: integration tests that call a live vLLM server",
+]

@@ -1,9 +1,6 @@
 """Async vllm client for rollout generation with multimodal embedding injection."""
 from __future__ import annotations
 
-import asyncio
-from typing import Any
-
 import torch
 from omegaconf import DictConfig
 
@@ -27,6 +24,7 @@ class VLLMRolloutClient:
         )
         self.model_name = cfg.inference.model_name
         self.cfg = cfg
+        self._enable_thinking = bool(cfg.inference.get("enable_thinking", False))
 
     async def sample_completions(
         self,
@@ -61,6 +59,9 @@ class VLLMRolloutClient:
             extra_body={
                 "guided_json": json_schema,
                 "multi_modal_data": mm_data,
+                "chat_template_kwargs": {
+                    "enable_thinking": self._enable_thinking,
+                },
             },
         )
         return [choice.message.content for choice in response.choices]

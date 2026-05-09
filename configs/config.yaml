@@ -8,3 +8,11 @@ defaults:
 
 seed: 42
 output_dir: outputs/
+
+validation:
+  model_name: Qwen/Qwen3-0.6B
+  max_steps: 100
+  dataset_size: 32
+  n_eval_episodes: 5
+  save_steps: 25
+  require_cuda: true

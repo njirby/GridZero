@@ -1,0 +1,6 @@
+model_name: Qwen/Qwen3-0.6B
+random_init: false
+# Override architecture dims (leave null to use model defaults)
+d_model: null
+n_layers: null
+n_heads: null

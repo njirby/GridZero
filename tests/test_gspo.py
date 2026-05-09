@@ -1,10 +1,6 @@
-"""Tests for GSPO-related utilities.
-
-GSPO training itself is handled by ms-swift (GRPOTrainer +
-importance_sampling_level='sequence'). These tests cover the ORM plugin
-and the observation serialization that feeds ms-swift's dataset pipeline.
-"""
+"""Tests for observation serialization and reward utilities."""
 import json
+
 import numpy as np
 import pytest
 
@@ -18,7 +14,6 @@ def test_obs_to_prompt_is_string():
         graph=None,
         n_lines=5, n_loads=3, n_gens=2, n_substations=4,
     )
-    # Attach minimal attributes that serialization tries to read
     obs.rho = np.array([0.5, 0.6, 0.7, 0.8, 0.9])
     obs.line_status = np.array([True] * 5)
     obs.load_p = np.array([10.0, 12.0, 8.0])
@@ -27,7 +22,7 @@ def test_obs_to_prompt_is_string():
 
     prompt = obs_to_prompt(obs)
     assert isinstance(prompt, str)
-    assert "assistant" in prompt  # chat template present
+    assert "assistant" in prompt
     assert "rho" in prompt
 
 
@@ -46,9 +41,16 @@ def test_obs_to_dataset_row_has_prompt():
     assert isinstance(row["obs_flat"], list)
 
 
-def test_orm_plugin_registers():
-    """Importing the ORM plugin should register 'grid_composite' in orms."""
-    pytest.importorskip("swift")
-    from swift.plugin import orms  # type: ignore[import]
-    import gridzero.rewards.orm_plugin  # noqa: F401
-    assert "grid_composite" in orms
+def test_composite_reward_components():
+    from gridzero.rewards.grid_rewards import composite_reward
+
+    class FakeObs:
+        rho = np.array([0.5, 0.6])
+        load_p = np.array([10.0, 12.0])
+
+    r = composite_reward(FakeObs(), done=False)
+    assert isinstance(r, float)
+    assert r > 0
+
+    r_done = composite_reward(FakeObs(), done=True)
+    assert r_done < r
