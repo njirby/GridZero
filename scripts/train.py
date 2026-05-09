@@ -11,7 +11,7 @@ from omegaconf import DictConfig
 from trl import GRPOTrainer
 
 from gridzero.training.env import GridEnv
-from gridzero.training.gspo import build_dataset, build_grpo_config
+from gridzero.training.gspo import build_dataset, build_grpo_config, suppress_tool_definitions
 from gridzero.training.reward import grid_reward
 
 
@@ -27,6 +27,7 @@ def main(cfg: DictConfig) -> None:
         environment_factory=GridEnv,
         args=config,
     )
+    suppress_tool_definitions(trainer)
     trainer.train()
 
 

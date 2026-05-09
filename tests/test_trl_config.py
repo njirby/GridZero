@@ -69,8 +69,9 @@ def test_dataset_prompt_is_message_list():
     ds = build_dataset(cfg)
     prompt = ds[0]["prompt"]
     assert isinstance(prompt, list)
-    assert prompt[0]["role"] == "system"
-    assert "grid" in prompt[0]["content"].lower()
+    assert len(prompt) == 1
+    assert prompt[0]["role"] == "user"
+    assert prompt[0]["content"] == ""
 
 
 def test_dataset_chronics_id_wraps():

@@ -7,12 +7,7 @@ from datasets import Dataset
 from omegaconf import DictConfig
 from trl import GRPOConfig
 
-SYSTEM_PROMPT = (
-    "You are an autonomous power grid operator for a 14-substation network with "
-    "20 powerlines, 6 generators, and 11 loads. Given the current grid state, call "
-    "exactly one tool to control the grid. Your goal is to keep all lines below "
-    "thermal limits and prevent blackouts."
-)
+SYSTEM_PROMPT = ""
 
 TOOL_CALL_SCHEMA: dict = {"oneOf": [
     {"type": "object", "properties": {"name": {"const": "do_nothing"}, "arguments": {"type": "object", "properties": {}, "additionalProperties": False}}, "required": ["name", "arguments"]},
@@ -32,6 +27,23 @@ STRUCTURAL_TAG: str = json.dumps({
         "content": {"type": "json_schema", "json_schema": TOOL_CALL_SCHEMA},
     },
 })
+
+
+def suppress_tool_definitions(trainer) -> None:
+    """Patch the trainer's tokenizer to omit tool schemas from prompts.
+
+    TRL auto-injects verbose tool definitions into every prompt via
+    apply_chat_template(tools=self.tools). With structural_tag constraining
+    output, those definitions are dead weight. This patches the tokenizer
+    to always pass tools=None while keeping self.tools populated for
+    TRL's tool dispatch loop.
+    """
+    orig = trainer.processing_class.apply_chat_template
+
+    def _no_tools(*args, tools=None, **kwargs):
+        return orig(*args, tools=None, **kwargs)
+
+    trainer.processing_class.apply_chat_template = _no_tools
 
 
 def build_grpo_config(cfg: DictConfig, output_dir: str | None = None) -> GRPOConfig:
@@ -58,6 +70,7 @@ def build_grpo_config(cfg: DictConfig, output_dir: str | None = None) -> GRPOCon
         use_vllm=bool(t.get("use_vllm", True)),
         vllm_mode=str(t.get("vllm_mode", "colocate")),
         vllm_gpu_memory_utilization=float(t.get("vllm_gpu_memory_utilization", 0.3)),
+        vllm_max_model_length=int(t.get("vllm_max_model_length", 1024)),
         chat_template_kwargs={"enable_thinking": False},
         generation_kwargs={"structured_outputs": {"structural_tag": STRUCTURAL_TAG}},
         seed=int(cfg.get("seed", 42)),
@@ -76,7 +89,7 @@ def build_dataset(cfg: DictConfig) -> Dataset:
     n_chronics = int(cfg.training.get("n_chronics", 1004))
     return Dataset.from_dict({
         "prompt": [
-            [{"role": "system", "content": SYSTEM_PROMPT}]
+            [{"role": "user", "content": ""}]
             for _ in range(n)
         ],
         "chronics_id": [i % n_chronics for i in range(n)],

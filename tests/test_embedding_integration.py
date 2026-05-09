@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 from trl import GRPOConfig
 
 from gridzero.training.embedding_trainer import EmbeddingGRPOTrainer
-from gridzero.training.gspo import STRUCTURAL_TAG, SYSTEM_PROMPT
+from gridzero.training.gspo import STRUCTURAL_TAG
 from gridzero.training.reward import grid_reward
 
 
@@ -25,10 +25,7 @@ def _encoder_cfg():
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA GPU")
 def test_embedding_grpo_trainer_runs_2_steps(tmp_path):
     dataset = Dataset.from_dict({
-        "prompt": [
-            [{"role": "system", "content": SYSTEM_PROMPT}]
-            for _ in range(4)
-        ],
+        "prompt": [[] for _ in range(4)],
         "chronics_id": [0, 1, 2, 3],
     })
 
@@ -51,7 +48,7 @@ def test_embedding_grpo_trainer_runs_2_steps(tmp_path):
         use_vllm=True,
         vllm_mode="colocate",
         vllm_gpu_memory_utilization=0.3,
-        vllm_max_model_length=512,
+        vllm_max_model_length=1024,
         chat_template_kwargs={"enable_thinking": False},
         generation_kwargs={"structured_outputs": {"structural_tag": STRUCTURAL_TAG}},
         seed=42,

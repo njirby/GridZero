@@ -7,7 +7,7 @@ from datasets import Dataset
 from trl import GRPOConfig, GRPOTrainer
 
 from gridzero.training.env import GridEnv
-from gridzero.training.gspo import STRUCTURAL_TAG, SYSTEM_PROMPT
+from gridzero.training.gspo import STRUCTURAL_TAG, suppress_tool_definitions
 from gridzero.training.reward import grid_reward
 
 
@@ -15,10 +15,7 @@ from gridzero.training.reward import grid_reward
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA GPU")
 def test_grpo_trainer_runs_2_steps(tmp_path):
     dataset = Dataset.from_dict({
-        "prompt": [
-            [{"role": "system", "content": SYSTEM_PROMPT}]
-            for _ in range(4)
-        ],
+        "prompt": [[{"role": "user", "content": ""}] for _ in range(4)],
         "chronics_id": [0, 1, 2, 3],
     })
 
@@ -41,7 +38,7 @@ def test_grpo_trainer_runs_2_steps(tmp_path):
         use_vllm=True,
         vllm_mode="colocate",
         vllm_gpu_memory_utilization=0.3,
-        vllm_max_model_length=2048,
+        vllm_max_model_length=1024,
         chat_template_kwargs={"enable_thinking": False},
         generation_kwargs={"structured_outputs": {"structural_tag": STRUCTURAL_TAG}},
         seed=42,
@@ -57,6 +54,7 @@ def test_grpo_trainer_runs_2_steps(tmp_path):
         environment_factory=GridEnv,
         args=config,
     )
+    suppress_tool_definitions(trainer)
     trainer.train()
 
     assert (tmp_path / "output" / "checkpoint-2").exists()
