@@ -39,7 +39,6 @@ def _cfg():
             "use_vllm": False,
             "vllm_mode": "colocate",
             "vllm_gpu_memory_utilization": 0.3,
-            "dataset_size": 16,
         },
     })
 
@@ -68,7 +67,8 @@ def test_build_dataset_schema():
     ds = build_dataset(cfg)
     assert "prompt" in ds.column_names
     assert "chronics_id" in ds.column_names
-    assert len(ds) == 16
+    from gridzero.training.gspo import get_n_chronics
+    assert len(ds) == get_n_chronics(cfg.env.env_name)
 
 
 def test_dataset_prompt_is_message_list():
@@ -81,14 +81,14 @@ def test_dataset_prompt_is_message_list():
     assert prompt[0]["content"] == ""
 
 
-def test_dataset_chronics_id_wraps():
+def test_dataset_has_all_chronics():
     cfg = _cfg()
     from gridzero.training.gspo import get_n_chronics
     n_chronics = get_n_chronics(cfg.env.env_name)
-    cfg.training.dataset_size = n_chronics + 10
     ds = build_dataset(cfg)
-    assert ds[n_chronics]["chronics_id"] == 0
-    assert ds[n_chronics + 1]["chronics_id"] == 1
+    assert len(ds) == n_chronics
+    assert ds[0]["chronics_id"] == 0
+    assert ds[n_chronics - 1]["chronics_id"] == n_chronics - 1
 
 
 def test_grpo_config_has_constrained_generation():

@@ -141,17 +141,17 @@ def get_n_chronics(env_name: str) -> int:
 
 
 def build_dataset(cfg: DictConfig) -> Dataset:
-    """Build a prompt-only dataset for GRPO training.
+    """Build a dataset with one row per chronic in the environment.
 
-    Each row contains the system prompt and a chronics_id for deterministic
-    grid2op initialization. The GridEnv receives chronics_id via reset(**kwargs).
+    Each row maps to a grid2op chronic (a full time-series scenario).
+    The GridEnv receives chronics_id via reset(**kwargs) to select which
+    scenario to play.
     """
-    n = int(cfg.training.get("dataset_size", 256))
     n_chronics = get_n_chronics(cfg.env.env_name)
     return Dataset.from_dict({
         "prompt": [
             [{"role": "user", "content": ""}]
-            for _ in range(n)
+            for _ in range(n_chronics)
         ],
-        "chronics_id": [i % n_chronics for i in range(n)],
+        "chronics_id": list(range(n_chronics)),
     })

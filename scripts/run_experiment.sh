@@ -41,9 +41,6 @@ NUM_GENERATIONS=8                    # completions per prompt (GRPO group size)
 MAX_COMPLETION_LENGTH=128            # max tokens per completion
 MAX_TOOL_ITERATIONS=1                # tool call rounds per completion
 
-# ─── Dataset ─────────────────────────────────────────────────────────────
-DATASET_SIZE=256                     # rows in training dataset
-
 # ─── Schedule ────────────────────────────────────────────────────────────
 MAX_STEPS=200                       # total training steps
 WARMUP_STEPS=0                       # number of LR warmup steps
@@ -95,7 +92,6 @@ exec python scripts/train_embeds.py \
     training.num_generations="${NUM_GENERATIONS}" \
     training.max_completion_length="${MAX_COMPLETION_LENGTH}" \
     training.max_tool_calling_iterations="${MAX_TOOL_ITERATIONS}" \
-    training.dataset_size="${DATASET_SIZE}" \
     training.max_steps="${MAX_STEPS}" \
     training.save_steps="${SAVE_STEPS}" \
     training.logging_steps="${LOGGING_STEPS}" \

@@ -15,7 +15,6 @@ save_steps: 250
 report_to: wandb
 log_completions: true
 gradient_checkpointing: true
-dataset_size: 256
 
 # vLLM colocate mode (single GPU)
 use_vllm: true
