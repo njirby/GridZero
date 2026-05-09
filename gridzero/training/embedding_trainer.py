@@ -13,6 +13,7 @@ from trl.trainer.grpo_trainer import selective_log_softmax, entropy_from_logits
 from trl.trainer.utils import pad
 
 from gridzero.encoder.flat_encoder import FlatObsEncoder
+from gridzero.encoder.obs_normalization import compute_obs_stats, log_feature_ranges
 from gridzero.env.observation import ObsData
 from gridzero.training.embed_prompt import (
     _get_embed_fn,
@@ -112,12 +113,15 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
         encoder_cfg = encoder_cfg.copy()
         encoder_cfg.d_model = hidden_size
 
-        # Initialize observation encoder — reset once to determine flat_dim
-        probe_env = GridEnv(env_name=env_name)
-        probe_env.reset()
-        flat_dim = probe_env.last_obs_data.flat.shape[0]
-        del probe_env
+        # Compute per-feature normalization stats from diverse env samples
+        obs_mean, obs_std = compute_obs_stats(env_name, seed=self.args.seed)
+        flat_dim = obs_mean.shape[0]
+        log_feature_ranges(env_name, obs_mean, obs_std)
+
         self.obs_encoder = FlatObsEncoder(encoder_cfg, flat_dim=flat_dim)
+        self.obs_encoder.set_normalization_stats(
+            torch.from_numpy(obs_mean), torch.from_numpy(obs_std),
+        )
         self.obs_encoder = self.obs_encoder.to(device)
         if self.args.bf16:
             self.obs_encoder = self.obs_encoder.to(torch.bfloat16)

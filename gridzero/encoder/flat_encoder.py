@@ -27,12 +27,26 @@ class FlatObsEncoder(ObsEncoder):
         self._seq_len = cfg.seq_len
         out_dim = cfg.d_model * cfg.seq_len
 
-        self.input_norm = nn.LayerNorm(flat_dim)
         layers: list[nn.Module] = [nn.Linear(flat_dim, out_dim), nn.GELU()]
         for _ in range(cfg.n_layers - 1):
             layers += [nn.Linear(out_dim, out_dim), nn.GELU()]
         self.mlp = nn.Sequential(*layers)
         self.norm = nn.LayerNorm(cfg.d_model)
+
+        # Per-feature normalization buffers — set via set_normalization_stats()
+        self.register_buffer("_obs_mean", torch.zeros(flat_dim))
+        self.register_buffer("_obs_std", torch.ones(flat_dim))
+
+    def set_normalization_stats(self, mean: torch.Tensor, std: torch.Tensor) -> None:
+        """Set per-feature normalization statistics.
+
+        Features with std < eps are zeroed out (constant features).
+        """
+        eps = 1e-6
+        safe_std = std.clone()
+        safe_std[safe_std < eps] = 1.0
+        self._obs_mean.copy_(mean)
+        self._obs_std.copy_(safe_std)
 
     @property
     def output_dim(self) -> int:
@@ -49,8 +63,9 @@ class FlatObsEncoder(ObsEncoder):
         """
         device = next(self.parameters()).device
         dtype = next(self.parameters()).dtype
-        x = torch.from_numpy(obs.flat).to(device=device, dtype=torch.float32).unsqueeze(0)  # [1, flat_dim]
-        x = self.input_norm(x).to(dtype=dtype)
+        x = torch.from_numpy(obs.flat).to(device=device, dtype=torch.float32).unsqueeze(0)
+        x = (x - self._obs_mean) / self._obs_std
+        x = x.to(dtype=dtype)
         x = self.mlp(x)                                       # [1, seq_len * d_model]
         x = x.view(self._seq_len, self._d_model)              # [seq_len, d_model]
         return self.norm(x)
