@@ -281,7 +281,7 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
             "cached_obs_data": obs_data_list,
         }
         if sampling_per_token_logps is not None:
-            output["sampling_per_token_logps"] = sampling_per_token_logps
+            output["old_per_token_logps"] = sampling_per_token_logps
         return output
 
     def _get_per_token_logps_and_entropies(
@@ -380,7 +380,7 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
             inputs_embeds=inputs_embeds, completion_token_ids=completion_ids,
         )
 
-        # GRPO loss (simplified: no IS correction, no ref model for MVP)
+        # GRPO clipped policy gradient loss
         advantages = inputs["advantages"].to(model_device)
         if advantages.dim() == 1:
             advantages = advantages.unsqueeze(1)
