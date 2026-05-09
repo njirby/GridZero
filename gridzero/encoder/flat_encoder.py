@@ -46,7 +46,9 @@ class FlatObsEncoder(ObsEncoder):
         Returns:
             Tensor of shape [seq_len, d_model].
         """
-        x = torch.from_numpy(obs.flat).float().unsqueeze(0)  # [1, flat_dim]
+        device = next(self.parameters()).device
+        dtype = next(self.parameters()).dtype
+        x = torch.from_numpy(obs.flat).to(device=device, dtype=dtype).unsqueeze(0)  # [1, flat_dim]
         x = self.mlp(x)                                       # [1, seq_len * d_model]
         x = x.view(self._seq_len, self._d_model)              # [seq_len, d_model]
         return self.norm(x)

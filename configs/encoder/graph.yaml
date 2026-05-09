@@ -1,5 +1,5 @@
 type: graph
-d_model: 2048
+d_model: 1024
 n_layers: 4
 n_heads: 8
 dropout: 0.1
