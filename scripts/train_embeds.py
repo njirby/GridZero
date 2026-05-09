@@ -25,6 +25,7 @@ def main(cfg: DictConfig) -> None:
         args=config,
         train_dataset=dataset,
         encoder_cfg=cfg.encoder,
+        env_name=cfg.env.env_name,
         reward_funcs=grid_reward,
     )
     trainer.train()

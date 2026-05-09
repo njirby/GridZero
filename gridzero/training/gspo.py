@@ -9,24 +9,64 @@ from trl import GRPOConfig
 
 SYSTEM_PROMPT = ""
 
-TOOL_CALL_SCHEMA: dict = {"oneOf": [
-    {"type": "object", "properties": {"name": {"const": "do_nothing"}, "arguments": {"type": "object", "properties": {}, "additionalProperties": False}}, "required": ["name", "arguments"]},
-    {"type": "object", "properties": {"name": {"const": "set_line_status"}, "arguments": {"type": "object", "properties": {"line_id": {"type": "integer"}, "status": {"type": "string", "enum": ["connect", "disconnect"]}}, "required": ["line_id", "status"], "additionalProperties": False}}, "required": ["name", "arguments"]},
-    {"type": "object", "properties": {"name": {"const": "change_bus"}, "arguments": {"type": "object", "properties": {"element_type": {"type": "string", "enum": ["load", "gen", "line_or", "line_ex"]}, "element_id": {"type": "integer"}, "bus": {"type": "integer", "enum": [1, 2]}}, "required": ["element_type", "element_id", "bus"], "additionalProperties": False}}, "required": ["name", "arguments"]},
-    {"type": "object", "properties": {"name": {"const": "redispatch"}, "arguments": {"type": "object", "properties": {"gen_id": {"type": "integer"}, "delta_mw": {"type": "number"}}, "required": ["gen_id", "delta_mw"], "additionalProperties": False}}, "required": ["name", "arguments"]},
-    {"type": "object", "properties": {"name": {"const": "curtail"}, "arguments": {"type": "object", "properties": {"gen_id": {"type": "integer"}, "max_mw": {"type": "number"}}, "required": ["gen_id", "max_mw"], "additionalProperties": False}}, "required": ["name", "arguments"]},
-    {"type": "object", "properties": {"name": {"const": "storage"}, "arguments": {"type": "object", "properties": {"storage_id": {"type": "integer"}, "mw": {"type": "number"}}, "required": ["storage_id", "mw"], "additionalProperties": False}}, "required": ["name", "arguments"]},
-]}
 
-STRUCTURAL_TAG: str = json.dumps({
-    "type": "structural_tag",
-    "format": {
-        "type": "tag",
-        "begin": "\n<tool_call>\n",
-        "end": "\n</tool_call>",
-        "content": {"type": "json_schema", "json_schema": TOOL_CALL_SCHEMA},
-    },
-})
+def build_tool_call_schema(env_name: str = "l2rpn_case14_sandbox") -> dict:
+    """Build a JSON schema for tool calls with bounds from the grid environment."""
+    import grid2op
+    env = grid2op.make(env_name)
+    n_line = env.n_line
+    n_gen = env.action_space.n_gen
+    n_load = env.action_space.n_load
+    n_storage = env.action_space.n_storage
+    max_element_id = max(n_line, n_gen, n_load) - 1
+    env.close()
+
+    actions: list[dict] = [
+        {"type": "object", "properties": {"name": {"const": "do_nothing"}, "arguments": {"type": "object", "properties": {}, "additionalProperties": False}}, "required": ["name", "arguments"]},
+        {"type": "object", "properties": {"name": {"const": "set_line_status"}, "arguments": {"type": "object", "properties": {"line_id": {"type": "integer", "minimum": 0, "maximum": n_line - 1}, "status": {"type": "string", "enum": ["connect", "disconnect"]}}, "required": ["line_id", "status"], "additionalProperties": False}}, "required": ["name", "arguments"]},
+        {"type": "object", "properties": {"name": {"const": "change_bus"}, "arguments": {"type": "object", "properties": {"element_type": {"type": "string", "enum": ["load", "gen", "line_or", "line_ex"]}, "element_id": {"type": "integer", "minimum": 0, "maximum": max_element_id}, "bus": {"type": "integer", "enum": [1, 2]}}, "required": ["element_type", "element_id", "bus"], "additionalProperties": False}}, "required": ["name", "arguments"]},
+        {"type": "object", "properties": {"name": {"const": "redispatch"}, "arguments": {"type": "object", "properties": {"gen_id": {"type": "integer", "minimum": 0, "maximum": n_gen - 1}, "delta_mw": {"type": "number"}}, "required": ["gen_id", "delta_mw"], "additionalProperties": False}}, "required": ["name", "arguments"]},
+        {"type": "object", "properties": {"name": {"const": "curtail"}, "arguments": {"type": "object", "properties": {"gen_id": {"type": "integer", "minimum": 0, "maximum": n_gen - 1}, "max_mw": {"type": "number"}}, "required": ["gen_id", "max_mw"], "additionalProperties": False}}, "required": ["name", "arguments"]},
+    ]
+    if n_storage > 0:
+        actions.append(
+            {"type": "object", "properties": {"name": {"const": "storage"}, "arguments": {"type": "object", "properties": {"storage_id": {"type": "integer", "minimum": 0, "maximum": n_storage - 1}, "mw": {"type": "number"}}, "required": ["storage_id", "mw"], "additionalProperties": False}}, "required": ["name", "arguments"]},
+        )
+    return {"oneOf": actions}
+
+
+def build_structural_tag(env_name: str = "l2rpn_case14_sandbox") -> str:
+    """Build the structural_tag JSON string for constrained decoding."""
+    return json.dumps({
+        "type": "structural_tag",
+        "format": {
+            "type": "tag",
+            "begin": "\n<tool_call>\n",
+            "end": "\n</tool_call>",
+            "content": {"type": "json_schema", "json_schema": build_tool_call_schema(env_name)},
+        },
+    })
+
+
+_DEFAULT_ENV = "l2rpn_case14_sandbox"
+_cached_schema: dict | None = None
+_cached_tag: str | None = None
+
+
+def get_default_tool_call_schema() -> dict:
+    """Return the tool call schema for the default environment (lazy-cached)."""
+    global _cached_schema
+    if _cached_schema is None:
+        _cached_schema = build_tool_call_schema(_DEFAULT_ENV)
+    return _cached_schema
+
+
+def get_default_structural_tag() -> str:
+    """Return the structural tag for the default environment (lazy-cached)."""
+    global _cached_tag
+    if _cached_tag is None:
+        _cached_tag = build_structural_tag(_DEFAULT_ENV)
+    return _cached_tag
 
 
 def suppress_tool_definitions(trainer) -> None:
@@ -49,6 +89,8 @@ def suppress_tool_definitions(trainer) -> None:
 def build_grpo_config(cfg: DictConfig, output_dir: str | None = None) -> GRPOConfig:
     """Translate Hydra config into a TRL GRPOConfig."""
     t = cfg.training
+    env_name = cfg.env.env_name
+    structural_tag = build_structural_tag(env_name)
     num_generations = int(t.get("num_generations", 8))
     return GRPOConfig(
         output_dir=output_dir or cfg.output_dir,
@@ -72,7 +114,7 @@ def build_grpo_config(cfg: DictConfig, output_dir: str | None = None) -> GRPOCon
         vllm_gpu_memory_utilization=float(t.get("vllm_gpu_memory_utilization", 0.3)),
         vllm_max_model_length=int(t.get("vllm_max_model_length", 1024)),
         chat_template_kwargs={"enable_thinking": False},
-        generation_kwargs={"structured_outputs": {"structural_tag": STRUCTURAL_TAG}},
+        generation_kwargs={"structured_outputs": {"structural_tag": structural_tag}},
         seed=int(cfg.get("seed", 42)),
         bf16=True,
         log_completions=bool(t.get("log_completions", True)),

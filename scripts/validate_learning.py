@@ -17,6 +17,8 @@ from gridzero.env.actions import parse_tool_call
 from gridzero.env.serialization import obs_to_prompt
 from gridzero.env.wrapper import make_env
 from gridzero.inference.constrained_gen import build_outlines_generator
+from functools import partial
+
 from gridzero.training.env import GridEnv
 from gridzero.training.gspo import build_dataset, build_grpo_config
 from gridzero.training.reward import grid_reward
@@ -143,7 +145,7 @@ def main(cfg: DictConfig) -> None:
         model=model_name,
         reward_funcs=grid_reward,
         train_dataset=dataset,
-        environment_factory=GridEnv,
+        environment_factory=partial(GridEnv, env_name=cfg.env.env_name),
         args=grpo_cfg,
     )
     trainer.train()

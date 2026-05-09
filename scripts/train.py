@@ -6,6 +6,8 @@ Usage:
 """
 from __future__ import annotations
 
+from functools import partial
+
 import hydra
 from omegaconf import DictConfig
 from trl import GRPOTrainer
@@ -24,7 +26,7 @@ def main(cfg: DictConfig) -> None:
         model=cfg.policy.model_name,
         reward_funcs=grid_reward,
         train_dataset=dataset,
-        environment_factory=GridEnv,
+        environment_factory=partial(GridEnv, env_name=cfg.env.env_name),
         args=config,
     )
     suppress_tool_definitions(trainer)

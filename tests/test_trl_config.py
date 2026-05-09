@@ -3,15 +3,23 @@ from __future__ import annotations
 
 import json
 
+import grid2op
 from omegaconf import OmegaConf
 
-from gridzero.training.gspo import STRUCTURAL_TAG, TOOL_CALL_SCHEMA, build_dataset, build_grpo_config
+from gridzero.training.gspo import (
+    build_dataset,
+    build_grpo_config,
+    build_tool_call_schema,
+    get_default_structural_tag,
+    get_default_tool_call_schema,
+)
 
 
 def _cfg():
     return OmegaConf.create({
         "seed": 42,
         "output_dir": "outputs/test",
+        "env": {"env_name": "l2rpn_case14_sandbox"},
         "policy": {"model_name": "Qwen/Qwen3-0.6B"},
         "training": {
             "num_generations": 4,
@@ -92,10 +100,37 @@ def test_grpo_config_has_constrained_generation():
 
 def test_structural_tag_compiles_with_xgrammar():
     import xgrammar as xgr
-    grammar = xgr.Grammar.from_structural_tag(STRUCTURAL_TAG)
+    grammar = xgr.Grammar.from_structural_tag(get_default_structural_tag())
     assert grammar is not None
 
 
 def test_tool_call_schema_covers_all_actions():
-    names = {s["properties"]["name"]["const"] for s in TOOL_CALL_SCHEMA["oneOf"]}
-    assert names == {"do_nothing", "set_line_status", "change_bus", "redispatch", "curtail", "storage"}
+    schema = get_default_tool_call_schema()
+    names = {s["properties"]["name"]["const"] for s in schema["oneOf"]}
+    expected = {"do_nothing", "set_line_status", "change_bus", "redispatch", "curtail"}
+    assert names == expected
+
+
+def test_tool_call_schema_has_bounds():
+    schema = get_default_tool_call_schema()
+    for action in schema["oneOf"]:
+        props = action["properties"]["arguments"]["properties"]
+        for key, spec in props.items():
+            if spec.get("type") == "integer" and key not in ("bus",):
+                assert "minimum" in spec, f"{key} missing minimum"
+                assert "maximum" in spec, f"{key} missing maximum"
+
+
+def test_schema_matches_env_dimensions():
+    env = grid2op.make("l2rpn_case14_sandbox")
+    schema = build_tool_call_schema("l2rpn_case14_sandbox")
+    actions = {s["properties"]["name"]["const"]: s for s in schema["oneOf"]}
+
+    line_max = actions["set_line_status"]["properties"]["arguments"]["properties"]["line_id"]["maximum"]
+    assert line_max == env.n_line - 1
+
+    gen_max = actions["redispatch"]["properties"]["arguments"]["properties"]["gen_id"]["maximum"]
+    assert gen_max == env.action_space.n_gen - 1
+
+    assert "storage" not in actions
+    env.close()

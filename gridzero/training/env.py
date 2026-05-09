@@ -45,14 +45,14 @@ class GridEnv:
     docstring automatically.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, env_name: str = "l2rpn_case14_sandbox") -> None:
         try:
             from lightsim2grid import LightSimBackend
             backend = LightSimBackend()
         except ImportError:
             from grid2op.Backend import PandaPowerBackend
             backend = PandaPowerBackend()
-        self._env = grid2op.make("l2rpn_case14_sandbox", backend=backend)
+        self._env = grid2op.make(env_name, backend=backend)
         self._obs_parser = ObsParser(self._env)
         self._obs = None
         self._done = False
@@ -104,6 +104,8 @@ class GridEnv:
         Returns:
             The grid state after applying the action.
         """
+        if not 0 <= line_id < self._env.n_line:
+            raise ValueError(f"line_id {line_id} out of range [0, {self._env.n_line})")
         status_val = 1 if status == "connect" else -1
         action = self._env.action_space({"set_line_status": [(line_id, status_val)]})
         return self._step(action)
@@ -143,6 +145,8 @@ class GridEnv:
         Returns:
             The grid state after applying the action.
         """
+        if not 0 <= gen_id < self._env.action_space.n_gen:
+            raise ValueError(f"gen_id {gen_id} out of range [0, {self._env.action_space.n_gen})")
         redispatch = [0.0] * self._env.action_space.n_gen
         redispatch[gen_id] = delta_mw
         action = self._env.action_space({"redispatch": redispatch})
@@ -158,6 +162,8 @@ class GridEnv:
         Returns:
             The grid state after applying the action.
         """
+        if not 0 <= gen_id < self._env.action_space.n_gen:
+            raise ValueError(f"gen_id {gen_id} out of range [0, {self._env.action_space.n_gen})")
         curtail = [-1.0] * self._env.action_space.n_gen
         curtail[gen_id] = max_mw
         action = self._env.action_space({"curtail": curtail})
@@ -173,6 +179,8 @@ class GridEnv:
         Returns:
             The grid state after applying the action.
         """
+        if not 0 <= storage_id < self._env.action_space.n_storage:
+            raise ValueError(f"storage_id {storage_id} out of range [0, {self._env.action_space.n_storage})")
         storage_arr = [0.0] * self._env.action_space.n_storage
         storage_arr[storage_id] = mw
         action = self._env.action_space({"set_storage": storage_arr})

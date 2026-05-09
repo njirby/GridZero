@@ -44,7 +44,7 @@ def _parse_and_execute(text: str, env: GridEnv) -> None:
         return
     try:
         method(**args)
-    except (RuntimeError, ValueError, TypeError):
+    except (RuntimeError, ValueError, TypeError, IndexError):
         pass
 
 
@@ -63,6 +63,7 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
         args: GRPOConfig,
         train_dataset: Dataset,
         encoder_cfg: DictConfig,
+        env_name: str = "l2rpn_case14_sandbox",
         reward_funcs=None,
         **kwargs,
     ):
@@ -106,7 +107,7 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
         hidden_size = self.model.config.hidden_size
 
         # Initialize observation encoder — reset once to determine flat_dim
-        probe_env = GridEnv()
+        probe_env = GridEnv(env_name=env_name)
         probe_env.reset()
         flat_dim = probe_env.last_obs_data.flat.shape[0]
         del probe_env
@@ -121,7 +122,7 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
 
         # Create environments (same pattern as TRL's __init__)
         gen_batch_size = self.args.per_device_train_batch_size * self.args.steps_per_generation
-        self.environments = [GridEnv() for _ in range(gen_batch_size)]
+        self.environments = [GridEnv(env_name=env_name) for _ in range(gen_batch_size)]
 
         # Cache chat template token IDs
         self._prefix_ids, self._suffix_ids = cache_template_ids(
