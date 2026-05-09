@@ -1,4 +1,4 @@
 type: flat
-d_model: 1024
+d_model: null  # auto-derived from model hidden_size
 seq_len: 32
 n_layers: 2

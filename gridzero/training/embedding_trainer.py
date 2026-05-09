@@ -106,16 +106,16 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
         device = self.accelerator.device
         hidden_size = self.model.config.hidden_size
 
+        # Force encoder d_model to match the model — ignore config value
+        encoder_cfg = encoder_cfg.copy()
+        encoder_cfg.d_model = hidden_size
+
         # Initialize observation encoder — reset once to determine flat_dim
         probe_env = GridEnv(env_name=env_name)
         probe_env.reset()
         flat_dim = probe_env.last_obs_data.flat.shape[0]
         del probe_env
         self.obs_encoder = FlatObsEncoder(encoder_cfg, flat_dim=flat_dim)
-        assert self.obs_encoder.output_dim == hidden_size, (
-            f"Encoder output_dim ({self.obs_encoder.output_dim}) must match "
-            f"model hidden_size ({hidden_size})"
-        )
         self.obs_encoder = self.obs_encoder.to(device)
         if self.args.bf16:
             self.obs_encoder = self.obs_encoder.to(torch.bfloat16)

@@ -1,5 +1,5 @@
 type: graph
-d_model: 1024
+d_model: null  # auto-derived from model hidden_size
 n_layers: 4
 n_heads: 8
 dropout: 0.1

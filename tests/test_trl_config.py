@@ -40,7 +40,6 @@ def _cfg():
             "vllm_mode": "colocate",
             "vllm_gpu_memory_utilization": 0.3,
             "dataset_size": 16,
-            "n_chronics": 100,
         },
     })
 
@@ -84,11 +83,12 @@ def test_dataset_prompt_is_message_list():
 
 def test_dataset_chronics_id_wraps():
     cfg = _cfg()
-    cfg.training.dataset_size = 200
-    cfg.training.n_chronics = 50
+    from gridzero.training.gspo import get_n_chronics
+    n_chronics = get_n_chronics(cfg.env.env_name)
+    cfg.training.dataset_size = n_chronics + 10
     ds = build_dataset(cfg)
-    assert ds[50]["chronics_id"] == 0
-    assert ds[99]["chronics_id"] == 49
+    assert ds[n_chronics]["chronics_id"] == 0
+    assert ds[n_chronics + 1]["chronics_id"] == 1
 
 
 def test_grpo_config_has_constrained_generation():

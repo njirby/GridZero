@@ -92,6 +92,13 @@ def build_grpo_config(cfg: DictConfig, output_dir: str | None = None) -> GRPOCon
     env_name = cfg.env.env_name
     structural_tag = build_structural_tag(env_name)
     num_generations = int(t.get("num_generations", 8))
+    report_to = str(t.get("report_to", "tensorboard"))
+
+    kwargs = {}
+    if report_to == "wandb":
+        run_name = str(t.get("run_name", f"gridzero-{env_name}"))
+        kwargs["run_name"] = run_name
+
     return GRPOConfig(
         output_dir=output_dir or cfg.output_dir,
         num_generations=num_generations,
@@ -108,7 +115,7 @@ def build_grpo_config(cfg: DictConfig, output_dir: str | None = None) -> GRPOCon
         gradient_accumulation_steps=int(t.get("gradient_accumulation_steps", 4)),
         logging_steps=int(t.get("logging_steps", 1)),
         save_steps=int(t.get("save_steps", 250)),
-        report_to=str(t.get("report_to", "tensorboard")),
+        report_to=report_to,
         use_vllm=bool(t.get("use_vllm", True)),
         vllm_mode=str(t.get("vllm_mode", "colocate")),
         vllm_gpu_memory_utilization=float(t.get("vllm_gpu_memory_utilization", 0.3)),
@@ -118,7 +125,19 @@ def build_grpo_config(cfg: DictConfig, output_dir: str | None = None) -> GRPOCon
         seed=int(cfg.get("seed", 42)),
         bf16=True,
         log_completions=bool(t.get("log_completions", True)),
+        gradient_checkpointing=bool(t.get("gradient_checkpointing", True)),
+        warmup_steps=int(t.get("warmup_steps", 0)),
+        **kwargs,
     )
+
+
+def get_n_chronics(env_name: str) -> int:
+    """Return the number of chronics available in the given grid2op environment."""
+    import grid2op
+    env = grid2op.make(env_name)
+    n = len(env.chronics_handler.real_data.subpaths)
+    env.close()
+    return n
 
 
 def build_dataset(cfg: DictConfig) -> Dataset:
@@ -128,7 +147,7 @@ def build_dataset(cfg: DictConfig) -> Dataset:
     grid2op initialization. The GridEnv receives chronics_id via reset(**kwargs).
     """
     n = int(cfg.training.get("dataset_size", 256))
-    n_chronics = int(cfg.training.get("n_chronics", 1004))
+    n_chronics = get_n_chronics(cfg.env.env_name)
     return Dataset.from_dict({
         "prompt": [
             [{"role": "user", "content": ""}]

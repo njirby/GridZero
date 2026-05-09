@@ -15,7 +15,7 @@ from gridzero.training.reward import grid_reward
 def _encoder_cfg():
     return OmegaConf.create({
         "type": "flat",
-        "d_model": 1024,
+        "d_model": None,
         "seq_len": 16,
         "n_layers": 1,
     })
