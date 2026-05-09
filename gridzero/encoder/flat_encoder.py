@@ -27,6 +27,7 @@ class FlatObsEncoder(ObsEncoder):
         self._seq_len = cfg.seq_len
         out_dim = cfg.d_model * cfg.seq_len
 
+        self.input_norm = nn.LayerNorm(flat_dim)
         layers: list[nn.Module] = [nn.Linear(flat_dim, out_dim), nn.GELU()]
         for _ in range(cfg.n_layers - 1):
             layers += [nn.Linear(out_dim, out_dim), nn.GELU()]
@@ -48,7 +49,8 @@ class FlatObsEncoder(ObsEncoder):
         """
         device = next(self.parameters()).device
         dtype = next(self.parameters()).dtype
-        x = torch.from_numpy(obs.flat).to(device=device, dtype=dtype).unsqueeze(0)  # [1, flat_dim]
+        x = torch.from_numpy(obs.flat).to(device=device, dtype=torch.float32).unsqueeze(0)  # [1, flat_dim]
+        x = self.input_norm(x).to(dtype=dtype)
         x = self.mlp(x)                                       # [1, seq_len * d_model]
         x = x.view(self._seq_len, self._d_model)              # [seq_len, d_model]
         return self.norm(x)

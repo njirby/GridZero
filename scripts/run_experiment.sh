@@ -45,14 +45,14 @@ MAX_TOOL_ITERATIONS=1                # tool call rounds per completion
 DATASET_SIZE=256                     # rows in training dataset
 
 # ─── Schedule ────────────────────────────────────────────────────────────
-MAX_STEPS=1000                       # total training steps
+MAX_STEPS=200                       # total training steps
 WARMUP_STEPS=0                       # number of LR warmup steps
-SAVE_STEPS=250                       # checkpoint every N steps
+SAVE_STEPS=50                       # checkpoint every N steps
 LOGGING_STEPS=1                      # log metrics every N steps
 
 # ─── vLLM ────────────────────────────────────────────────────────────────
 VLLM_GPU_MEMORY=0.3                  # fraction of GPU memory for vLLM
-VLLM_MAX_MODEL_LEN=1024             # max sequence length (prompt + completion)
+VLLM_MAX_MODEL_LEN=2048             # max sequence length (prompt + completion)
 
 # ─── Memory ──────────────────────────────────────────────────────────────
 GRADIENT_CHECKPOINTING=true          # trade compute for memory

@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import torch
+from safetensors.torch import load_file, save_file
 from datasets import Dataset
 from omegaconf import DictConfig
 from trl import GRPOConfig, GRPOTrainer
@@ -137,6 +139,20 @@ class EmbeddingGRPOTrainer(GRPOTrainer):
             "lr": self.args.learning_rate,
         })
         return optimizer
+
+    def save_model(self, output_dir=None, _internal_call=False):
+        super().save_model(output_dir, _internal_call=_internal_call)
+        if output_dir is None:
+            output_dir = self.args.output_dir
+        if self.args.should_save:
+            save_file(self.obs_encoder.state_dict(), os.path.join(output_dir, "obs_encoder.safetensors"))
+
+    def _load_from_checkpoint(self, resume_from_checkpoint, model=None):
+        super()._load_from_checkpoint(resume_from_checkpoint, model=model)
+        encoder_path = os.path.join(resume_from_checkpoint, "obs_encoder.safetensors")
+        if os.path.isfile(encoder_path):
+            state_dict = load_file(encoder_path, device=str(self.accelerator.device))
+            self.obs_encoder.load_state_dict(state_dict)
 
     def _generate_and_score_completions(
         self, inputs: list[dict]
