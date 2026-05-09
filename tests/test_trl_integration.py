@@ -41,11 +41,13 @@ def test_grpo_trainer_runs_2_steps(tmp_path):
         use_vllm=True,
         vllm_mode="colocate",
         vllm_gpu_memory_utilization=0.3,
+        vllm_max_model_length=2048,
         chat_template_kwargs={"enable_thinking": False},
         generation_kwargs={"structured_outputs": {"structural_tag": STRUCTURAL_TAG}},
         seed=42,
         bf16=True,
         log_completions=True,
+        gradient_checkpointing=True,
     )
 
     trainer = GRPOTrainer(
