@@ -127,6 +127,21 @@ def start_backend(port, acfg=None, model="qwen3.5-4b"):
     # reset the episode, attack the grid, or drive /control.
     tok = secrets.token_hex(16)
     env["SIM_API_TOKEN"] = tok
+    # per-episode netns (OPENCODE_NETNS=0 to disable): the backend runs inside
+    # it; the sandboxed opencode joins it; the agent's only external service
+    # is vLLM via the gateway-IP forwarder (no sibling backends, no internet).
+    net = None
+    if os.environ.get("OPENCODE_NETNS", "1") == "1":
+        try:
+            from bench.netns import EpisodeNet
+            net = EpisodeNet(port, log_dir=os.path.join(ROOT, "runs"))
+            net.setup()
+            env["VLLM_FORWARD_URL"] = net.vllm_url()
+        except Exception as e:
+            print(f"  (netns setup failed: {e} — running WITHOUT network isolation)")
+            if net:
+                net.teardown()
+            net = None
     env["OPENCODE_SANDBOX"] = "1"                # filesystem sandbox: hide the answer key
     env["OPENCODE_MODEL"] = model or acfg.get("model") or "qwen3.5-4b"
     if not acfg.get("render", True):
@@ -135,10 +150,15 @@ def start_backend(port, acfg=None, model="qwen3.5-4b"):
         env["OPENCODE_NO_DOCS"] = "1"            # no-docs ablation (sandbox builds ws w/o docs)
     if acfg.get("doc_warning"):
         env["OPENCODE_DOC_WARNING"] = acfg["doc_warning"]  # A/B: append a doc variant
-    p = subprocess.Popen([PY, "-m", "uvicorn", "backend.app.main:app",
-                          "--host", "127.0.0.1", "--port", str(port)],
-                         cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env)
-    return p, tok
+    # Inside the netns the backend is reached via the veth IP, so bind 0.0.0.0;
+    # the driver's sandboxed bwrap is a child of the backend and thus inherits
+    # the netns automatically (no nsenter needed in bwrap_argv).
+    host = "0.0.0.0" if net else "127.0.0.1"
+    argv = [PY, "-m", "uvicorn", "backend.app.main:app", "--host", host, "--port", str(port)]
+    if net:
+        argv = net.ns(argv)
+    p = subprocess.Popen(argv, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env)
+    return p, tok, net
 
 
 _DOCLESS = None
@@ -229,8 +249,8 @@ def main():
         print(f"  ADVERSARIAL: {len(a.attacks)} attacks (interval {a.attack_interval}, "
               f"dur {a.attack_duration}); DN-under-attack anchor: survived {a.dn_anchor['survived']}/{horizon} "
               f"cum {a.dn_anchor['cum_reward']:.0f} go={a.dn_anchor['game_over']}")
-    base = f"http://127.0.0.1:{a.port}"
-    bp, tok = start_backend(a.port, a.cfg, model=a.model)
+    bp, tok, net = start_backend(a.port, a.cfg, model=a.model)
+    base = net.backend_base() if net else f"http://127.0.0.1:{a.port}"
     results = []
     try:
         if not wait_up(base, "/sim/status"):
@@ -258,6 +278,11 @@ def main():
             sandbox.kill_sandbox_proc(None, oc_port=a.port + 200)
         except Exception as e:
             print(f"  (sandbox sweep after shutdown: {e})")
+        if net:
+            try:
+                net.teardown()
+            except Exception as e:
+                print(f"  (netns teardown: {e})")
     json.dump([r.to_dict() for r in results], open(os.path.join(outdir, "results.json"), "w"), indent=2)
     print(f"wrote {outdir}/results.json ({len(results)} episodes)")
     return 0

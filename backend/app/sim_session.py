@@ -17,9 +17,10 @@ from .c3 import to_c3, build_meta
 
 
 class SimSession:
-    def __init__(self, env_name="l2rpn_case14_sandbox", env=None, root=None):
+    def __init__(self, env_name="l2rpn_case14_sandbox", env=None, root=None, render_dir=None):
         self.env = env_name
         self.root = root or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        self.render_dir = render_dir  # per-port PNG dir (set by main.py); default below
         self._lock = threading.RLock()
         self._cum_reward = 0.0
         self._last_reward = None
@@ -60,7 +61,7 @@ class SimSession:
         return env
 
     def _render_dir(self):
-        d = os.path.join(self.root, "render")
+        d = self.render_dir or os.path.join(self.root, "render")
         os.makedirs(d, exist_ok=True)
         return d
 

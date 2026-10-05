@@ -61,8 +61,9 @@ def _forbidden():
                          "verbose": {}}, status_code=403)
 
 # Serve the agent's render PNGs to the browser ("Model's PNG" view).
+# Per-port subdir so parallel episodes don't share (leak) each other's PNGs.
 from fastapi.staticfiles import StaticFiles  # noqa: E402
-_RENDER_DIR = os.path.join(ROOT, "render")
+_RENDER_DIR = os.path.join(ROOT, "render", str(SIM_PORT))
 os.makedirs(_RENDER_DIR, exist_ok=True)
 app.mount("/render", StaticFiles(directory=_RENDER_DIR), name="render")
 
@@ -139,7 +140,7 @@ async def _drain_opponent():
 async def _startup():
     os.makedirs(RUNS, exist_ok=True)
     ST.bus = EventBus(runs_dir=RUNS, ep_id=_ep_id())
-    ST.sim = SimSession(root=ROOT)
+    ST.sim = SimSession(root=ROOT, render_dir=_RENDER_DIR)
     ST.oc = OpenCodeDriver(ST.bus, OC_CWD, sim_port=SIM_PORT, oc_port=OC_PORT,
                            atk_token=ATK_TOKEN)
     ST.meta = await asyncio.to_thread(ST.sim.metadata)

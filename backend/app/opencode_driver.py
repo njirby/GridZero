@@ -62,7 +62,13 @@ class OpenCodeDriver:
             self._client = httpx.AsyncClient(base_url=self.base, timeout=60)
         # capture opencode stderr to a per-port log (was DEVNULL; needed to diagnose
         # slow/failed sandbox startup under concurrent load).
-        logf = open(os.path.join(self.root, "runs", f"opencode-{self.oc_port}.log"), "ab")
+        logpath = os.path.join(self.root, "runs", f"opencode-{self.oc_port}.log")
+        try:
+            logf = open(logpath, "ab")
+        except PermissionError:
+            # a previous root (netns) backend owns this file and this one isn't root
+            subprocess.run(["sudo", "-n", "chown", f"{os.getuid()}:", logpath], capture_output=True)
+            logf = open(logpath, "ab")
         try:
             if self.sandbox:
                 import sys
@@ -71,7 +77,8 @@ class OpenCodeDriver:
                 argv, _meta = sandbox.setup(self.oc_port, self.sim_port,
                                             with_docs=self.with_docs,
                                             doc_warning=self.doc_warning, model=self.model,
-                                            attacker=self.attacker, atk_token=self.atk_token)
+                                            attacker=self.attacker, atk_token=self.atk_token,
+                                            vllm_url=os.environ.get("VLLM_FORWARD_URL", "") or None)
                 self._proc = subprocess.Popen(argv, stdout=logf, stderr=subprocess.STDOUT)
             else:
                 self._proc = subprocess.Popen(

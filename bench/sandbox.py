@@ -43,6 +43,14 @@ _SYS_BINDS = ["/usr", "/lib", "/lib64", "/bin", "/sbin", "/etc"]
 def _opencode_bin():
     b = shutil.which("opencode")
     if not b:
+        # PATH may be reduced (sudo secure_path in the netns backend): try the
+        # known install locations.
+        for cand in (os.path.join(os.path.expanduser("~"), ".opencode", "bin", "opencode"),
+                     "/usr/local/bin/opencode"):
+            if os.path.isfile(cand) and os.access(cand, os.X_OK):
+                b = cand
+                break
+    if not b:
         raise RuntimeError("opencode not found on PATH")
     return os.path.realpath(b)
 
@@ -111,7 +119,7 @@ def build_ws(with_docs=True, oc_port=None, doc_warning=None, attacker=None):
     return ws
 
 
-def build_sandbox_home(oc_port, model=None):
+def build_sandbox_home(oc_port, model=None, vllm_url=None):
     """Per-port HOME with a private copy of opencode config + gateway auth, so
     parallel sandboxes don't collide on opencode's data dir.
 
@@ -119,6 +127,9 @@ def build_sandbox_home(oc_port, model=None):
     agents + global default use `<provider>/<model>` (OPENCODE_PROVIDER, default vllm4b). Verified: opencode's session
     model comes from the config's agent.model pin, NOT from a session-level
     override, so this is the reliable way to switch models per episode.
+
+    `vllm_url` (per-episode netns): rewrite localhost provider baseURLs to the
+    gateway forwarder, since inside the netns 127.0.0.1 has no vLLM.
     """
     home = os.path.join(SANDBOX_ROOT, f"home-{oc_port}")
     os.makedirs(os.path.join(home, ".config", "opencode"), exist_ok=True)
@@ -126,16 +137,36 @@ def build_sandbox_home(oc_port, model=None):
     os.makedirs(os.path.join(home, ".cache", "opencode"), exist_ok=True)
     # copy the provider/model config
     cfg_src = os.path.join(HOME, ".config/opencode/opencode.json")
-    cfg_dst = os.path.join(home, ".config/opencode/opencode.json")
+    cfg_dst = os.path.join(home, ".config", "opencode", "opencode.json")
     if os.path.exists(cfg_src):
         shutil.copy(cfg_src, cfg_dst)
         if model:
             _patch_config_model(cfg_dst, model)
+        if vllm_url:
+            _patch_config_baseurl(cfg_dst, vllm_url)
     # copy the gateway auth (needed for the model to reach the LLM)
     auth_src = os.path.join(HOME, ".local/share/opencode/auth.json")
     if os.path.exists(auth_src):
         shutil.copy(auth_src, os.path.join(home, ".local/share/opencode/auth.json"))
     return home
+
+
+def _patch_config_baseurl(cfg_path, vllm_url):
+    """Rewrite localhost provider baseURLs to the episode's gateway host (the
+    netns has no vLLM on loopback; the forwarder on the gateway IP does)."""
+    import json
+    host = vllm_url.split("//", 1)[1].split(":", 1)[0]
+    try:
+        d = json.load(open(cfg_path))
+        for prov in (d.get("provider", {}) or {}).values():
+            opts = prov.get("options", {}) or {}
+            bu = opts.get("baseURL", "")
+            for local in ("localhost", "127.0.0.1"):
+                if f"//{local}:" in bu:
+                    opts["baseURL"] = bu.replace(f"//{local}:", f"//{host}:")
+        json.dump(d, open(cfg_path, "w"), indent=2)
+    except Exception as e:
+        print(f"  (warn) could not patch sandbox baseURL: {e}")
 
 
 def _patch_config_model(cfg_path, model):
@@ -158,7 +189,9 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token=""):
     """Full argv to launch a sandboxed `opencode serve` (runs as root via sudo)."""
     oc_bin = _opencode_bin()
     runtime_binds, node_bin = _opencode_runtime_binds()
-    real_render = os.path.join(ROOT, "render")
+    # per-port render dir: one shared render/ would leak previous episodes' PNGs
+    real_render = os.path.join(ROOT, "render", str(sim_port))
+    os.makedirs(real_render, exist_ok=True)  # must exist before the ro-bind below
     args = ["sudo", "-n", "bwrap"]
     for d in _SYS_BINDS:
         args += ["--ro-bind", d, d]
@@ -177,6 +210,14 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token=""):
     # ephemeral + namespace isolation
     args += ["--tmpfs", "/tmp", "--dev", "/dev", "--proc", "/proc",
              "--unshare-pid", "--unshare-uts"]
+    # /proc/kcore exposes HOST physical memory to root+CAP_SYS_RAWIO (page cache
+    # holds the "hidden" answer key and sibling-episode buffers) — mask it, plus
+    # /proc/keys. NOTE: mknod currently works inside (CAP_MKNOD) but raw-device
+    # opens are blocked only by bwrap's MS_NODEV on every mount — a bwrap upgrade
+    # or any non-nodev mount would let `dd if=/dev/...` read the host partition,
+    # so keep kcore masked regardless.
+    args += ["--ro-bind", "/dev/null", "/proc/kcore"]
+    args += ["--ro-bind", "/dev/null", "/proc/keys"]
     args += ["--chdir", REPO_PATH]
     args += ["--setenv", "HOME", HOME_IN_SB]
     args += ["--setenv", "PATH", f"{node_bin}:{REPO_PATH}/cli:/usr/bin:/bin"]
@@ -192,10 +233,10 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token=""):
 
 
 def setup(oc_port, sim_port, with_docs=True, doc_warning=None, model=None, attacker=None,
-          atk_token=""):
+          atk_token="", vllm_url=None):
     """Build per-port ws + sandbox home; return (argv, {ws, sb_home})."""
     ws = build_ws(with_docs, oc_port=oc_port, doc_warning=doc_warning, attacker=attacker)
-    sb_home = build_sandbox_home(oc_port, model=model)
+    sb_home = build_sandbox_home(oc_port, model=model, vllm_url=vllm_url)
     return bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=attacker, atk_token=atk_token), \
         {"ws": ws, "sb_home": sb_home}
 
