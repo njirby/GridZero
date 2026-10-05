@@ -64,3 +64,34 @@ def test_attack_opponent(client):
     line = [l for l in s["lines"] if l["name"] == "0_4_1"][0]
     assert line["status"] == "down"
     assert s["last_action"]["source"] == "opponent"
+
+
+def test_token_guard_reset_control(client, monkeypatch):
+    monkeypatch.setenv("SIM_API_TOKEN", "sekrit")
+    h = {"Authorization": "Bearer sekrit"}
+    assert client.post("/sim/reset", json={}).status_code == 403
+    assert client.post("/control", json={"cmd": "pause"}).status_code == 403
+    assert client.post("/sim/reset", json={}, headers=h).status_code == 200
+    assert client.post("/control", json={"cmd": "release"}, headers=h).status_code == 200
+
+
+def test_token_guard_step_clamp(client, monkeypatch):
+    monkeypatch.setenv("SIM_API_TOKEN", "sekrit")
+    t0 = client.get("/sim/status").json()["data"]["t"]
+    r = client.post("/sim/step", json={"n": 5}).json()
+    assert r["ok"] is True and r["data"]["t"] == t0 + 1  # clamped to 1
+    r2 = client.post("/sim/step", json={"n": 5},
+                     headers={"Authorization": "Bearer sekrit"}).json()
+    assert r2["ok"] is True and r2["data"]["t"] == t0 + 6
+
+
+def test_token_guard_attack(client, monkeypatch):
+    import backend.app.main as m
+    monkeypatch.setenv("SIM_API_TOKEN", "sekrit")
+    spec = {"set_line_status": {"0_4_1": -1}}
+    assert client.post("/sim/attack", json=spec).status_code == 403
+    assert client.post("/sim/attack", json=spec,
+                       headers={"Authorization": "Bearer " + m.ATK_TOKEN}).status_code == 200
+    # operator token also works
+    assert client.post("/sim/attack", json=spec,
+                       headers={"Authorization": "Bearer sekrit"}).status_code == 200

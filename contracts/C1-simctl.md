@@ -45,14 +45,17 @@ sim up · env=l2rpn_case14_sandbox · t=50/8064 · reward=63.1 (cum 3120.4) · d
 `--json`: `{"ok":true,"data":{"up":true,"env":"...","t":50,"max_t":8064,"reward":63.1,"cum_reward":3120.4,"done":false}}`
 
 ### `simctl reset [--env NAME]`
-New episode. `NAME` defaults to the backend's configured env.
+New episode. `NAME` defaults to the backend's configured env. **Operator-only:
+the model's session runs with `SIMCTL_NO_RESET=1`, where this exits 1 with a
+message (the episode cannot be reset from the model side).**
 ```
 reset · env=l2rpn_case14_sandbox · t=0 · reward=64.99
 ```
 
-### `simctl step [N]`
-Advance the sim `N` timesteps (default 1) with **no operator action** (do-nothing
-per step). Use to watch natural dynamics.
+### `simctl step`
+Advance the sim **exactly 1** timestep with **no operator action** (a no-op is
+an action). No `N` argument — `simctl step 5` exits 3 (no multi-step
+fast-forward; every step is an observed decision).
 ```
 stepped 1 · t=51 · reward=63.4 · lines_down=1 · overloads=[]
 ```
@@ -106,9 +109,11 @@ docs/
 AGENTS.md   (operator prompt — read this first)
 ```
 
-### `simctl attack <spec>`  *(v1+; absent in v0)*
+### `simctl attack <spec>`  *(attacker session only)*
 Apply an adversarial action (a "real" trip/attack, distinct from an operator
 `act`). Spec is a JSON like `{"line":"3_6_15","kind":"trip","duration":5}`.
+**Gated: only available where `SIMCTL_ATTACKER=1` (the attacker's session) —
+elsewhere it exits 3, so the defender model cannot attack its own grid.**
 The **defender model is NOT told this happened** — it only sees the effect in
 its next `observe`. The backend logs it as `user.action`/`system` for the UI.
 

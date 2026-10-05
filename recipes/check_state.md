@@ -9,8 +9,9 @@ simctl status
 ```
 sim up · env=l2rpn_case14_sandbox · t=50/8064 · reward=63.1 (cum 3120.4) · done=no
 ```
-`done=no` = episode running. `sim down` or a backend error (exit 2) → run
-`simctl reset`.
+`done=no` = episode running. `sim down` or a backend error (exit 2) → retry
+`simctl status`; you cannot reset the episode — if the sim stays down, the
+run is over.
 
 ```
 simctl observe

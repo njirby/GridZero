@@ -89,8 +89,9 @@ watch the second-order effect.
 
 ```
 simctl status          # "sim down ..." or backend error
-simctl reset           # fresh episode, t=0
 ```
+You CANNOT reset the episode — if the sim is down, retry `simctl status` a
+few times (the backend may be restarting); if it stays down, the run is over.
 
 Next: `grid2op/action_space.md` (every action key), `grid2op/pitfalls.md`
 (what breaks silently).

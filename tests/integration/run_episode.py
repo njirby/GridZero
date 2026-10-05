@@ -41,11 +41,14 @@ def wait_up(base, path, timeout=150):
 
 def start_backend(port):
     log = open(os.path.join(RUNS, f"backend-{port}.log"), "ab")
+    import secrets
+    tok = secrets.token_hex(16)
+    env = dict(os.environ, SIM_API_TOKEN=tok)
     p = subprocess.Popen(
         [os.path.join(ROOT, ".venv/bin/python"), "-m", "uvicorn",
          "backend.app.main:app", "--host", "127.0.0.1", "--port", str(port)],
-        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
-    return p
+        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env)
+    return p, tok
 
 
 def collect_events(base, out, stop):
@@ -106,8 +109,9 @@ def main():
     reportf = os.path.join(RUNS, f"eval-{ts}.report.json")
 
     bp = None
+    tok = ""
     if not a.no_backend:
-        bp = start_backend(a.port)
+        bp, tok = start_backend(a.port)
         print(f"backend pid {bp.pid}; waiting for {base}/sim/status (cold boot can take ~60-90s) ...")
         if not wait_up(base, "/sim/status"):
             print("ERROR: backend did not come up; see", os.path.join(RUNS, f"backend-{a.port}.log"))
@@ -120,8 +124,9 @@ def main():
     final_state = {}
     try:
         # fresh episode: reset sim + (re)start opencode session + kickoff
-        httpx.post(base + "/sim/reset", json={}, timeout=60)
-        r = httpx.post(base + "/control", json={"cmd": "reset", "args": {}}, timeout=60)
+        hdr = {"Authorization": "Bearer " + tok} if tok else {}
+        httpx.post(base + "/sim/reset", json={}, headers=hdr, timeout=60)
+        r = httpx.post(base + "/control", json={"cmd": "reset", "args": {}}, headers=hdr, timeout=60)
         print("control reset:", r.status_code, r.text[:200])
         time.sleep(2)
         deadline = time.time() + a.budget

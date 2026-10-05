@@ -16,9 +16,12 @@ import httpx
 DEFAULT_PROVIDER = os.environ.get("OPENCODE_PROVIDER", "vllm4b")
 
 class OpenCodeDriver:
-    def __init__(self, bus, root, sim_port=8731, oc_port=None, attacker=False):
+    def __init__(self, bus, root, sim_port=8731, oc_port=None, attacker=False, atk_token=""):
         self.bus = bus
         self.root = root
+        # attacker token: lets `simctl attack` pass the backend guard for the
+        # ATTACKER session only (the defender's simctl never sees it).
+        self.atk_token = atk_token
         # agent-vs-agent: when True this drives the ATTACKER session — a separate
         # opencode + sandbox sharing the SAME sim (sim_port). Its events are tagged
         # "attacker.*" (not "agent.*") so the defender's trace stays clean, and it
@@ -68,7 +71,7 @@ class OpenCodeDriver:
                 argv, _meta = sandbox.setup(self.oc_port, self.sim_port,
                                             with_docs=self.with_docs,
                                             doc_warning=self.doc_warning, model=self.model,
-                                            attacker=self.attacker)
+                                            attacker=self.attacker, atk_token=self.atk_token)
                 self._proc = subprocess.Popen(argv, stdout=logf, stderr=subprocess.STDOUT)
             else:
                 self._proc = subprocess.Popen(
@@ -76,7 +79,13 @@ class OpenCodeDriver:
                     cwd=self.root,
                     env={**os.environ,
                          "SIM_API_URL": f"http://127.0.0.1:{self.sim_port}",
-                         "PATH": os.path.join(self.root, "cli") + os.pathsep + os.environ.get("PATH", "")},
+                         "PATH": os.path.join(self.root, "cli") + os.pathsep + os.environ.get("PATH", ""),
+                         # anti reward-hacking: the model can never reset the episode,
+                         # never holds the operator token; only the attacker gets the
+                         # attack token (and SIMCTL_ATTACKER to unlock that subcommand).
+                         "SIMCTL_NO_RESET": "1",
+                         "SIM_API_TOKEN": self.atk_token if self.attacker else "",
+                         **({"SIMCTL_ATTACKER": "1"} if self.attacker else {})},
                     stdout=logf, stderr=subprocess.STDOUT)
             # Sandboxed opencode (bwrap + node + model init) under concurrent load
             # can take well over 15s to become healthy — wait up to 180s with retries.
@@ -432,14 +441,14 @@ class AttackerSession:
     session.status STATE frame. No cross-session event sharing is added.
     """
 
-    def __init__(self, bus, root, sim_port, model="qwen3.5-4b"):
+    def __init__(self, bus, root, sim_port, model="qwen3.5-4b", atk_token=""):
         self.bus = bus
         self.root = root
         self.sim_port = sim_port
         self.oc_port = sim_port + 201  # attacker opencode port (defender is +200)
         self.model = model
         self.driver = OpenCodeDriver(bus, root, sim_port=sim_port, oc_port=self.oc_port,
-                                     attacker=True)
+                                     attacker=True, atk_token=atk_token)
         # The attacker always wants its own guide (build_ws ignores with_docs when
         # attacker=True, but keep the driver's flags explicit).
         self.driver.with_docs = True

@@ -43,13 +43,15 @@ def mock():
             proc.kill()
 
 
-def run_simctl(*args, base=None, as_json=False):
+def run_simctl(*args, base=None, as_json=False, extra_env=None):
     cmd = [sys.executable, CLI]
     if as_json:
         cmd.append("--json")
     env = dict(os.environ)
     if base:
         env["SIM_API_URL"] = base
+    if extra_env:
+        env.update(extra_env)
     cmd += list(args)
     r = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=60)
     return r
@@ -68,9 +70,9 @@ def test_status_json(mock):
 
 
 def test_step(mock):
-    r = run_simctl("step", "50", base=mock)
+    r = run_simctl("step", base=mock)
     assert r.returncode == 0
-    assert "stepped 50" in r.stdout and "t=50" in r.stdout
+    assert "stepped 1" in r.stdout and "t=1" in r.stdout
 
 
 def test_act_ok(mock):
@@ -132,8 +134,30 @@ def test_unreachable():
 
 
 def test_attack(mock):
-    r = run_simctl("attack", '{"line":"3_6_15","kind":"trip"}', base=mock)
-    # mock implements /sim/attack -> ok envelope; simctl reports the outcome
+    r = run_simctl("attack", '{"line":"3_6_15","kind":"trip"}', base=mock,
+                   extra_env={"SIMCTL_ATTACKER": "1"})
+    # attacker session: mock implements /sim/attack -> ok envelope
     assert r.stdout.strip()  # produced something
     assert r.returncode == 0
     assert "applied" in r.stdout or "opponent" in r.stdout
+
+
+def test_attack_gated(mock):
+    # defender session (no SIMCTL_ATTACKER): the subcommand is unavailable
+    r = run_simctl("attack", '{"line":"3_6_15","kind":"trip"}', base=mock,
+                   extra_env={"SIMCTL_ATTACKER": "0"})
+    assert r.returncode == 3
+    assert "not available" in r.stdout
+
+
+def test_reset_gated(mock):
+    # model session (SIMCTL_NO_RESET=1): reset is refused BEFORE any HTTP call
+    r = run_simctl("reset", base=mock, extra_env={"SIMCTL_NO_RESET": "1"})
+    assert r.returncode == 1
+    assert "not available" in r.stdout
+
+
+def test_step_no_fastforward(mock):
+    r = run_simctl("step", "5", base=mock)
+    assert r.returncode == 3
+    assert "exactly 1" in r.stdout

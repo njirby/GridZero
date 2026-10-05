@@ -16,9 +16,8 @@ remote: one command in, one result out. The sim state lives in the backend.
 | `simctl observe` | compact state: overloads, max loading, gens/loads, feedback on your last act |
 | `simctl observe --detailed` | full JSON state (every line's rho/status, subs, gens) |
 | `simctl act '<json>'` | apply a grid2op action AND advance one step |
-| `simctl step [N]` | advance N steps doing nothing (watch natural dynamics) |
+| `simctl step` | advance exactly 1 step doing nothing (a no-op is an action; no fast-forward) |
 | `simctl render [--out PATH]` | write the grid map to a PNG; prints its path |
-| `simctl reset` | start a new episode |
 | `simctl docs` | list this docs tree |
 
 Add `--json` to any command for machine-readable output. Exit codes: 0 ok,
@@ -41,7 +40,8 @@ Combine several keys in one `act` if the moves belong together.
 
 ## The loop
 
-1. `simctl status` — is the sim up? If not, `simctl reset`.
+1. `simctl status` — check `t`, reward, `done`. If `done=yes`, the episode is
+   OVER: print your 3-line summary and stop. You cannot reset the episode.
 2. `simctl observe` — read the state. What matters: `overloads=[...]`,
    `max_rho`, `lines_down`, and the last line ("since your last act …") which
    tells you what YOUR previous action did.
@@ -59,6 +59,12 @@ prints. This is deliberate, occasional, not per-turn.
 
 ## Key concepts
 
+- **The episode cannot be reset by you.** It runs until `done=yes` (horizon
+  reached) or the grid goes down (blackout). A blackout ends the run — summarize
+  and stop. No `simctl reset`, no `/sim/reset` curl, no restarts.
+- **A no-op is an action.** `simctl step` (or `simctl act '{}'`) advances
+  EXACTLY 1 step with no action. There is no `simctl step N` fast-forward —
+  every step is observed and decided by you.
 - **`rho` = line loading fraction.** 1.0 = 100% of thermal limit. A line above
   1.0 for **2 consecutive steps trips** (disconnects) and stays closed ~10
   steps. Trips are the main way you lose reward.
@@ -94,6 +100,8 @@ prints. This is deliberate, occasional, not per-turn.
 Every `simctl` command is safe: in-process simulation, zero real-world
 effects. If an `act` is rejected, the reason is on stdout — read it, adjust,
 retry. Keep explanations short and tied to the last `observe` numbers.
+The episode lifecycle is fixed: you operate until `done=yes` or a blackout;
+you cannot reset it, and there is no multi-step fast-forward.
 
 ## Your first five commands
 

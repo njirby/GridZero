@@ -26,6 +26,8 @@ Rules — read carefully:
   is the defender's tool and it will be logged as their action, not yours.
 - `simctl observe` returns the same grid state the defender sees. You never
   see their actions or their reasoning — only the resulting grid state.
+- You CANNOT reset the episode — attack until blackout (`done=yes`) or the
+  run ends. There is no fast-forward; each `attack`/`observe` is one turn.
 
 ## The attack loop
 

@@ -4,7 +4,7 @@ C2 (SIM-API), C4 (EVENT-STREAM SSE), and drives opencode (C5).
 Run:  ./.venv/bin/python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8731
 """
 from __future__ import annotations
-import asyncio, os, queue, time, uuid
+import asyncio, os, queue, secrets, time, uuid
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -28,6 +28,37 @@ OC_CWD = os.environ.get("OPENCODE_CWD", ROOT)
 RENDER_DISABLED = os.environ.get("RENDER_DISABLED", "") == "1"
 
 app = FastAPI(title="grid2op-harness backend")
+
+# ---- auth (anti reward-hacking): privileged routes (reset/attack/control/bench)
+# require a bearer token when SIM_API_TOKEN is set on the backend (bench runners
+# set it; interactive dev mode leaves it open). The model's simctl never gets the
+# operator token; the ATTACKER session gets ATK_TOKEN so `simctl attack` works
+# for it but not for the defender.
+ATK_TOKEN = secrets.token_hex(16)
+
+
+def _op_token() -> str:
+    return os.environ.get("SIM_API_TOKEN", "")
+
+
+def _req_token(request) -> str:
+    h = request.headers.get("authorization", "")
+    if h.startswith("Bearer "):
+        return h[len("Bearer "):].strip()
+    return request.query_params.get("token", "")
+
+
+def _authorized(request, *tokens) -> bool:
+    # auth is only ACTIVE when the runner configured an operator token
+    # (interactive/dev mode has everything open, including multi-step)
+    if not _op_token():
+        return True
+    return _req_token(request) in [t for t in tokens if t]
+
+
+def _forbidden():
+    return JSONResponse({"ok": False, "data": None, "error": "forbidden: token required",
+                         "verbose": {}}, status_code=403)
 
 # Serve the agent's render PNGs to the browser ("Model's PNG" view).
 from fastapi.staticfiles import StaticFiles  # noqa: E402
@@ -109,7 +140,8 @@ async def _startup():
     os.makedirs(RUNS, exist_ok=True)
     ST.bus = EventBus(runs_dir=RUNS, ep_id=_ep_id())
     ST.sim = SimSession(root=ROOT)
-    ST.oc = OpenCodeDriver(ST.bus, OC_CWD, sim_port=SIM_PORT, oc_port=OC_PORT)
+    ST.oc = OpenCodeDriver(ST.bus, OC_CWD, sim_port=SIM_PORT, oc_port=OC_PORT,
+                           atk_token=ATK_TOKEN)
     ST.meta = await asyncio.to_thread(ST.sim.metadata)
     await asyncio.to_thread(ST.sim.reset)
     ST.bus.start_episode(ST.bus.episode, RUNS)
@@ -143,7 +175,9 @@ async def sim_state():
 
 
 @app.post("/sim/reset")
-async def sim_reset(body: dict = {}):
+async def sim_reset(request: Request, body: dict = {}):
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     c3 = await asyncio.to_thread(ST.sim.reset, body.get("env"))
     ST.bus.start_episode(_ep_id(), RUNS)
     await _emit_outcome({"t": 0, "reward": c3["reward"], "cum_reward": 0.0, "applied": {}}, "system")
@@ -151,8 +185,11 @@ async def sim_reset(body: dict = {}):
 
 
 @app.post("/sim/step")
-async def sim_step(body: dict = {}):
+async def sim_step(request: Request, body: dict = {}):
     n = int(body.get("n", 1) or 1)
+    # unauthenticated (model) traffic may advance at most 1 step — no fast-forward
+    if not _authorized(request, _op_token(), ATK_TOKEN):
+        n = min(n, 1)
     out, verb = await asyncio.to_thread(ST.sim.step, n)
     await _emit_outcome(out, ST.mode if ST.mode != "agent" else "auto")
     return envelope(True, out, verbose=verb)
@@ -173,7 +210,9 @@ async def sim_act(body: dict = {}):
 
 
 @app.post("/sim/attack")
-async def sim_attack(body: dict = {}):
+async def sim_attack(request: Request, body: dict = {}):
+    if not _authorized(request, _op_token(), ATK_TOKEN):
+        return _forbidden()
     """Adversarial action: applies to the SAME single-writer sim, tagged 'opponent'.
     The defending agent is NOT notified — it only sees the grid effect in its next
     observe. Used by (a) the human web-UI attack panel, (b) the scripted attacker,
@@ -285,7 +324,9 @@ class BenchStart(BaseModel):
 
 
 @app.post("/bench/start")
-async def bench_start(body: BenchStart):
+async def bench_start(request: Request, body: BenchStart):
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     """Start one benchmark episode: pin the sim to (chronic, horizon, seed),
     open a fresh opencode session, and kick off the benchmark prompt. The full
     event trace is persisted to runs/<ep>.jsonl by the bus (append-only, so a
@@ -335,14 +376,17 @@ class AttackerStart(BaseModel):
 
 
 @app.post("/bench/attacker")
-async def bench_attacker(body: AttackerStart):
+async def bench_attacker(request: Request, body: AttackerStart):
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     """Start (or restart, e.g. after a stall) the ATTACKER opencode session:
     its own `opencode serve` on sim_port+201 in its own sandbox (attacker
     workspace: simctl + attacker guide, NO defender docs), attacker model,
     sharing the SAME sim as the defender. The two sessions are blind to each
     other — each sees only the grid state via simctl. Returns {ok, attacker_active}."""
     if ST.attacker is None:
-        ST.attacker = AttackerSession(ST.bus, OC_CWD, sim_port=SIM_PORT, model=body.model)
+        ST.attacker = AttackerSession(ST.bus, OC_CWD, sim_port=SIM_PORT, model=body.model,
+                                      atk_token=ATK_TOKEN)
     kickoff = body.kickoff or ATTACKER_KICKOFF
     await ST.attacker.attacker_start(body.model, kickoff)
     active = ST.attacker.attacker_active()
@@ -364,9 +408,11 @@ async def bench_attacker_status():
 
 
 @app.post("/bench/attacker/steer")
-async def bench_attacker_steer(body: dict = {}):
+async def bench_attacker_steer(request: Request, body: dict = {}):
     """Nudge the attacker (queued at its next boundary), e.g. the runner's
     idle watchdog: 'keep attacking'."""
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     if ST.attacker is None:
         return envelope(False, None, error="attacker not started")
     await ST.attacker.attacker_steer(body.get("text", ""))
@@ -395,7 +441,9 @@ class Control(BaseModel):
 
 
 @app.post("/control")
-async def control(body: Control):
+async def control(request: Request, body: Control):
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     cmd = body.cmd
     args = body.args or {}
     ST.bus.emit("user.action", {"id": str(uuid.uuid4()), "cmd": cmd, "args": args})

@@ -104,6 +104,9 @@ def cmd_status(a):
 
 
 def cmd_reset(a):
+    if os.environ.get("SIMCTL_NO_RESET") == "1":
+        die("reset is not available in this session — the episode runs to done "
+            "(no-op: `simctl step` or `simctl act '{}'`)", 1)
     body = {"env": a.env} if a.env else {}
     b = post(a, "/sim/reset", a.base_url, a.token, body)
     d = b.get("data", {})
@@ -113,6 +116,9 @@ def cmd_reset(a):
 
 
 def cmd_step(a):
+    if a.n != 1:
+        die("step advances exactly 1 step (no fast-forward); to no-op several steps, "
+            "run `simctl step` that many times or `simctl act '{}'`", 3)
     b = post(a, "/sim/step", a.base_url, a.token, {"n": a.n})
     d = b.get("data", {})
     hum = (f"stepped {a.n} · t={d.get('t')} · reward={d.get('reward', 0):.1f} · "
@@ -197,6 +203,8 @@ def cmd_docs(a):
 
 
 def cmd_attack(a):
+    if os.environ.get("SIMCTL_ATTACKER") != "1":
+        die("attack is not available in this session (attacker-only command)", 3)
     try:
         spec = json.loads(a.json_arg)
     except Exception as e:

@@ -39,14 +39,24 @@ Returns the full **GRID-STATE (C3)** object in `data`.
 {"ok":true,"data":{ ...C3... }}
 ```
 
+**Auth (anti reward-hacking):** when the backend is started with
+`SIM_API_TOKEN`, the privileged routes require `Authorization: Bearer <tok>`:
+`POST /sim/reset` (operator token), `POST /sim/attack` (operator OR attacker
+token), `POST /control`, `POST /bench/start`, `POST /bench/attacker*`.
+`POST /sim/step` with `n>1` from unauthenticated traffic is clamped to 1.
+Read-only routes (status/state/observe/render/event) stay open. Without a
+configured token (interactive dev mode) everything is open.
+
 ### `POST /sim/reset`
 Body: `{"env": "l2rpn_case14_sandbox"}` (env optional). Starts a new episode.
+Operator-token route (the model's simctl is blocked at the CLI layer too).
 ```json
 {"ok":true,"data":{ ...C3 at t=0... }}
 ```
 
 ### `POST /sim/step`
-Body: `{"n": 1}` (n optional, default 1, max 50). Advances `n` do-nothing steps.
+Body: `{"n": 1}` (n optional, default 1, max 50). Advances `n` do-nothing
+steps. Unauthenticated callers are clamped to exactly 1 step.
 ```json
 {"ok":true,"data":{"t":51,"reward":63.4,"cum_reward":3121.0,"done":false,
  "lines_down":1,"overloads":[],"disc_lines":[]},

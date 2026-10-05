@@ -60,9 +60,10 @@ def test_collect_events_parsing(tmp_path):
         t, d = ev.get("type"), ev.get("data", {})
         if t == "sim.state":
             n["sim_state"] += 1
-            n["t_start"] = n["t_start"] or d.get("t")
-            n["t_end"] = d.get("t")
-        elif t == "agent.delta" and d.get("field") == "reasoning":
+            if isinstance(d, dict):  # recorded examples may carry placeholder strings
+                n["t_start"] = n["t_start"] or d.get("t")
+                n["t_end"] = d.get("t")
+        elif t == "agent.delta" and isinstance(d, dict) and d.get("field") == "reasoning":
             n["agent_reasoning"] += 1
         elif t == "agent.tool_result":
             n["tool_result"] += 1

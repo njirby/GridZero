@@ -23,7 +23,7 @@ Usage:
   ./.venv/bin/python bench/run_llm.py --chronic 0 --horizon 8064 --port 8802 --repeats 3
 Writes runs/llm-<chronic>-<ts>/episode-<i>.json (EpisodeResult) + backend log.
 """
-import argparse, json, os, subprocess, sys, time, uuid, warnings
+import argparse, json, os, secrets, subprocess, sys, time, uuid, warnings
 warnings.filterwarnings("ignore")
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -96,7 +96,11 @@ def kickoff_prompt(chronic, horizon, cfg=None, adversarial=False):
         f"reports done=yes (t={horizon}) or the grid game-overs. {adv_note}"
         f"IMPORTANT: there is NO time limit — you may take as long as you need on each step to {tools_txt}. "
         f"Do not stop early and do not ask permission; keep operating until done. When done, print a "
-        f"3-line summary of how you operated the grid."
+        f"3-line summary of how you operated the grid. "
+        f"HARD RULES: you CANNOT reset or restart the episode — it runs until done=yes or the grid goes "
+        f"down, and a blackout ends the run (summarize and stop). Advancing time with no action (a no-op) "
+        f"is `simctl step` (exactly 1 step) or `simctl act '{}'` — there is NO multi-step fast-forward "
+        f"(no `simctl step N`); every step is your decision."
     )
 
 
@@ -118,6 +122,11 @@ def start_backend(port, acfg=None, model="qwen3.5-4b"):
     env = dict(os.environ)
     env["SIMCTL_BACKEND_PORT"] = str(port)       # so simctl targets THIS backend
     env["OPENCODE_PORT"] = str(port + 200)       # unique opencode port per episode
+    # operator token: the runner's /control + /sim/reset calls carry it; the
+    # model's simctl never does (the sandbox strips it), so the model cannot
+    # reset the episode, attack the grid, or drive /control.
+    tok = secrets.token_hex(16)
+    env["SIM_API_TOKEN"] = tok
     env["OPENCODE_SANDBOX"] = "1"                # filesystem sandbox: hide the answer key
     env["OPENCODE_MODEL"] = model or acfg.get("model") or "qwen3.5-4b"
     if not acfg.get("render", True):
@@ -129,7 +138,7 @@ def start_backend(port, acfg=None, model="qwen3.5-4b"):
     p = subprocess.Popen([PY, "-m", "uvicorn", "backend.app.main:app",
                           "--host", "127.0.0.1", "--port", str(port)],
                          cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env)
-    return p
+    return p, tok
 
 
 _DOCLESS = None
@@ -221,14 +230,14 @@ def main():
               f"dur {a.attack_duration}); DN-under-attack anchor: survived {a.dn_anchor['survived']}/{horizon} "
               f"cum {a.dn_anchor['cum_reward']:.0f} go={a.dn_anchor['game_over']}")
     base = f"http://127.0.0.1:{a.port}"
-    bp = start_backend(a.port, a.cfg, model=a.model)
+    bp, tok = start_backend(a.port, a.cfg, model=a.model)
     results = []
     try:
         if not wait_up(base, "/sim/status"):
             print("ERROR: backend did not boot; see", os.path.join(ROOT, "runs", f"backend-bench-{a.port}.log"))
             return 2
         for i in range(a.repeats):
-            res = run_one(base, a, i, outdir, horizon)
+            res = run_one(base, a, i, outdir, horizon, tok)
             results.append(res)
             fn = os.path.join(outdir, f"episode-{i}.json")
             json.dump(res.to_dict(), open(fn, "w"), indent=2)
@@ -254,7 +263,11 @@ def main():
     return 0
 
 
-def run_one(base, a, i, outdir, horizon):
+def _hdr(tok):
+    return {"Authorization": "Bearer " + tok} if tok else {}
+
+
+def run_one(base, a, i, outdir, horizon, tok=""):
     t_start = time.time()
     # start the episode (pins sim + fresh opencode session + kickoff + attack schedule)
     r = httpx.post(base + "/bench/start",
@@ -262,7 +275,7 @@ def run_one(base, a, i, outdir, horizon):
                          "model": a.model,
                          "kickoff": kickoff_prompt(a.chronic, horizon, a.cfg, adversarial=a.adversarial),
                          "attacks": a.attacks},
-                   timeout=300)
+                   headers=_hdr(tok), timeout=300)
     r.raise_for_status()
     ep = r.json()["data"]["ep"]
     cap = a.safety_cap_h * 3600
@@ -332,7 +345,8 @@ def run_one(base, a, i, outdir, horizon):
         if quiet > stall:
             if not restarted:
                 print(f"  t={t}/{horizon}: model quiet {int(quiet)}s (> {a.stall_min} min) -> restarting agent (fresh session)")
-                httpx.post(base + "/control", json={"cmd": "restart_agent", "args": {}}, timeout=60)
+                httpx.post(base + "/control", json={"cmd": "restart_agent", "args": {}},
+                           headers=_hdr(tok), timeout=60)
                 restarted = True
                 lmo = time.time()  # give the fresh session a full stall window
             else:
@@ -345,7 +359,8 @@ def run_one(base, a, i, outdir, horizon):
         if (now - last_t_wall) > a.poke_idle_s and quiet < (stall * 0.5):
             msg = (f"continue operating the grid: you are at t={t}/{horizon}. There is no time "
                    f"pressure — take the next step (observe, decide, act). Keep going until done.")
-            httpx.post(base + "/control", json={"cmd": "instruction", "args": {"text": msg}}, timeout=30)
+            httpx.post(base + "/control", json={"cmd": "instruction", "args": {"text": msg}},
+                       headers=_hdr(tok), timeout=30)
             last_t_wall = now
             print(f"  t={t}/{horizon} no-step>{a.poke_idle_s}s (model active) -> poked continue")
         time.sleep(20)

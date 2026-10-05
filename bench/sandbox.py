@@ -154,7 +154,7 @@ def _patch_config_model(cfg_path, model):
         print(f"  (warn) could not patch sandbox model config: {e}")
 
 
-def bwrap_argv(oc_port, sim_port, ws, sb_home):
+def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token=""):
     """Full argv to launch a sandboxed `opencode serve` (runs as root via sudo)."""
     oc_bin = _opencode_bin()
     runtime_binds, node_bin = _opencode_runtime_binds()
@@ -181,16 +181,23 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home):
     args += ["--setenv", "HOME", HOME_IN_SB]
     args += ["--setenv", "PATH", f"{node_bin}:{REPO_PATH}/cli:/usr/bin:/bin"]
     args += ["--setenv", "SIM_API_URL", f"http://127.0.0.1:{sim_port}"]
-    args += ["--setenv", "SIM_API_TOKEN", os.environ.get("SIM_API_TOKEN", "")]
+    # anti reward-hacking: the model can never reset the episode and never holds
+    # the operator token; only the attacker gets the attack token + subcommand.
+    args += ["--setenv", "SIMCTL_NO_RESET", "1"]
+    args += ["--setenv", "SIM_API_TOKEN", atk_token if attacker else ""]
+    if attacker:
+        args += ["--setenv", "SIMCTL_ATTACKER", "1"]
     args += ["--", oc_bin, "serve", "--hostname", "127.0.0.1", "--port", str(oc_port)]
     return args
 
 
-def setup(oc_port, sim_port, with_docs=True, doc_warning=None, model=None, attacker=None):
+def setup(oc_port, sim_port, with_docs=True, doc_warning=None, model=None, attacker=None,
+          atk_token=""):
     """Build per-port ws + sandbox home; return (argv, {ws, sb_home})."""
     ws = build_ws(with_docs, oc_port=oc_port, doc_warning=doc_warning, attacker=attacker)
     sb_home = build_sandbox_home(oc_port, model=model)
-    return bwrap_argv(oc_port, sim_port, ws, sb_home), {"ws": ws, "sb_home": sb_home}
+    return bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=attacker, atk_token=atk_token), \
+        {"ws": ws, "sb_home": sb_home}
 
 
 def _root_pids_with_port(oc_port):
