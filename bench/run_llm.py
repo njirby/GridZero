@@ -99,7 +99,7 @@ def kickoff_prompt(chronic, horizon, cfg=None, adversarial=False):
         f"3-line summary of how you operated the grid. "
         f"HARD RULES: you CANNOT reset or restart the episode — it runs until done=yes or the grid goes "
         f"down, and a blackout ends the run (summarize and stop). Advancing time with no action (a no-op) "
-        f"is `simctl step` (exactly 1 step) or `simctl act '{}'` — there is NO multi-step fast-forward "
+        f"is `simctl step` (exactly 1 step) or `simctl act '{{}}'` — there is NO multi-step fast-forward "
         f"(no `simctl step N`); every step is your decision."
     )
 
