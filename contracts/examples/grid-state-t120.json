@@ -1,0 +1,458 @@
+{
+  "schema_version": 1,
+  "env": "l2rpn_case14_sandbox",
+  "t": 120,
+  "max_t": 8064,
+  "reward": 65.3058,
+  "cum_reward": 8138.8867,
+  "done": false,
+  "cause": null,
+  "delta_min": 5.0,
+  "sim_clock": "2019-01-06 10:00:00",
+  "n_line": 20,
+  "n_sub": 14,
+  "n_gen": 6,
+  "max_rho": 0.7447,
+  "n_down": 2,
+  "n_overflow": 0,
+  "lines": [
+    {
+      "id": 0,
+      "name": "0_1_0",
+      "or": "sub_0",
+      "ex": "sub_1",
+      "rho": 0.5687,
+      "p_or": 71.645,
+      "p_ex": -70.62,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 1,
+      "name": "0_4_1",
+      "or": "sub_0",
+      "ex": "sub_4",
+      "rho": 0.0,
+      "p_or": 0.0,
+      "p_ex": 0.0,
+      "status": "down",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 2,
+      "name": "1_2_2",
+      "or": "sub_1",
+      "ex": "sub_2",
+      "rho": 0.5017,
+      "p_or": 44.992,
+      "p_ex": -44.062,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 3,
+      "name": "1_3_3",
+      "or": "sub_1",
+      "ex": "sub_3",
+      "rho": 0.4756,
+      "p_or": 74.429,
+      "p_ex": -71.393,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 4,
+      "name": "1_4_4",
+      "or": "sub_1",
+      "ex": "sub_4",
+      "rho": 0.0,
+      "p_or": 0.0,
+      "p_ex": 0.0,
+      "status": "down",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 5,
+      "name": "2_3_5",
+      "or": "sub_2",
+      "ex": "sub_3",
+      "rho": 0.4206,
+      "p_or": 28.062,
+      "p_ex": -27.504,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 6,
+      "name": "3_4_6",
+      "or": "sub_3",
+      "ex": "sub_4",
+      "rho": 0.3296,
+      "p_or": 25.119,
+      "p_ex": -25.026,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 7,
+      "name": "5_10_7",
+      "or": "sub_5",
+      "ex": "sub_10",
+      "rho": 0.5817,
+      "p_or": 9.518,
+      "p_ex": -9.352,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 8,
+      "name": "5_11_8",
+      "or": "sub_5",
+      "ex": "sub_11",
+      "rho": 0.4988,
+      "p_or": 7.625,
+      "p_ex": -7.534,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 9,
+      "name": "5_12_9",
+      "or": "sub_5",
+      "ex": "sub_12",
+      "rho": 0.7447,
+      "p_or": 17.983,
+      "p_ex": -17.682,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 10,
+      "name": "8_9_10",
+      "or": "sub_8",
+      "ex": "sub_9",
+      "rho": 0.2124,
+      "p_or": 2.626,
+      "p_ex": -2.622,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 11,
+      "name": "8_13_11",
+      "or": "sub_8",
+      "ex": "sub_13",
+      "rho": 0.3507,
+      "p_or": 7.451,
+      "p_ex": -7.374,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 12,
+      "name": "9_10_12",
+      "or": "sub_9",
+      "ex": "sub_10",
+      "rho": 0.3268,
+      "p_or": -5.878,
+      "p_ex": 5.952,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 13,
+      "name": "11_12_13",
+      "or": "sub_11",
+      "ex": "sub_12",
+      "rho": 0.4531,
+      "p_or": 2.134,
+      "p_ex": -2.121,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 14,
+      "name": "12_13_14",
+      "or": "sub_12",
+      "ex": "sub_13",
+      "rho": 0.4429,
+      "p_or": 7.603,
+      "p_ex": -7.426,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 15,
+      "name": "3_6_15",
+      "or": "sub_3",
+      "ex": "sub_6",
+      "rho": 0.4484,
+      "p_or": 16.831,
+      "p_ex": -16.831,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 16,
+      "name": "3_8_16",
+      "or": "sub_3",
+      "ex": "sub_8",
+      "rho": 0.4317,
+      "p_or": 11.546,
+      "p_ex": -11.546,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 17,
+      "name": "4_5_17",
+      "or": "sub_4",
+      "ex": "sub_5",
+      "rho": 0.5246,
+      "p_or": 18.226,
+      "p_ex": -18.226,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 18,
+      "name": "6_7_18",
+      "or": "sub_6",
+      "ex": "sub_7",
+      "rho": 0.5419,
+      "p_or": -10.2,
+      "p_ex": 10.2,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    },
+    {
+      "id": 19,
+      "name": "6_8_19",
+      "or": "sub_8",
+      "ex": "sub_6",
+      "rho": 0.4801,
+      "p_or": -27.031,
+      "p_ex": 27.031,
+      "status": "up",
+      "overflow": false,
+      "cooldown": 0,
+      "maint": -1
+    }
+  ],
+  "subs": [
+    {
+      "id": 0,
+      "name": "sub_0",
+      "x": -280.0,
+      "y": -81.0,
+      "type": "gen",
+      "p": 71.645
+    },
+    {
+      "id": 1,
+      "name": "sub_1",
+      "x": -100.0,
+      "y": -270.0,
+      "type": "both",
+      "p": 48.8
+    },
+    {
+      "id": 2,
+      "name": "sub_2",
+      "x": 366.0,
+      "y": -270.0,
+      "type": "both",
+      "p": -16.0
+    },
+    {
+      "id": 3,
+      "name": "sub_3",
+      "x": 366.0,
+      "y": -54.0,
+      "type": "load",
+      "p": -45.4
+    },
+    {
+      "id": 4,
+      "name": "sub_4",
+      "x": -64.0,
+      "y": -54.0,
+      "type": "load",
+      "p": -6.8
+    },
+    {
+      "id": 5,
+      "name": "sub_5",
+      "x": -64.0,
+      "y": 54.0,
+      "type": "both",
+      "p": 16.9
+    },
+    {
+      "id": 6,
+      "name": "sub_6",
+      "x": 450.0,
+      "y": 0.0,
+      "type": "other",
+      "p": 0.0
+    },
+    {
+      "id": 7,
+      "name": "sub_7",
+      "x": 550.0,
+      "y": 0.0,
+      "type": "gen",
+      "p": 10.2
+    },
+    {
+      "id": 8,
+      "name": "sub_8",
+      "x": 326.0,
+      "y": 54.0,
+      "type": "load",
+      "p": -28.5
+    },
+    {
+      "id": 9,
+      "name": "sub_9",
+      "x": 222.0,
+      "y": 108.0,
+      "type": "load",
+      "p": -8.5
+    },
+    {
+      "id": 10,
+      "name": "sub_10",
+      "x": 79.0,
+      "y": 162.0,
+      "type": "load",
+      "p": -3.4
+    },
+    {
+      "id": 11,
+      "name": "sub_11",
+      "x": -170.0,
+      "y": 270.0,
+      "type": "load",
+      "p": -5.4
+    },
+    {
+      "id": 12,
+      "name": "sub_12",
+      "x": -64.0,
+      "y": 270.0,
+      "type": "load",
+      "p": -12.2
+    },
+    {
+      "id": 13,
+      "name": "sub_13",
+      "x": 222.0,
+      "y": 216.0,
+      "type": "load",
+      "p": -14.8
+    }
+  ],
+  "gens": [
+    {
+      "id": 0,
+      "name": "gen_1_0",
+      "sub": "sub_1",
+      "p": 70.2,
+      "renewable": false,
+      "redispatchable": true
+    },
+    {
+      "id": 1,
+      "name": "gen_2_1",
+      "sub": "sub_2",
+      "p": 69.1,
+      "renewable": false,
+      "redispatchable": true
+    },
+    {
+      "id": 2,
+      "name": "gen_5_2",
+      "sub": "sub_5",
+      "p": 9.1,
+      "renewable": true,
+      "redispatchable": false
+    },
+    {
+      "id": 3,
+      "name": "gen_5_3",
+      "sub": "sub_5",
+      "p": 19.3,
+      "renewable": true,
+      "redispatchable": false
+    },
+    {
+      "id": 4,
+      "name": "gen_7_4",
+      "sub": "sub_7",
+      "p": 10.2,
+      "renewable": true,
+      "redispatchable": false
+    },
+    {
+      "id": 5,
+      "name": "gen_0_5",
+      "sub": "sub_0",
+      "p": 71.645,
+      "renewable": false,
+      "redispatchable": true
+    }
+  ],
+  "alarms": [],
+  "last_action": {
+    "source": "auto",
+    "summary": "change_bus 1_4_4 or",
+    "args": {
+      "change_bus": {
+        "lines_or_id": {
+          "1_4_4": true
+        }
+      }
+    },
+    "t": 119
+  },
+  "png": "render/t0120.png"
+}

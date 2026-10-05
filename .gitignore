@@ -1,0 +1,26 @@
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# data / artifacts
+runs/
+data_grid2op/
+.sb/
+.sandbox-ws/
+*.png
+!web/src/assets/*.png
+render/
+
+# node
+web/node_modules/
+web/dist/
+
+# secrets
+.env
+*.local
+auth.json
+
+# os
+.DS_Store

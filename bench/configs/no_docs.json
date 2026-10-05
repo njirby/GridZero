@@ -1,0 +1,7 @@
+{
+  "name": "no_docs",
+  "description": "Ablation: the model operates WITHOUT the curated grid2op docs / AGENTS.md / recipes — it runs opencode in a docs-less workspace and must discover the sim API on its own (from simctl --help and error messages). Measures the value of in-context domain knowledge (the most predictive ablation per R2). Requires a docs-less workspace (bench/make_docless_ws.py).",
+  "render": true,
+  "docs": false,
+  "observe_mode": "auto"
+}

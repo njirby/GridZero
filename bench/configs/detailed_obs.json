@@ -1,0 +1,7 @@
+{
+  "name": "detailed_obs",
+  "description": "Ablation: the model is instructed to always use `simctl observe --detailed` (full numeric state every step) instead of the compact form. Measures the cost/benefit of observation verbosity (more tokens, more info).",
+  "render": true,
+  "docs": true,
+  "observe_mode": "detailed"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "baseline_warn_loads",
+  "description": "A/B vs 'baseline': IDENTICAL docs/simctl/render, EXCEPT a targeted warning appended to AGENTS.md about the loss-of-load failure mode (moving many loads/gens at a substation to the other busbar at once drops the load -> game-over). Everything else is the baseline, so any score delta isolates the value of this one warning.",
+  "render": true,
+  "docs": true,
+  "observe_mode": "auto",
+  "doc_warning": "## CRITICAL — known failure mode: do NOT move a whole substation's loads/gens at once\n\nA common way to game over this grid (loss-of-load) is re-busbaring **many elements at one substation in a single action** — e.g. `change_bus` on `loads_id: [\"load_12_2\",\"load_12_3\",...,\"load_12_9\"]` or moving a sub's generators all to bus 2. If the target busbar is not the energized one for those elements, you **detach the load/generation and the episode ends immediately** (this scored a game-over with 0 line trips).\n\nRules:\n- Move **one element at a time** with `change_bus`/`set_bus`, then `simctl observe` and confirm **no load/generation was dropped** (`lines_down`/`n_down` unchanged, reward not -10) and **no new overload** BEFORE moving the next.\n- Prefer **redispatch** to relieve an overloaded line — it cannot cause loss-of-load.\n- If you are tempted to move all the loads (or all the gens) at a substation to the other busbar, STOP — that is the failure pattern. Relieve the overload another way."
+}

@@ -1,0 +1,7 @@
+{
+  "cmd": "simctl observe",
+  "human": "t=52 reward=61.2 (cum 3074.8) done=no\nlines_down=1  max_rho=0.97 (2_3_5)  overloads=[]\ntop loads:  2_3_5=97.0%  0_4_1=88.0%  5_12_9=71.0%\ngens: 81.4 79.3 5.3 0.0 | loads: 5.4 12.6 14.4 ...\nsince your last act (t=51 set_line_status 0_4_1=-1): 2_3_5 +9.0%, no trips",
+  "json": "see contracts/examples/grid-state-t50.json (full C3)",
+  "exit": 0,
+  "note": "Default = compact human text (the 'since your last act' line is the key steering feedback). --detailed / --json = full C3."
+}

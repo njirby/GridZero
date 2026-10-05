@@ -1,0 +1,6 @@
+{
+  "cmd": "simctl status",
+  "human": "sim up · env=l2rpn_case14_sandbox · t=50/8064 · reward=69.5 (cum 3323.5) · done=no",
+  "json": {"ok": true, "data": {"up": true, "env": "l2rpn_case14_sandbox", "t": 50, "max_t": 8064, "reward": 69.5054, "cum_reward": 3323.5073, "done": false}, "error": null, "verbose": {}},
+  "exit": 0
+}

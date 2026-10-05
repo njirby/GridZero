@@ -1,0 +1,7 @@
+{
+  "cmd": "simctl act '{\"set_line_status\":{\"99_99_9\":-1}}'",
+  "human": "rejected: Illegal — no line named '99_99_9'",
+  "json": {"ok": false, "data": {"t": 50, "reward": 69.5054, "cum_reward": 3323.5073, "done": false}, "error": "Illegal — no line named '99_99_9'", "verbose": {"is_illegal": true, "is_ambiguous": false}},
+  "exit": 1,
+  "note": "Illegal/ambiguous action -> exit 1, reason on stdout. The model reads it and self-corrects. This is grid2op's is_illegal fed back as actionable text."
+}

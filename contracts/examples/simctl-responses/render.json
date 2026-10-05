@@ -1,0 +1,7 @@
+{
+  "cmd": "simctl render",
+  "human": "wrote /home/nate/grid2op-harness/render/t0052.png (800x500)",
+  "json": {"ok": true, "data": {"path": "/home/nate/grid2op-harness/render/t0052.png", "width": 800, "height": 500, "t": 52}},
+  "exit": 0,
+  "note": "The model then calls opencode's Read tool on the path to SEE the grid. Vision is on-demand, the model's choice."
+}

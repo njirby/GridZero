@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "grid2op-harness/contracts/C3-grid-state.schema.json",
+  "title": "GRID-STATE",
+  "description": "The single canonical snapshot of the grid. Produced by the backend (from grid2op), returned by GET /sim/state, printed by simctl observe --detailed, and consumed by the frontend SVG map. Pure current-state: no deltas, no action history (those live in C4 events).",
+  "type": "object",
+  "required": ["schema_version","env","t","max_t","reward","cum_reward","done","n_line","n_sub","lines","subs","max_rho","n_down"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "env": {"type": "string"},
+    "t": {"type": "integer", "minimum": 0},
+    "max_t": {"type": "integer", "minimum": 1},
+    "reward": {"type": "number", "description": "Most recent step's grid2op reward (loss-based, ~64/step in the sandbox). At t=0 this is the reset/initial reward (sandbox: -10, the reward_range lower bound) — do not include it in cum_reward."},
+    "cum_reward": {"type": "number", "description": "Running sum of COMPLETED step rewards only. Starts at 0.0 at t=0; the t=0 reset reward is excluded. This is the chart's 'score'."},
+    "done": {"type": "boolean"},
+    "cause": {"type": ["string","null"], "description": "why done: 'time_exceeded'|'game_over'|null"},
+    "delta_min": {"type": "number", "description": "sim minutes per step (5.0)."},
+    "sim_clock": {"type": "string", "description": "human sim timestamp, e.g. '2019-01-06 10:25:00'."},
+    "n_line": {"type": "integer"},
+    "n_sub": {"type": "integer"},
+    "n_gen": {"type": "integer"},
+    "max_rho": {"type": "number", "description": "max line loading fraction across lines."},
+    "n_down": {"type": "integer", "description": "count of lines currently down."},
+    "n_overflow": {"type": "integer", "description": "count of lines with rho>1."},
+    "lines": {"type":"array","items":{"$ref":"#/$defs/line"}},
+    "subs": {"type":"array","items":{"$ref":"#/$defs/sub"}},
+    "gens": {"type":"array","items":{"$ref":"#/$defs/gen"}},
+    "alarms": {"type":"array","items":{"type":"string"}, "description": "active alarm names (usually empty in sandbox)."},
+    "last_action": {
+      "type":["object","null"],
+      "description": "the most recently applied action, for the 'since your last act' line. null if none yet.",
+      "properties": {
+        "source":{"enum":["agent","user","auto","system"]},
+        "summary":{"type":"string"},
+        "args":{"type":"object"},
+        "t":{"type":"integer"}
+      }
+    },
+    "png":{"type":"string","description":"path to the last render (or '')."}
+  },
+  "$defs": {
+    "line": {
+      "type":"object",
+      "required":["id","name","or","ex","rho","status"],
+      "additionalProperties": false,
+      "properties": {
+        "id":{"type":"integer"},
+        "name":{"type":"string"},
+        "or":{"type":"string","description":"origin substation name (join to subs[].name)."},
+        "ex":{"type":"string","description":"extremity substation name."},
+        "rho":{"type":"number","description":"loading fraction; >1.0 means overloaded."},
+        "p_or":{"type":"number","description":"MW out at origin bus."},
+        "p_ex":{"type":"number","description":"MW in at extremity bus."},
+        "status":{"enum":["up","down","cooldown","maintenance"]},
+        "overflow":{"type":"boolean","description":"rho > 1.0."},
+        "cooldown":{"type":"integer","minimum":0,"description":"steps until re-addressable (0 = ready)."},
+        "maint":{"type":"integer","description":"0=in maintenance now, k>0=starts in k steps, -1=none."}
+      }
+    },
+    "sub": {
+      "type":"object",
+      "required":["id","name","x","y","type"],
+      "additionalProperties": false,
+      "properties": {
+        "id":{"type":"integer"},
+        "name":{"type":"string"},
+        "x":{"type":"number","description":"grid_layout x (stable all episode)."},
+        "y":{"type":"number","description":"grid_layout y."},
+        "type":{"enum":["gen","load","both","other"]},
+        "p":{"type":"number","description":"net MW at this sub (gen positive, load negative)."}
+      }
+    },
+    "gen": {
+      "type":"object",
+      "required":["id","name","sub","p"],
+      "additionalProperties": false,
+      "properties": {
+        "id":{"type":"integer"},
+        "name":{"type":"string"},
+        "sub":{"type":"string","description":"host substation name."},
+        "p":{"type":"number","description":"MW output."},
+        "renewable":{"type":"boolean"},
+        "redispatchable":{"type":"boolean"}
+      }
+    }
+  }
+}

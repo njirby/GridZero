@@ -1,0 +1,7 @@
+{
+  "name": "baseline",
+  "description": "Default: full docs (AGENTS.md + docs/ + recipes/), vision available (simctl render), model chooses observe verbosity. This is the main benchmark config.",
+  "render": true,
+  "docs": true,
+  "observe_mode": "auto"
+}

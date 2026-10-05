@@ -1,0 +1,273 @@
+#!/usr/bin/env python3
+"""simctl — the model's terminal for the grid2op harness.
+
+A STATELESS command-line client to the SIM-API (contracts/C2). Every invocation
+talks HTTP to the backend (default http://127.0.0.1:8731), applies one request,
+prints a result, and exits. Stdlib only (urllib) so it runs with system python3.
+
+Exit codes: 0 ok · 1 sim-rejected (illegal/ambiguous) · 2 backend unreachable/sim error
+            3 unknown command / bad arguments
+
+See contracts/C1-simctl.md for the full reference.
+"""
+import argparse
+import json
+import os
+import sys
+import urllib.request
+import urllib.error
+
+DEFAULT_BASE = "http://127.0.0.1:8731"
+
+
+def die(msg, code):
+    print(msg)
+    sys.exit(code)
+
+
+def http(method, path, base, token, body=None, timeout=90):
+    url = base.rstrip("/") + path
+    headers = {"Content-Type": "application/json"}
+    if token:
+        headers["Authorization"] = "Bearer " + token
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read()
+            return r.status, (json.loads(raw) if raw else {})
+    except urllib.error.HTTPError as e:
+        raw = e.read()
+        try:
+            return e.code, (json.loads(raw) if raw else {})
+        except Exception:
+            return e.code, {}
+    except Exception as e:  # URLError, socket.timeout, ConnectionError, ...
+        return None, {"_err": str(e)}
+
+
+def get(args, path, base, token):
+    status, body = http("GET", path, base, token)
+    if status is None:
+        die(f"error: backend unreachable at {base} ({body.get('_err')})", 2)
+    if status >= 500:
+        die(f"error: backend {status} on {path}", 2)
+    return body
+
+
+def post(args, path, base, token, body):
+    status, body = http("POST", path, base, token, body)
+    if status is None:
+        die(f"error: backend unreachable at {base} ({body.get('_err')})", 2)
+    if status >= 500:
+        die(f"error: backend {status} on {path}", 2)
+    return body
+
+
+def emit(envelope, args, code):
+    if getattr(args, "json", False):
+        print(json.dumps(envelope))
+    else:
+        print(envelope.get("_human", ""))
+    sys.exit(code)
+
+
+def compact_observe(s):
+    """Render C3 (dict) as the compact human 'observe' text (C1)."""
+    done = "yes" if s.get("done") else "no"
+    maxline = max(s["lines"], key=lambda l: l["rho"]) if s.get("lines") else None
+    over = [l["name"] for l in s["lines"] if l.get("overflow")]
+    top = sorted(s["lines"], key=lambda l: -l["rho"])[:3]
+    gens = [g["p"] for g in s.get("gens", [])]
+    L = []
+    L.append(f"t={s.get('t')} reward={s.get('reward', 0):.1f} (cum {s.get('cum_reward', 0):.1f}) done={done}")
+    L.append(f"lines_down={s.get('n_down', 0)}  max_rho={(maxline['rho'] if maxline else 0):.2f} "
+             f"({maxline['name'] if maxline else '-'})  overloads=[{', '.join(over)}]")
+    L.append("top loads:  " + "  ".join(f"{l['name']}={l['rho']*100:.1f}%" for l in top))
+    L.append("gens: " + " ".join(f"{p:.1f}" for p in gens))
+    la = s.get("last_action")
+    if la:
+        note = f"overloads now: [{', '.join(over)}]" if over else "no trips"
+        L.append(f"since your last act (t={la.get('t')} {la.get('summary')}): {note} (max_rho={(maxline['rho'] if maxline else 0):.2f})")
+    return "\n".join(L)
+
+
+def cmd_status(a):
+    b = get(a, "/sim/status", a.base_url, a.token)
+    d = b.get("data", {})
+    if not b.get("ok"):
+        return emit({**b, "_human": f"sim down: {b.get('error')}"}, a, 2)
+    hum = (f"sim up · env={d.get('env')} · t={d.get('t')}/{d.get('max_t')} · "
+           f"reward={d.get('reward', 0):.1f} (cum {d.get('cum_reward', 0):.1f}) · "
+           f"done={'yes' if d.get('done') else 'no'}")
+    return emit({**b, "_human": hum}, a, 0)
+
+
+def cmd_reset(a):
+    body = {"env": a.env} if a.env else {}
+    b = post(a, "/sim/reset", a.base_url, a.token, body)
+    d = b.get("data", {})
+    hum = f"reset · env={d.get('env', 'l2rpn_case14_sandbox')} · t=0 · reward={d.get('reward', 0):.2f}"
+    code = 0 if b.get("ok") else 2
+    return emit({**b, "_human": b.get("error") or hum}, a, code)
+
+
+def cmd_step(a):
+    b = post(a, "/sim/step", a.base_url, a.token, {"n": a.n})
+    d = b.get("data", {})
+    hum = (f"stepped {a.n} · t={d.get('t')} · reward={d.get('reward', 0):.1f} · "
+           f"lines_down={d.get('lines_down', 0)} · overloads=[{', '.join(d.get('overloads', []))}]")
+    return emit({**b, "_human": b.get("error") or hum}, a, 0 if b.get("ok") else 2)
+
+
+def cmd_act(a):
+    try:
+        action = json.loads(a.json_arg)
+    except Exception as e:
+        die(f"error: bad arguments — action JSON invalid: {e}", 3)
+    if not isinstance(action, dict):
+        die("error: bad arguments — action must be a JSON object", 3)
+    b = post(a, "/sim/act", a.base_url, a.token, {"action": action})
+    d = b.get("data", {})
+    applied = d.get("applied", {})
+    bits = []
+    for k, v in applied.items():
+        if isinstance(v, dict):
+            bits += [f"{k} {name}={val}" for name, val in v.items()]
+        else:
+            bits.append(f"{k} {v}")
+    summary = "; ".join(bits) if bits else json.dumps(action)
+    illegal = "no" if d.get("illegal") is False else ("yes" if d.get("illegal") else "no")
+    hum = (f"applied {summary} · t={d.get('t')} · reward={d.get('reward', 0):.2f} · "
+           f"new_overloads=[{', '.join(d.get('new_overloads', []))}] · illegal={illegal}")
+    code = 0 if b.get("ok") else 1
+    return emit({**b, "_human": b.get("error") or hum}, a, code)
+
+
+def cmd_observe(a):
+    b = get(a, "/sim/state", a.base_url, a.token)
+    s = b.get("data", {})
+    if not b.get("ok") or not s:
+        return emit({**b, "_human": f"error: {b.get('error') or 'no state'}"}, a, 2)
+    if a.json:
+        return emit(b, a, 0)  # full envelope, data = C3
+    if a.detailed:
+        print(json.dumps(s, indent=2))
+        sys.exit(0)
+    return emit({**b, "data": s, "_human": compact_observe(s)}, a, 0)
+
+
+def cmd_render(a):
+    body = {}
+    if a.out:
+        body["out"] = a.out
+    if a.width:
+        body["width"] = a.width
+    b = post(a, "/sim/render", a.base_url, a.token, body)
+    d = b.get("data", {})
+    hum = f"wrote {d.get('path')} ({d.get('width')}x{d.get('height')})"
+    return emit({**b, "_human": b.get("error") or hum}, a, 0 if b.get("ok") else 2)
+
+
+def cmd_docs(a):
+    docs_dir = a.docs_dir
+    root = os.path.dirname(docs_dir)  # AGENTS.md lives at the harness root
+    lines = []
+    if os.path.isdir(docs_dir):
+        md_files = []
+        for dirpath, _, files in os.walk(docs_dir):
+            for f in files:
+                if f.endswith(".md"):
+                    md_files.append(os.path.relpath(os.path.join(dirpath, f), docs_dir))
+        lines.append("docs/" + ("" if md_files else "  (empty)"))
+        for rel in sorted(md_files):
+            lines.append("  " + rel)
+    else:
+        lines.append("docs/  (missing)")
+    if os.path.isfile(os.path.join(root, "AGENTS.md")):
+        lines.append("AGENTS.md   (operator prompt — read this first)")
+    rec = os.path.join(root, "recipes")
+    if os.path.isdir(rec):
+        recs = sorted(f for f in os.listdir(rec) if f.endswith(".md"))
+        lines.append("recipes/" + ("" if recs else "  (empty)"))
+        for f in recs:
+            lines.append("  " + f)
+    print("\n".join(lines))
+    sys.exit(0)
+
+
+def cmd_attack(a):
+    try:
+        spec = json.loads(a.json_arg)
+    except Exception as e:
+        die(f"error: bad arguments — attack JSON invalid: {e}", 3)
+    status, b = http("POST", "/sim/attack", a.base_url, a.token, spec)
+    if status is None:
+        die(f"error: backend unreachable at {a.base_url} ({b.get('_err')})", 2)
+    if status == 501 or not b.get("ok", False) and b.get("error"):
+        return emit({**b, "_human": "attack not available in v0"}, a, 3)
+    return emit({**b, "_human": b.get("error") or json.dumps(b.get("data"))}, a, 0 if b.get("ok") else 1)
+
+
+def main():
+    argv = sys.argv[1:]
+    # Pre-scan global flags so they work in ANY position (before or after the
+    # subcommand): `simctl --json observe` and `simctl observe --json` both work.
+    g_json = False
+    g_base = os.environ.get("SIM_API_URL", DEFAULT_BASE)
+    g_token = os.environ.get("SIM_API_TOKEN", "")
+    rest = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--json":
+            g_json = True
+            i += 1
+        elif a == "--base-url":
+            g_base = argv[i + 1]; i += 2
+        elif a.startswith("--base-url="):
+            g_base = a.split("=", 1)[1]; i += 1
+        elif a == "--token":
+            g_token = argv[i + 1]; i += 2
+        elif a.startswith("--token="):
+            g_token = a.split("=", 1)[1]; i += 1
+        elif a in ("-h", "--help"):
+            rest.append(a); i += 1
+        else:
+            rest.append(a); i += 1
+
+    p = argparse.ArgumentParser(prog="simctl", description="grid2op sim control")
+    sub = p.add_subparsers(dest="cmd")
+
+    sub.add_parser("status")
+    pr = sub.add_parser("reset")
+    pr.add_argument("--env")
+    ps = sub.add_parser("step")
+    ps.add_argument("n", nargs="?", type=int, default=1)
+    pa = sub.add_parser("act")
+    pa.add_argument("json_arg", help="grid2op action dict as JSON")
+    po = sub.add_parser("observe")
+    po.add_argument("--detailed", action="store_true")
+    prd = sub.add_parser("render")
+    prd.add_argument("--out")
+    prd.add_argument("--width", type=int)
+    pd = sub.add_parser("docs")
+    pd.add_argument("--docs-dir", default="/home/nate/grid2op-harness/docs")
+    pt = sub.add_parser("attack")
+    pt.add_argument("json_arg", help="attack spec as JSON")
+
+    a = p.parse_args(rest)
+    a.json = g_json
+    a.base_url = g_base
+    a.token = g_token
+    if not a.cmd:
+        die("usage: simctl [--json] [--base-url URL] [--token TOKEN] <status|reset|step|act|observe|render|docs|attack>", 3)
+    dispatch = {
+        "status": cmd_status, "reset": cmd_reset, "step": cmd_step, "act": cmd_act,
+        "observe": cmd_observe, "render": cmd_render, "docs": cmd_docs, "attack": cmd_attack,
+    }
+    dispatch[a.cmd](a)
+
+
+if __name__ == "__main__":
+    main()

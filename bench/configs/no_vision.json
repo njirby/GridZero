@@ -1,0 +1,7 @@
+{
+  "name": "no_vision",
+  "description": "Ablation: the model CANNOT see the grid map. `simctl render` is disabled; it must operate from numeric `observe` state only. Measures the value of the vision channel.",
+  "render": false,
+  "docs": true,
+  "observe_mode": "auto"
+}

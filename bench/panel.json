@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "env": "l2rpn_case14_sandbox",
+  "reward_class": "RedispReward (env default)",
+  "note": "Fixed, versioned evaluation panel. Chronic indices are 'hidden' from the model: docs/ and AGENTS.md never mention specific chronic ids or their dynamics. Changing this file changes the benchmark; bump version.",
+  "horizon_rationale": {
+    "pilot": "96 steps: cheap first signal. DN does NOT trip by 96 (calibrated DN survival 381-1097), so survival is not the axis here — reward (loss/redispatch optimization) is. Fast, validates the LLM operates correctly.",
+    "standard": "1200 steps: the survival-discriminating horizon. Do-nothing TRIPS on every pilot chronic by ~800-1097, so a capable agent must outlast passive AND beat it on reward. This is the real benchmark.",
+    "baselines_full": "8064 steps (28 days): full chronic length for the free baselines (cheap: seconds-minutes each) to pin the DN anchor across the whole chronic and characterize the natural cascade."
+  },
+  "horizons": {
+    "pilot": 96,
+    "standard": 1200,
+    "baselines_full": 8064
+  },
+  "pilot_chronics": [0, 1, 100, 500, 750, 900],
+  "standard_chronics": [0, 1, 2, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 2000],
+  "sampling": {
+    "primary": {"temperature": 0.0, "repeats": 3},
+    "variance_probe": {"temperature": 0.8, "repeats": 3}
+  },
+  "safety": {
+    "episode_wall_clock_cap_h": 12,
+    "llm_turn_cap": 500,
+    "thinking_time_per_step": "unlimited (skill-only; no per-turn deadline; gentle auto-continue only when idle)"
+  }
+}

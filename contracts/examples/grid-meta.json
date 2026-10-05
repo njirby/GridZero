@@ -1,0 +1,297 @@
+{
+  "schema_version": 1,
+  "env": "l2rpn_case14_sandbox",
+  "n_line": 20,
+  "n_sub": 14,
+  "n_gen": 6,
+  "n_load": 11,
+  "delta_min": 5.0,
+  "subs": [
+    {
+      "id": 0,
+      "name": "sub_0",
+      "x": -280.0,
+      "y": -81.0,
+      "type": "gen",
+      "p": 0.0
+    },
+    {
+      "id": 1,
+      "name": "sub_1",
+      "x": -100.0,
+      "y": -270.0,
+      "type": "both",
+      "p": 0.0
+    },
+    {
+      "id": 2,
+      "name": "sub_2",
+      "x": 366.0,
+      "y": -270.0,
+      "type": "both",
+      "p": 0.0
+    },
+    {
+      "id": 3,
+      "name": "sub_3",
+      "x": 366.0,
+      "y": -54.0,
+      "type": "load",
+      "p": 0.0
+    },
+    {
+      "id": 4,
+      "name": "sub_4",
+      "x": -64.0,
+      "y": -54.0,
+      "type": "load",
+      "p": 0.0
+    },
+    {
+      "id": 5,
+      "name": "sub_5",
+      "x": -64.0,
+      "y": 54.0,
+      "type": "both",
+      "p": 0.0
+    },
+    {
+      "id": 6,
+      "name": "sub_6",
+      "x": 450.0,
+      "y": 0.0,
+      "type": "other",
+      "p": 0.0
+    },
+    {
+      "id": 7,
+      "name": "sub_7",
+      "x": 550.0,
+      "y": 0.0,
+      "type": "gen",
+      "p": 0.0
+    },
+    {
+      "id": 8,
+      "name": "sub_8",
+      "x": 326.0,
+      "y": 54.0,
+      "type": "load",
+      "p": 0.0
+    },
+    {
+      "id": 9,
+      "name": "sub_9",
+      "x": 222.0,
+      "y": 108.0,
+      "type": "load",
+      "p": 0.0
+    },
+    {
+      "id": 10,
+      "name": "sub_10",
+      "x": 79.0,
+      "y": 162.0,
+      "type": "load",
+      "p": 0.0
+    },
+    {
+      "id": 11,
+      "name": "sub_11",
+      "x": -170.0,
+      "y": 270.0,
+      "type": "load",
+      "p": 0.0
+    },
+    {
+      "id": 12,
+      "name": "sub_12",
+      "x": -64.0,
+      "y": 270.0,
+      "type": "load",
+      "p": 0.0
+    },
+    {
+      "id": 13,
+      "name": "sub_13",
+      "x": 222.0,
+      "y": 216.0,
+      "type": "load",
+      "p": 0.0
+    }
+  ],
+  "lines": [
+    {
+      "id": 0,
+      "name": "0_1_0",
+      "or": "sub_0",
+      "ex": "sub_1",
+      "thermal_limit": 541.0
+    },
+    {
+      "id": 1,
+      "name": "0_4_1",
+      "or": "sub_0",
+      "ex": "sub_4",
+      "thermal_limit": 450.0
+    },
+    {
+      "id": 2,
+      "name": "1_2_2",
+      "or": "sub_1",
+      "ex": "sub_2",
+      "thermal_limit": 375.0
+    },
+    {
+      "id": 3,
+      "name": "1_3_3",
+      "or": "sub_1",
+      "ex": "sub_3",
+      "thermal_limit": 636.0
+    },
+    {
+      "id": 4,
+      "name": "1_4_4",
+      "or": "sub_1",
+      "ex": "sub_4",
+      "thermal_limit": 175.0
+    },
+    {
+      "id": 5,
+      "name": "2_3_5",
+      "or": "sub_2",
+      "ex": "sub_3",
+      "thermal_limit": 285.0
+    },
+    {
+      "id": 6,
+      "name": "3_4_6",
+      "or": "sub_3",
+      "ex": "sub_4",
+      "thermal_limit": 335.0
+    },
+    {
+      "id": 7,
+      "name": "5_10_7",
+      "or": "sub_5",
+      "ex": "sub_10",
+      "thermal_limit": 657.0
+    },
+    {
+      "id": 8,
+      "name": "5_11_8",
+      "or": "sub_5",
+      "ex": "sub_11",
+      "thermal_limit": 496.0
+    },
+    {
+      "id": 9,
+      "name": "5_12_9",
+      "or": "sub_5",
+      "ex": "sub_12",
+      "thermal_limit": 827.0
+    },
+    {
+      "id": 10,
+      "name": "8_9_10",
+      "or": "sub_8",
+      "ex": "sub_9",
+      "thermal_limit": 442.0
+    },
+    {
+      "id": 11,
+      "name": "8_13_11",
+      "or": "sub_8",
+      "ex": "sub_13",
+      "thermal_limit": 641.0
+    },
+    {
+      "id": 12,
+      "name": "9_10_12",
+      "or": "sub_9",
+      "ex": "sub_10",
+      "thermal_limit": 840.0
+    },
+    {
+      "id": 13,
+      "name": "11_12_13",
+      "or": "sub_11",
+      "ex": "sub_12",
+      "thermal_limit": 156.0
+    },
+    {
+      "id": 14,
+      "name": "12_13_14",
+      "or": "sub_12",
+      "ex": "sub_13",
+      "thermal_limit": 664.0
+    },
+    {
+      "id": 15,
+      "name": "3_6_15",
+      "or": "sub_3",
+      "ex": "sub_6",
+      "thermal_limit": 235.0
+    },
+    {
+      "id": 16,
+      "name": "3_8_16",
+      "or": "sub_3",
+      "ex": "sub_8",
+      "thermal_limit": 119.0
+    },
+    {
+      "id": 17,
+      "name": "4_5_17",
+      "or": "sub_4",
+      "ex": "sub_5",
+      "thermal_limit": 179.0
+    },
+    {
+      "id": 18,
+      "name": "6_7_18",
+      "or": "sub_6",
+      "ex": "sub_7",
+      "thermal_limit": 1986.0
+    },
+    {
+      "id": 19,
+      "name": "6_8_19",
+      "or": "sub_8",
+      "ex": "sub_6",
+      "thermal_limit": 1572.0
+    }
+  ],
+  "gens": [
+    {
+      "id": 0,
+      "name": "gen_1_0",
+      "sub": "sub_1"
+    },
+    {
+      "id": 1,
+      "name": "gen_2_1",
+      "sub": "sub_2"
+    },
+    {
+      "id": 2,
+      "name": "gen_5_2",
+      "sub": "sub_5"
+    },
+    {
+      "id": 3,
+      "name": "gen_5_3",
+      "sub": "sub_5"
+    },
+    {
+      "id": 4,
+      "name": "gen_7_4",
+      "sub": "sub_7"
+    },
+    {
+      "id": 5,
+      "name": "gen_0_5",
+      "sub": "sub_0"
+    }
+  ]
+}

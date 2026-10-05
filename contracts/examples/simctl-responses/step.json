@@ -1,0 +1,6 @@
+{
+  "cmd": "simctl step 1",
+  "human": "stepped 1 · t=51 · reward=68.9 · lines_down=1 · overloads=[1_4_4]",
+  "json": {"ok": true, "data": {"t": 51, "reward": 68.9, "cum_reward": 3392.4, "done": false, "lines_down": 1, "overloads": ["1_4_4"], "disc_lines": []}, "error": null, "verbose": {"is_illegal": false, "is_ambiguous": false, "opponent_attack_line": null}},
+  "exit": 0
+}

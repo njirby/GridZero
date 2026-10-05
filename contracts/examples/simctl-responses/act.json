@@ -1,0 +1,7 @@
+{
+  "cmd": "simctl act '{\"set_line_status\":{\"0_4_1\":-1}}'",
+  "human": "applied set_line_status 0_4_1=down · t=50 · reward=69.51 · new_overloads=[1_4_4] · illegal=no",
+  "json": {"ok": true, "data": {"t": 50, "reward": 69.5054, "cum_reward": 3323.5073, "done": false, "disc_lines": [], "new_overloads": ["1_4_4"], "illegal": false, "ambiguous": false, "applied": {"set_line_status": {"0_4_1": "down"}}}, "error": null, "verbose": {"is_illegal": false, "is_ambiguous": false, "predicted_disc_lines": ["1_4_4"]}},
+  "exit": 0,
+  "note": "new_overloads and predicted_disc_lines come from obs.simulate(action) dry-run before commit."
+}
