@@ -131,8 +131,9 @@ def test_unreachable():
     assert "unreachable" in r.stdout
 
 
-def test_attack_v0_stub(mock):
+def test_attack(mock):
     r = run_simctl("attack", '{"line":"3_6_15","kind":"trip"}', base=mock)
-    # mock has no /sim/attack route -> 404 envelope; simctl maps non-ok to a message
+    # mock implements /sim/attack -> ok envelope; simctl reports the outcome
     assert r.stdout.strip()  # produced something
-    assert r.returncode in (1, 2, 3)
+    assert r.returncode == 0
+    assert "applied" in r.stdout or "opponent" in r.stdout

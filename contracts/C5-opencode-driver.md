@@ -2,7 +2,7 @@
 
 How the backend drives `opencode serve` and translates its raw SSE into C4
 agent events. `opencode serve` is the agent runtime: it hosts the model
-(AA-Dense-Blackwell by default), gives it the tools (`bash`, `Read`, `Grep`,
+(qwen3.5-4b by default), gives it the tools (`bash`, `Read`, `Grep`,
 `Glob`, `Write`, ...), and exposes an HTTP control plane + event stream. The
 backend is just a client of that.
 
@@ -15,11 +15,11 @@ backend is just a client of that.
    `opencode serve --hostname 127.0.0.1 --port <P>`  (cwd = the harness
    workspace so the model sees `docs/`, `AGENTS.md`, `simctl` on PATH).
 2. **Create a session**:
-   `POST /api/session`  body `{"agent":"build","model":{"id":"AA-Dense-Blackwell","providerID":"nuclearn"}}`
+   `POST /api/session`  body `{"agent":"build","model":{"id":"qwen3.5-4b","providerID":"vllm4b"}}`
    -> `{"data":{"id":"ses_..."}}`.
    **Gotcha (validated):** the model ref key is `id`, NOT `modelID` — with `modelID`
    the server 400s with `Missing key at ["model"]["id"]`. Omitting `model` also works
-   (falls back to the config default, which is AA-Dense-Blackwell).
+   (falls back to the config default, which is qwen3.5-4b).
 3. **Prime it** (the operator prompt): `POST /api/session/{id}/prompt` (blocking)
    or `prompt_async` with the AGENTS.md-derived kickoff: "You are a grid
    operator. Read AGENTS.md, then run `simctl status` and begin."

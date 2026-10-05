@@ -252,7 +252,10 @@ def main():
     prd.add_argument("--out")
     prd.add_argument("--width", type=int)
     pd = sub.add_parser("docs")
-    pd.add_argument("--docs-dir", default="/home/nate/grid2op-harness/docs")
+    # Derive from the script location (repo_root/docs) so it works in the sandbox
+    # workspace and on any machine, not a hard-coded path.
+    pd.add_argument("--docs-dir",
+                    default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs"))
     pt = sub.add_parser("attack")
     pt.add_argument("json_arg", help="attack spec as JSON")
 

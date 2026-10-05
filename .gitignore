@@ -9,6 +9,7 @@ runs/
 data_grid2op/
 .sb/
 .sandbox-ws/
+.sandbox-ws-*/
 *.png
 !web/src/assets/*.png
 render/

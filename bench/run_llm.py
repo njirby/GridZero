@@ -112,14 +112,14 @@ def wait_up(base, path, timeout=240):
     return False
 
 
-def start_backend(port, acfg=None, model="AA-Dense-Blackwell"):
+def start_backend(port, acfg=None, model="qwen3.5-4b"):
     acfg = acfg or {}
     log = open(os.path.join(ROOT, "runs", f"backend-bench-{port}.log"), "ab")
     env = dict(os.environ)
     env["SIMCTL_BACKEND_PORT"] = str(port)       # so simctl targets THIS backend
     env["OPENCODE_PORT"] = str(port + 200)       # unique opencode port per episode
     env["OPENCODE_SANDBOX"] = "1"                # filesystem sandbox: hide the answer key
-    env["OPENCODE_MODEL"] = model or acfg.get("model") or "AA-Dense-Blackwell"
+    env["OPENCODE_MODEL"] = model or acfg.get("model") or "qwen3.5-4b"
     if not acfg.get("render", True):
         env["RENDER_DISABLED"] = "1"             # no-vision ablation
     if not acfg.get("docs", True):
@@ -165,7 +165,7 @@ def main():
     ap.add_argument("--chronic", type=int, required=True)
     ap.add_argument("--horizon", type=int, default=None)  # default from panel
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--model", default="AA-Dense-Blackwell")
+    ap.add_argument("--model", default="qwen3.5-4b")
     ap.add_argument("--port", type=int, default=8800)
     ap.add_argument("--repeats", type=int, default=1)
     ap.add_argument("--safety-cap-h", type=float, default=12.0)

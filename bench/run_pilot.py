@@ -40,7 +40,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--horizon", type=int, default=None)  # default panel pilot
     ap.add_argument("--chronics", default=None, help="comma list; default panel pilot")
-    ap.add_argument("--model", default="AA-Dense-Blackwell")
+    ap.add_argument("--model", default="qwen3.5-4b")
     ap.add_argument("--repeats", type=int, default=1)
     ap.add_argument("--conc", type=int, default=2, help="parallel episodes")
     ap.add_argument("--base-port", type=int, default=8820)

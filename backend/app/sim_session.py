@@ -94,8 +94,10 @@ class SimSession:
         options={"max step": N}  -> horizon; options={"time serie id": k} -> pin chronic.
         seed -> RNG seed (determinism for stochastic agents)."""
         with self._lock:
-            if env_name:
+            if env_name and env_name != self.env:
                 self.env = env_name
+                self._env = None  # force _ensure_env() to build the NEW env
+                self._attached = False
             self._ensure_env()
             self._ensure_renderer()
             obs = self._env.reset(seed=seed, options=options)

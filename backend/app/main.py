@@ -278,7 +278,7 @@ class BenchStart(BaseModel):
     chronic: int
     horizon: int
     seed: int = 0
-    model: str = "AA-Dense-Blackwell"
+    model: str = "qwen3.5-4b"
     variant: str = ""    # reasoning-effort variant (low/medium/high/xhigh/off); "" = default
     kickoff: str = ""
     attacks: list = []   # adversarial: [{start,end,line,action_on,action_off}, ...] (deterministic, from bench/attacker.py)
@@ -330,7 +330,7 @@ async def bench_stats():
 
 # ===================== Agent-vs-attacker endpoints =====================
 class AttackerStart(BaseModel):
-    model: str = "AA-Dense-Blackwell"
+    model: str = "qwen3.5-4b"
     kickoff: str = ""
 
 

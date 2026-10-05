@@ -18,6 +18,11 @@ def _f(x, d=0.0):
         return d
 
 
+def _env_name(env) -> str:
+    # grid2op's env.name carries the backend suffix (e.g. "...PandaPowerBackend")
+    return str(env.name).split("PandaPowerBackend")[0]
+
+
 def sub_types(env):
     gen_subs = set(int(s) for s in env.gen_to_subid)
     load_subs = set(int(s) for s in env.load_to_subid)
@@ -49,7 +54,7 @@ def build_meta(env) -> dict:
     for i in range(env.n_gen):
         gens.append({"id": i, "name": str(env.name_gen[i]),
                      "sub": str(env.name_sub[int(env.gen_to_subid[i])])})
-    return {"schema_version": SCHEMA_VERSION, "env": "l2rpn_case14_sandbox",
+    return {"schema_version": SCHEMA_VERSION, "env": _env_name(env),
             "n_line": int(env.n_line), "n_sub": int(env.n_sub),
             "n_gen": int(env.n_gen), "n_load": int(env.n_load),
             "delta_min": 5.0, "subs": subs, "lines": lines, "gens": gens}
@@ -114,7 +119,7 @@ def to_c3(env, obs, reward, cum_reward, last_action=None, png="") -> dict:
     n_overflow = int(sum(1 for l in lines if l["overflow"]))
     max_rho = max((_f(rho[i]) for i in range(env.n_line)), default=0.0)
     return {
-        "schema_version": SCHEMA_VERSION, "env": "l2rpn_case14_sandbox",
+        "schema_version": SCHEMA_VERSION, "env": _env_name(env),
         "t": int(obs.current_step), "max_t": int(obs.max_step),
         "reward": round(_f(reward), 4), "cum_reward": round(_f(cum_reward), 4),
         "done": bool(obs.current_step >= obs.max_step), "cause": None,

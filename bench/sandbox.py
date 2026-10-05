@@ -47,8 +47,25 @@ def _opencode_bin():
     return os.path.realpath(b)
 
 
-def _node_dir():
-    return "/home/nate/.nvm"
+def _opencode_runtime_binds():
+    """(ro-binds, node_bin_dir) for the opencode runtime, layout-agnostic.
+    Handles both an nvm install (opencode+node under ~/.nvm) and a standalone
+    binary (e.g. ~/.opencode/bin) with system node in /usr/bin."""
+    binds = []
+    node_bin = "/usr/bin"
+    nvm = os.path.join(HOME, ".nvm")
+    if os.path.isdir(nvm):
+        binds.append((nvm, nvm))
+        vroot = os.path.join(nvm, "versions", "node")
+        if os.path.isdir(vroot):
+            versions = sorted(os.listdir(vroot))
+            if versions:
+                cand = os.path.join(vroot, versions[-1], "bin")
+                if os.path.isdir(cand):
+                    node_bin = cand
+    oc_dir = os.path.dirname(_opencode_bin())
+    binds.append((oc_dir, oc_dir))  # overlays the per-port HOME bind
+    return binds, node_bin
 
 
 def build_ws(with_docs=True, oc_port=None, doc_warning=None, attacker=None):
@@ -99,7 +116,7 @@ def build_sandbox_home(oc_port, model=None):
     parallel sandboxes don't collide on opencode's data dir.
 
     `model` (cross-model): rewrite the copied opencode.json so the build/plan
-    agents + global default use `nuclearn/<model>`. Verified: opencode's session
+    agents + global default use `<provider>/<model>` (OPENCODE_PROVIDER, default vllm4b). Verified: opencode's session
     model comes from the config's agent.model pin, NOT from a session-level
     override, so this is the reliable way to switch models per episode.
     """
@@ -122,9 +139,10 @@ def build_sandbox_home(oc_port, model=None):
 
 
 def _patch_config_model(cfg_path, model):
-    """Set global model + agent.build.model + agent.plan.model to nuclearn/<model>."""
+    """Set global model + agent.build.model + agent.plan.model to {provider}/{model}."""
     import json
-    full = model if "/" in model else f"nuclearn/{model}"
+    provider = os.environ.get("OPENCODE_PROVIDER", "vllm4b")
+    full = model if "/" in model else f"{provider}/{model}"
     try:
         d = json.load(open(cfg_path))
         d["model"] = full
@@ -139,7 +157,7 @@ def _patch_config_model(cfg_path, model):
 def bwrap_argv(oc_port, sim_port, ws, sb_home):
     """Full argv to launch a sandboxed `opencode serve` (runs as root via sudo)."""
     oc_bin = _opencode_bin()
-    node_bin = os.path.join(_node_dir(), "versions/node/v22.14.0/bin")
+    runtime_binds, node_bin = _opencode_runtime_binds()
     real_render = os.path.join(ROOT, "render")
     args = ["sudo", "-n", "bwrap"]
     for d in _SYS_BINDS:
@@ -149,7 +167,8 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home):
     # in order; a later bind to a deeper path overlays an earlier broader one).
     args += ["--bind", sb_home, HOME_IN_SB]
     # shared read-only opencode runtime (node + opencode binary), overlaid under HOME
-    args += ["--ro-bind", _node_dir(), _node_dir()]
+    for src, dst in runtime_binds:
+        args += ["--ro-bind", src, dst]
     # the operator workspace AT the repo path (rw copy)
     args += ["--bind", ws, REPO_PATH]
     # render PNGs (written by the host backend) readable at their real path

@@ -13,6 +13,8 @@ from __future__ import annotations
 import asyncio, json, os, re, subprocess, time
 import httpx
 
+DEFAULT_PROVIDER = os.environ.get("OPENCODE_PROVIDER", "vllm4b")
+
 class OpenCodeDriver:
     def __init__(self, bus, root, sim_port=8731, oc_port=None, attacker=False):
         self.bus = bus
@@ -35,10 +37,10 @@ class OpenCodeDriver:
         self.sandbox = os.environ.get("OPENCODE_SANDBOX", "0") == "1"
         self.with_docs = os.environ.get("OPENCODE_NO_DOCS", "0") != "1"
         self.doc_warning = os.environ.get("OPENCODE_DOC_WARNING", "")  # A/B doc variant
-        self.model = os.environ.get("OPENCODE_MODEL", "AA-Dense-Blackwell")  # cross-model
+        self.model = os.environ.get("OPENCODE_MODEL", "qwen3.5-4b")  # cross-model
         self.base = f"http://127.0.0.1:{self.oc_port}"
         self.session_id = None
-        self.model = os.environ.get("OPENCODE_MODEL", "AA-Dense-Blackwell")
+        self.model = os.environ.get("OPENCODE_MODEL", "qwen3.5-4b")
         self.variant = os.environ.get("OPENCODE_VARIANT", "")
         self._proc = None
         self._task = None
@@ -152,7 +154,7 @@ class OpenCodeDriver:
             ref["variant"] = variant
         return ref
 
-    async def create_session(self, agent="build", provider="nuclearn", model="AA-Dense-Blackwell", variant=None):
+    async def create_session(self, agent="build", provider=DEFAULT_PROVIDER, model="qwen3.5-4b", variant=None):
         if not self.available:
             return None
         try:
@@ -167,7 +169,7 @@ class OpenCodeDriver:
             self._emit_system("error", f"create_session failed: {e}")
             return None
 
-    async def set_model(self, provider="nuclearn", model=None, variant=None):
+    async def set_model(self, provider=DEFAULT_PROVIDER, model=None, variant=None):
         """Live-switch the active session's model/variant (best-effort). Body is
         {"model": {id, providerID, variant?}} (verified -> 204)."""
         if not self.available or not self.session_id:
@@ -187,7 +189,7 @@ class OpenCodeDriver:
             self._emit_system("warn", f"set_model failed: {e}")
             return False
 
-    async def list_models(self, provider="nuclearn"):
+    async def list_models(self, provider=DEFAULT_PROVIDER):
         """Available models + reasoning variants for the UI selector.
 
         Read from the opencode.json config (the ground truth the gateway supports);
@@ -430,7 +432,7 @@ class AttackerSession:
     session.status STATE frame. No cross-session event sharing is added.
     """
 
-    def __init__(self, bus, root, sim_port, model="AA-Dense-Blackwell"):
+    def __init__(self, bus, root, sim_port, model="qwen3.5-4b"):
         self.bus = bus
         self.root = root
         self.sim_port = sim_port

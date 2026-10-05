@@ -1,6 +1,6 @@
 # grid2op-harness
 
-A web harness where an LLM (**AA-Dense-Blackwell**, via the Nuclearn gateway /
+A web harness where an LLM (**local Qwen3.5-4B** on vLLM, cards 0-1, via
 `opencode`) operates a [grid2op](https://github.com/SimulaTech/grid2op) power-grid
 simulation through a terminal-style interface, while a browser UI shows what the
 model is doing — its reasoning, each command, its result — and a human can watch,

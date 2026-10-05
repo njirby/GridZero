@@ -127,8 +127,8 @@ def extract_attacks(trace_path, horizon):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--defender-model", default="AA-Dense-Blackwell")
-    ap.add_argument("--attacker-model", default="AA-Dense-Blackwell")
+    ap.add_argument("--defender-model", default="qwen3.5-4b")
+    ap.add_argument("--attacker-model", default="qwen3.5-4b")
     ap.add_argument("--chronic", type=int, default=0)
     ap.add_argument("--horizon", type=int, default=300, help="2-agent default 300 (full 1200 optional)")
     ap.add_argument("--seed", type=int, default=0)

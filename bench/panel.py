@@ -14,7 +14,7 @@ def load_panel(path=PANEL_PATH):
     return json.load(open(path))
 
 
-def config_hash(model="AA-Dense-Blackwell", horizon=None, panel=None, agent="build",
+def config_hash(model="qwen3.5-4b", horizon=None, panel=None, agent="build",
                 temperature=0.0, harness_version="0.1"):
     panel = panel or load_panel()
     h = hashlib.sha256()
