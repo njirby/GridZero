@@ -10,9 +10,14 @@ data_grid2op/
 .sb/
 .sandbox-ws/
 .sandbox-ws-*/
+outputs/
+wandb/
 *.png
 !web/src/assets/*.png
 render/
+
+# rl runtime data
+rl/opencode-data/
 
 # node
 web/node_modules/

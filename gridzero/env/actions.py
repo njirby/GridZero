@@ -1,0 +1,195 @@
+"""Pydantic tool call schemas and grid2op action factory."""
+from __future__ import annotations
+
+import json
+from typing import Annotated, Any, Literal, Union
+
+from pydantic import BaseModel, Field, TypeAdapter
+
+
+class DoNothingAction(BaseModel):
+    action_type: Literal["do_nothing"] = "do_nothing"
+
+
+class SetLineStatusAction(BaseModel):
+    action_type: Literal["set_line_status"] = "set_line_status"
+    line_id: int = Field(..., ge=0, le=999, description="Index of the powerline to control")
+    status: Literal["connect", "disconnect"]
+
+
+class ChangeBusAction(BaseModel):
+    action_type: Literal["change_bus"] = "change_bus"
+    element_type: Literal["load", "gen", "line_or", "line_ex"]
+    element_id: int = Field(..., ge=0, le=999, description="Index of the element within its type")
+    bus: Literal[1, 2] = Field(..., description="Target busbar within the substation")
+
+
+class RedispatchAction(BaseModel):
+    action_type: Literal["redispatch"] = "redispatch"
+    gen_id: int = Field(..., ge=0, le=999, description="Index of the controllable generator")
+    delta_mw: float = Field(
+        ...,
+        ge=-1000.0,
+        le=1000.0,
+        description="Cumulative MW adjustment (positive=increase)",
+    )
+
+
+class CurtailAction(BaseModel):
+    action_type: Literal["curtail"] = "curtail"
+    gen_id: int = Field(..., ge=0, le=999, description="Index of the renewable generator")
+    max_mw: float = Field(..., ge=0.0, le=1000.0, description="Upper bound on generation (MW)")
+
+
+class StorageAction(BaseModel):
+    action_type: Literal["storage"] = "storage"
+    storage_id: int = Field(..., ge=0, le=999, description="Index of the storage unit")
+    mw: float = Field(
+        ...,
+        ge=-1000.0,
+        le=1000.0,
+        description="Power setpoint in MW (positive=charge, negative=discharge)",
+    )
+
+
+# Discriminated union — the JSON schema produced from this drives guided_json decoding.
+ToolCall = Annotated[
+    Union[
+        DoNothingAction,
+        SetLineStatusAction,
+        ChangeBusAction,
+        RedispatchAction,
+        CurtailAction,
+        StorageAction,
+    ],
+    Field(discriminator="action_type"),
+]
+
+_TOOL_CALL_ADAPTER: TypeAdapter[ToolCall] = TypeAdapter(ToolCall)
+
+
+def get_json_schema() -> dict:
+    """Return the JSON schema for the full ToolCall union.
+
+    This schema is passed to vllm's guided_json to constrain generation so
+    every completion is a syntactically valid tool call.
+    """
+    schema = _TOOL_CALL_ADAPTER.json_schema()
+    defs = schema.get("$defs", {})
+    if isinstance(defs, dict):
+        for def_schema in defs.values():
+            if not isinstance(def_schema, dict):
+                continue
+            props = def_schema.get("properties")
+            if not isinstance(props, dict) or "action_type" not in props:
+                continue
+            required = def_schema.get("required")
+            if not isinstance(required, list):
+                required = []
+            if "action_type" not in required:
+                required.append("action_type")
+            def_schema["required"] = required
+    return schema
+
+
+def get_structured_output_regex() -> str:
+    """Return a regex that constrains decoding to valid ToolCall JSON shapes.
+
+    This is used by swift/vLLM guided decoding (`structured_outputs_regex`)
+    so generated completions are restricted to the same action family defined
+    by the ToolCall discriminated union.
+    """
+    ws = r"\s*"
+    int_re = r"(?:0|[1-9]\d{0,2})"
+    float_re = r"-?(?:0|[1-9]\d{0,3})(?:\.\d{1,4})?(?:[eE][+-]?\d{1,2})?"
+    nonneg_float_re = r"(?:0|[1-9]\d{0,3})(?:\.\d{1,4})?(?:[eE][+-]?\d{1,2})?"
+
+    do_nothing = rf'\{{{ws}"action_type"{ws}:{ws}"do_nothing"{ws}\}}'
+    set_line_status = (
+        rf'\{{{ws}"action_type"{ws}:{ws}"set_line_status"{ws},{ws}'
+        rf'"line_id"{ws}:{ws}{int_re}{ws},{ws}'
+        rf'"status"{ws}:{ws}"(?:connect|disconnect)"{ws}\}}'
+    )
+    change_bus = (
+        rf'\{{{ws}"action_type"{ws}:{ws}"change_bus"{ws},{ws}'
+        rf'"element_type"{ws}:{ws}"(?:load|gen|line_or|line_ex)"{ws},{ws}'
+        rf'"element_id"{ws}:{ws}{int_re}{ws},{ws}'
+        rf'"bus"{ws}:{ws}(?:1|2){ws}\}}'
+    )
+    redispatch = (
+        rf'\{{{ws}"action_type"{ws}:{ws}"redispatch"{ws},{ws}'
+        rf'"gen_id"{ws}:{ws}{int_re}{ws},{ws}'
+        rf'"delta_mw"{ws}:{ws}{float_re}{ws}\}}'
+    )
+    curtail = (
+        rf'\{{{ws}"action_type"{ws}:{ws}"curtail"{ws},{ws}'
+        rf'"gen_id"{ws}:{ws}{int_re}{ws},{ws}'
+        rf'"max_mw"{ws}:{ws}{nonneg_float_re}{ws}\}}'
+    )
+    storage = (
+        rf'\{{{ws}"action_type"{ws}:{ws}"storage"{ws},{ws}'
+        rf'"storage_id"{ws}:{ws}{int_re}{ws},{ws}'
+        rf'"mw"{ws}:{ws}{float_re}{ws}\}}'
+    )
+
+    return rf"^(?:{do_nothing}|{set_line_status}|{change_bus}|{redispatch}|{curtail}|{storage})$"
+
+
+def parse_tool_call(json_str: str, action_space) -> Any:
+    """Parse a JSON tool call string into a grid2op Action.
+
+    Args:
+        json_str: JSON string generated by the policy (already validated by
+                  guided_json, so structural errors should not occur).
+        action_space: The grid2op action_space from the environment.
+
+    Returns:
+        A grid2op Action ready to pass to env.step().
+
+    Raises:
+        ValueError: If the action contains out-of-range element IDs.
+    """
+    tool_call = _TOOL_CALL_ADAPTER.validate_json(json_str)
+    return _to_grid2op_action(tool_call, action_space)
+
+
+def _to_grid2op_action(tool_call: ToolCall, action_space) -> Any:
+    """Convert a parsed ToolCall dataclass into a grid2op Action."""
+    act = action_space({})  # do-nothing base
+
+    if isinstance(tool_call, DoNothingAction):
+        pass
+
+    elif isinstance(tool_call, SetLineStatusAction):
+        status_val = 1 if tool_call.status == "connect" else -1
+        act = action_space({"set_line_status": [(tool_call.line_id, status_val)]})
+
+    elif isinstance(tool_call, ChangeBusAction):
+        # grid2op expects set_bus keys like "loads_id", "generators_id",
+        # "lines_or_id", "lines_ex_id" with list[(element_id, bus)] values.
+        element_key = {
+            "load": "loads_id",
+            "gen": "generators_id",
+            "line_or": "lines_or_id",
+            "line_ex": "lines_ex_id",
+        }[tool_call.element_type]
+        act = action_space(
+            {"set_bus": {element_key: [(tool_call.element_id, tool_call.bus)]}}
+        )
+
+    elif isinstance(tool_call, RedispatchAction):
+        redispatch = [0.0] * action_space.n_gen
+        redispatch[tool_call.gen_id] = tool_call.delta_mw
+        act = action_space({"redispatch": redispatch})
+
+    elif isinstance(tool_call, CurtailAction):
+        curtail = [-1.0] * action_space.n_gen  # -1 = no curtailment
+        curtail[tool_call.gen_id] = tool_call.max_mw
+        act = action_space({"curtail": curtail})
+
+    elif isinstance(tool_call, StorageAction):
+        storage = [0.0] * action_space.n_storage
+        storage[tool_call.storage_id] = tool_call.mw
+        act = action_space({"set_storage": storage})
+
+    return act

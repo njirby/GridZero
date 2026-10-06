@@ -116,7 +116,11 @@ def wait_up(base, path, timeout=240):
     return False
 
 
-def start_backend(port, acfg=None, model="qwen3.5-4b"):
+def start_backend(port, acfg=None, model="qwen3.5-4b", net=None, model_url=None):
+    """Launch the episode backend. `net` (EpisodeNet) may be pre-created (the RL
+    driver needs its gateway IP before the backend starts, to point opencode at
+    the RL rollout endpoint). `model_url` overrides the agent's model endpoint
+    (RL: the per-episode proxy; bench: the netns vLLM forwarder)."""
     acfg = acfg or {}
     log = open(os.path.join(ROOT, "runs", f"backend-bench-{port}.log"), "ab")
     env = dict(os.environ)
@@ -130,18 +134,20 @@ def start_backend(port, acfg=None, model="qwen3.5-4b"):
     # per-episode netns (OPENCODE_NETNS=0 to disable): the backend runs inside
     # it; the sandboxed opencode joins it; the agent's only external service
     # is vLLM via the gateway-IP forwarder (no sibling backends, no internet).
-    net = None
-    if os.environ.get("OPENCODE_NETNS", "1") == "1":
+    if net is None and os.environ.get("OPENCODE_NETNS", "1") == "1":
         try:
             from bench.netns import EpisodeNet
             net = EpisodeNet(port, log_dir=os.path.join(ROOT, "runs"))
             net.setup()
-            env["VLLM_FORWARD_URL"] = net.vllm_url()
         except Exception as e:
             print(f"  (netns setup failed: {e} — running WITHOUT network isolation)")
             if net:
                 net.teardown()
             net = None
+    if model_url:
+        env["VLLM_FORWARD_URL"] = model_url      # RL: per-episode proxy
+    elif net:
+        env["VLLM_FORWARD_URL"] = net.vllm_url()
     env["OPENCODE_SANDBOX"] = "1"                # filesystem sandbox: hide the answer key
     env["OPENCODE_MODEL"] = model or acfg.get("model") or "qwen3.5-4b"
     if not acfg.get("render", True):
@@ -249,40 +255,17 @@ def main():
         print(f"  ADVERSARIAL: {len(a.attacks)} attacks (interval {a.attack_interval}, "
               f"dur {a.attack_duration}); DN-under-attack anchor: survived {a.dn_anchor['survived']}/{horizon} "
               f"cum {a.dn_anchor['cum_reward']:.0f} go={a.dn_anchor['game_over']}")
-    bp, tok, net = start_backend(a.port, a.cfg, model=a.model)
-    base = net.backend_base() if net else f"http://127.0.0.1:{a.port}"
     results = []
-    try:
-        if not wait_up(base, "/sim/status"):
-            print("ERROR: backend did not boot; see", os.path.join(ROOT, "runs", f"backend-bench-{a.port}.log"))
+    for i in range(a.repeats):
+        res = run_episode(a.port, a, outdir, horizon)
+        if res is None:
             return 2
-        for i in range(a.repeats):
-            res = run_one(base, a, i, outdir, horizon, tok)
-            results.append(res)
-            fn = os.path.join(outdir, f"episode-{i}.json")
-            json.dump(res.to_dict(), open(fn, "w"), indent=2)
-            print(f"  repeat {i}: survived {res.survived}/{horizon} cum {res.cum_reward:.0f} "
-                  f"done {res.done} trips {res.n_trips} tok {res.tokens_in}/{res.tokens_out} "
-                  f"${res.cost_usd} wall {res.wall_clock_s}s")
-    finally:
-        # graceful shutdown (lets the backend's on_shutdown reap its sandbox via
-        # oc.stop()); give it time, then hard-kill, then a port-based sweep as a
-        # belt-and-suspenders (a SIGKILL'd backend can't finish its cleanup).
-        bp.terminate()
-        try:
-            bp.wait(timeout=30)
-        except Exception:
-            bp.kill()
-        try:
-            from bench import sandbox
-            sandbox.kill_sandbox_proc(None, oc_port=a.port + 200)
-        except Exception as e:
-            print(f"  (sandbox sweep after shutdown: {e})")
-        if net:
-            try:
-                net.teardown()
-            except Exception as e:
-                print(f"  (netns teardown: {e})")
+        results.append(res)
+        fn = os.path.join(outdir, f"episode-{i}.json")
+        json.dump(res.to_dict(), open(fn, "w"), indent=2)
+        print(f"  repeat {i}: survived {res.survived}/{horizon} cum {res.cum_reward:.0f} "
+              f"done {res.done} trips {res.n_trips} tok {res.tokens_in}/{res.tokens_out} "
+              f"${res.cost_usd} wall {res.wall_clock_s}s")
     json.dump([r.to_dict() for r in results], open(os.path.join(outdir, "results.json"), "w"), indent=2)
     print(f"wrote {outdir}/results.json ({len(results)} episodes)")
     return 0
@@ -418,6 +401,43 @@ def build_result(a, i, horizon, stats, wall, ep, notes="", agent_failed=False):
     except Exception:
         pass
     return res
+
+
+def run_episode(port, a, outdir, horizon, net=None, model_url=None):
+    """Full single-episode lifecycle: backend + boot wait + run_one + teardown.
+
+    `a` is an argparse.Namespace with at least: model, cfg, chronic, seed,
+    attacks, adversarial, safety_cap_h, liveness_min, stall_min, poke_idle_s.
+    Returns EpisodeResult (None if the backend failed to boot). Reused by the
+    RL rollout driver (rl/gridzero_agent.py), which calls this per episode on
+    its own port so episodes run in parallel; it pre-creates `net` (to know the
+    gateway IP) and passes `model_url` (the per-episode RL proxy)."""
+    bp, tok, net = start_backend(port, a.cfg, model=a.model, net=net, model_url=model_url)
+    base = net.backend_base() if net else f"http://127.0.0.1:{port}"
+    try:
+        if not wait_up(base, "/sim/status"):
+            print("ERROR: backend did not boot; see", os.path.join(ROOT, "runs", f"backend-bench-{port}.log"))
+            return None
+        return run_one(base, a, 0, outdir, horizon, tok)
+    finally:
+        # graceful shutdown (lets the backend's on_shutdown reap its sandbox via
+        # oc.stop()); give it time, then hard-kill, then a port-based sweep as a
+        # belt-and-suspenders (a SIGKILL'd backend can't finish its cleanup).
+        bp.terminate()
+        try:
+            bp.wait(timeout=30)
+        except Exception:
+            bp.kill()
+        try:
+            from bench import sandbox
+            sandbox.kill_sandbox_proc(None, oc_port=port + 200)
+        except Exception as e:
+            print(f"  (sandbox sweep after shutdown: {e})")
+        if net:
+            try:
+                net.teardown()
+            except Exception as e:
+                print(f"  (netns teardown: {e})")
 
 
 if __name__ == "__main__":

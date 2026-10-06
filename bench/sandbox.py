@@ -76,7 +76,7 @@ def _opencode_runtime_binds():
     return binds, node_bin
 
 
-def build_ws(with_docs=True, oc_port=None, doc_warning=None, attacker=None):
+def build_ws(with_docs=True, oc_port=None, doc_warning=None, attacker=None, rl_trace=False):
     """Build the clean operator workspace. Returns its path.
 
     Per-port workspace (oc_port) so PARALLEL episodes each own their copy — a shared
@@ -116,6 +116,12 @@ def build_ws(with_docs=True, oc_port=None, doc_warning=None, attacker=None):
         if doc_warning and os.path.isfile(os.path.join(ws, "AGENTS.md")):
             with open(os.path.join(ws, "AGENTS.md"), "a") as f:
                 f.write("\n\n" + doc_warning.rstrip() + "\n")
+    if rl_trace:
+        # opencode auto-discovers .opencode/plugin/* in the project dir: the
+        # gridtrace plugin captures per-turn token IDs + logprobs (see rl/).
+        plug_dir = os.path.join(ws, ".opencode", "plugin")
+        os.makedirs(plug_dir, exist_ok=True)
+        shutil.copy(os.path.join(ROOT, "rl", "gridtrace_plugin.js"), plug_dir)
     return ws
 
 
@@ -154,29 +160,35 @@ def build_sandbox_home(oc_port, model=None, vllm_url=None):
 def _patch_config_baseurl(cfg_path, vllm_url):
     """Rewrite localhost provider baseURLs to the episode's gateway host (the
     netns has no vLLM on loopback; the forwarder on the gateway IP does)."""
-    import json
-    host = vllm_url.split("//", 1)[1].split(":", 1)[0]
+    import json, re
+    # host:port of the episode's model endpoint (path stripped — the local
+    # baseURLs' /v1 suffix is kept as-is). The netns forwarder keeps the local
+    # port (8002) on the gateway; the RL proxy uses its own port.
+    hostport = vllm_url.split("//", 1)[1].split("/", 1)[0]
     try:
         d = json.load(open(cfg_path))
         for prov in (d.get("provider", {}) or {}).values():
             opts = prov.get("options", {}) or {}
             bu = opts.get("baseURL", "")
-            for local in ("localhost", "127.0.0.1"):
-                if f"//{local}:" in bu:
-                    opts["baseURL"] = bu.replace(f"//{local}:", f"//{host}:")
+            new = re.sub(r"//(?:localhost|127\.0\.0\.1):\d+", f"//{hostport}", bu)
+            if new != bu:
+                opts["baseURL"] = new
         json.dump(d, open(cfg_path, "w"), indent=2)
     except Exception as e:
         print(f"  (warn) could not patch sandbox baseURL: {e}")
 
 
 def _patch_config_model(cfg_path, model):
-    """Set global model + agent.build.model + agent.plan.model to {provider}/{model}."""
+    """Set global model + small_model + agent.build.model + agent.plan.model to
+    {provider}/{model} (small_model covers opencode's title/aux calls, which
+    would otherwise leak to a different provider's model)."""
     import json
     provider = os.environ.get("OPENCODE_PROVIDER", "vllm4b")
     full = model if "/" in model else f"{provider}/{model}"
     try:
         d = json.load(open(cfg_path))
         d["model"] = full
+        d["small_model"] = full
         d.setdefault("agent", {})
         for agent_key in ("build", "plan"):
             d["agent"].setdefault(agent_key, {})["model"] = full
@@ -185,7 +197,8 @@ def _patch_config_model(cfg_path, model):
         print(f"  (warn) could not patch sandbox model config: {e}")
 
 
-def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token=""):
+def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token="",
+               rl_trace_dir=None, rl_data_dir=None):
     """Full argv to launch a sandboxed `opencode serve` (runs as root via sudo)."""
     oc_bin = _opencode_bin()
     runtime_binds, node_bin = _opencode_runtime_binds()
@@ -207,6 +220,21 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token=""):
     # render PNGs (written by the host backend) readable at their real path
     if os.path.isdir(real_render):
         args += ["--ro-bind", real_render, os.path.join(REPO_PATH, "render")]
+    # RL token capture (gridtrace plugin, see rl/gridtrace_plugin.js):
+    #  - per-episode trace dir at /gridtrace (outside the operator workspace,
+    #    so the model's default views don't trip over its own token records),
+    #  - shared opencode data dir => ALL rollout sessions land in one separate
+    #    opencode.db ($rl_data_dir/opencode/opencode.db), never the personal one.
+    if rl_trace_dir:
+        os.makedirs(rl_trace_dir, exist_ok=True)
+        args += ["--bind", rl_trace_dir, "/gridtrace"]
+        args += ["--setenv", "GRID_TRACE_DIR", "/gridtrace"]
+        args += ["--setenv", "GRID_TRACE_PROVIDER",
+                 os.environ.get("GRZ_RL_PROVIDER", "vllm4b")]
+    if rl_data_dir:
+        os.makedirs(os.path.join(rl_data_dir, "opencode"), exist_ok=True)
+        args += ["--bind", rl_data_dir, rl_data_dir]
+        args += ["--setenv", "XDG_DATA_HOME", rl_data_dir]
     # ephemeral + namespace isolation
     args += ["--tmpfs", "/tmp", "--dev", "/dev", "--proc", "/proc",
              "--unshare-pid", "--unshare-uts"]
@@ -234,10 +262,21 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token=""):
 
 def setup(oc_port, sim_port, with_docs=True, doc_warning=None, model=None, attacker=None,
           atk_token="", vllm_url=None):
-    """Build per-port ws + sandbox home; return (argv, {ws, sb_home})."""
-    ws = build_ws(with_docs, oc_port=oc_port, doc_warning=doc_warning, attacker=attacker)
+    """Build per-port ws + sandbox home; return (argv, {ws, sb_home}).
+
+    RL token capture is env-gated (set by the RL driver's process, inherited by
+    the backend): GRZ_RL_TRACE=1 enables it; GRZ_RL_TRACE_DIR / GRZ_RL_DATA_DIR
+    override the locations (defaults: per-port .sb scratch, $ROOT/rl/opencode-data)."""
+    rl_trace = os.environ.get("GRZ_RL_TRACE") == "1"
+    rl_trace_dir = os.environ.get("GRZ_RL_TRACE_DIR") or (
+        os.path.join(SANDBOX_ROOT, f"trace-{oc_port}") if rl_trace else None)
+    rl_data_dir = os.environ.get("GRZ_RL_DATA_DIR") or (
+        os.path.join(ROOT, "rl", "opencode-data") if rl_trace else None)
+    ws = build_ws(with_docs, oc_port=oc_port, doc_warning=doc_warning, attacker=attacker,
+                  rl_trace=rl_trace)
     sb_home = build_sandbox_home(oc_port, model=model, vllm_url=vllm_url)
-    return bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=attacker, atk_token=atk_token), \
+    return bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=attacker, atk_token=atk_token,
+                      rl_trace_dir=rl_trace_dir, rl_data_dir=rl_data_dir), \
         {"ws": ws, "sb_home": sb_home}
 
 
