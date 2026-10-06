@@ -144,7 +144,23 @@ async def _startup():
     ST.oc = OpenCodeDriver(ST.bus, OC_CWD, sim_port=SIM_PORT, oc_port=OC_PORT,
                            atk_token=ATK_TOKEN)
     ST.meta = await asyncio.to_thread(ST.sim.metadata)
-    await asyncio.to_thread(ST.sim.reset)
+    # Episode params from env (Lego-RL/Harbor: each task pins its own
+    # (chronic, horizon, seed) via env vars; the agent cannot call /sim/reset).
+    # Unset -> default reset (bench behavior unchanged; bench pins via /bench/start).
+    chronic, horizon, seed = (os.environ.get(k) for k in ("SIM_CHRONIC", "SIM_HORIZON", "SIM_SEED"))
+    if chronic is not None or horizon is not None or seed is not None:
+        options = {}
+        if chronic is not None:
+            options["time serie id"] = int(chronic)
+        if horizon is not None:
+            options["max step"] = int(horizon)
+        await asyncio.to_thread(
+            ST.sim.reset,
+            seed=int(seed) if seed not in (None, "") else None,
+            options=options or None,
+        )
+    else:
+        await asyncio.to_thread(ST.sim.reset)
     ST.bus.start_episode(ST.bus.episode, RUNS)
     ST.bus.emit("sim.state", ST.sim.latest_state())
     ST.bus.emit("session.status", {"status": "busy", "title": "grid agent"})

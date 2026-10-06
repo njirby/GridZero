@@ -1,0 +1,36 @@
+# Base-image build context (lego/base/Dockerfile). Keep it minimal: the image
+# only needs backend/, cli/simctl, AGENTS.md, docs/, recipes/, lego/base/.
+# Everything else (large data, artifacts, sandboxes, other tools) is excluded.
+
+# data / artifacts (large)
+outputs/
+wandb/
+runs/
+data_grid2op/
+render/
+.sb/
+.sandbox-ws/
+.sandbox-ws-*/
+
+# venv / python caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# not needed in the runtime image
+web/
+bench/
+gridzero/
+contracts/
+tests/
+backend/tests/
+cli/tests/
+.git/
+
+# lego/: keep only the base build inputs
+lego/
+!lego/base/
+!lego/base/Dockerfile
+!lego/base/entrypoint.sh
+!lego/base/build.sh
