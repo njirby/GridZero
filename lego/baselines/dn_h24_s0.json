@@ -1,0 +1,2626 @@
+{
+ "0": {
+  "chronic": 0,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1584.8666,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "1": {
+  "chronic": 1,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1572.5837,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "2": {
+  "chronic": 2,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1693.1628,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "3": {
+  "chronic": 3,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 113.8164,
+  "dn_t": 3,
+  "dn_cause": "game_over"
+ },
+ "4": {
+  "chronic": 4,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1669.0511,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "5": {
+  "chronic": 5,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1581.8106,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "6": {
+  "chronic": 6,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1540.9637,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "7": {
+  "chronic": 7,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1671.5385,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "8": {
+  "chronic": 8,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1632.8685,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "9": {
+  "chronic": 9,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1596.5287,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "10": {
+  "chronic": 10,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1607.7068,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "11": {
+  "chronic": 11,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1576.0943,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "12": {
+  "chronic": 12,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1588.4447,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "13": {
+  "chronic": 13,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1663.0634,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "14": {
+  "chronic": 14,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1705.4183,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "15": {
+  "chronic": 15,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1615.6434,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "16": {
+  "chronic": 16,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1623.8104,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "17": {
+  "chronic": 17,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1577.6329,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "18": {
+  "chronic": 18,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1673.221,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "19": {
+  "chronic": 19,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1577.6487,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "20": {
+  "chronic": 20,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1526.6119,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "21": {
+  "chronic": 21,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1601.8454,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "22": {
+  "chronic": 22,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1540.357,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "23": {
+  "chronic": 23,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1649.593,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "24": {
+  "chronic": 24,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1618.0855,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "25": {
+  "chronic": 25,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1621.7625,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "26": {
+  "chronic": 26,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1568.2287,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "27": {
+  "chronic": 27,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1626.9961,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "28": {
+  "chronic": 28,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1581.963,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "29": {
+  "chronic": 29,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1603.7553,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "30": {
+  "chronic": 30,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1515.3654,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "31": {
+  "chronic": 31,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1650.2657,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "32": {
+  "chronic": 32,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1537.3202,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "33": {
+  "chronic": 33,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1602.1648,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "34": {
+  "chronic": 34,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1619.5575,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "35": {
+  "chronic": 35,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1562.4444,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "36": {
+  "chronic": 36,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1602.3043,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "37": {
+  "chronic": 37,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1706.5997,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "38": {
+  "chronic": 38,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1538.5698,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "39": {
+  "chronic": 39,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1540.7999,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "40": {
+  "chronic": 40,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1600.4192,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "41": {
+  "chronic": 41,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1566.4705,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "42": {
+  "chronic": 42,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1590.6332,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "43": {
+  "chronic": 43,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1603.8672,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "44": {
+  "chronic": 44,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1612.4408,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "45": {
+  "chronic": 45,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1528.7502,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "46": {
+  "chronic": 46,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1591.8855,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "47": {
+  "chronic": 47,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1624.2192,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "48": {
+  "chronic": 48,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1606.2852,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "49": {
+  "chronic": 49,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1571.1844,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "50": {
+  "chronic": 50,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1698.3085,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "51": {
+  "chronic": 51,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1603.2855,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "52": {
+  "chronic": 52,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1701.1166,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "53": {
+  "chronic": 53,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1570.2214,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "54": {
+  "chronic": 54,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1696.439,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "55": {
+  "chronic": 55,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1583.8477,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "56": {
+  "chronic": 56,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1594.1779,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "57": {
+  "chronic": 57,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1559.6903,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "58": {
+  "chronic": 58,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1552.0381,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "59": {
+  "chronic": 59,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1680.7773,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "60": {
+  "chronic": 60,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.2677,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "61": {
+  "chronic": 61,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1662.4801,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "62": {
+  "chronic": 62,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1559.4246,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "63": {
+  "chronic": 63,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1650.7693,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "64": {
+  "chronic": 64,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1594.8635,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "65": {
+  "chronic": 65,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1633.0638,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "66": {
+  "chronic": 66,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1563.9358,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "67": {
+  "chronic": 67,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1623.7809,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "68": {
+  "chronic": 68,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1688.4821,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "69": {
+  "chronic": 69,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1538.5048,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "70": {
+  "chronic": 70,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1742.8307,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "71": {
+  "chronic": 71,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1628.8207,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "72": {
+  "chronic": 72,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 112.5932,
+  "dn_t": 3,
+  "dn_cause": "game_over"
+ },
+ "73": {
+  "chronic": 73,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1637.9617,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "74": {
+  "chronic": 74,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1573.3968,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "75": {
+  "chronic": 75,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1617.9378,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "76": {
+  "chronic": 76,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1644.0151,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "77": {
+  "chronic": 77,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1566.1732,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "78": {
+  "chronic": 78,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1637.1916,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "79": {
+  "chronic": 79,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1644.0042,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "80": {
+  "chronic": 80,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1655.8031,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "81": {
+  "chronic": 81,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1627.5966,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "82": {
+  "chronic": 82,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1636.8001,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "83": {
+  "chronic": 83,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1664.0329,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "84": {
+  "chronic": 84,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1631.7485,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "85": {
+  "chronic": 85,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1598.9458,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "86": {
+  "chronic": 86,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1496.9239,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "87": {
+  "chronic": 87,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1552.5898,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "88": {
+  "chronic": 88,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1613.7167,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "89": {
+  "chronic": 89,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1675.3147,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "90": {
+  "chronic": 90,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1598.261,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "91": {
+  "chronic": 91,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1522.5092,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "92": {
+  "chronic": 92,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1632.9874,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "93": {
+  "chronic": 93,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1660.0764,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "94": {
+  "chronic": 94,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1581.403,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "95": {
+  "chronic": 95,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1562.5646,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "96": {
+  "chronic": 96,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1682.358,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "97": {
+  "chronic": 97,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1582.1748,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "98": {
+  "chronic": 98,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1603.6766,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "99": {
+  "chronic": 99,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.7219,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "100": {
+  "chronic": 100,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1706.4816,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "101": {
+  "chronic": 101,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1613.6929,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "102": {
+  "chronic": 102,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1589.2363,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "103": {
+  "chronic": 103,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1696.3397,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "104": {
+  "chronic": 104,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1578.9044,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "105": {
+  "chronic": 105,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1598.4135,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "106": {
+  "chronic": 106,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1611.1056,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "107": {
+  "chronic": 107,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1658.1387,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "108": {
+  "chronic": 108,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1590.9595,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "109": {
+  "chronic": 109,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1675.3797,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "110": {
+  "chronic": 110,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1621.3578,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "111": {
+  "chronic": 111,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1540.6388,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "112": {
+  "chronic": 112,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1662.7481,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "113": {
+  "chronic": 113,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1596.0074,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "114": {
+  "chronic": 114,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1652.4857,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "115": {
+  "chronic": 115,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1600.1257,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "116": {
+  "chronic": 116,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1591.1618,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "117": {
+  "chronic": 117,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1523.794,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "118": {
+  "chronic": 118,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1631.428,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "119": {
+  "chronic": 119,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1705.2227,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "120": {
+  "chronic": 120,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1647.6382,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "121": {
+  "chronic": 121,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1598.1543,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "122": {
+  "chronic": 122,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1571.2258,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "123": {
+  "chronic": 123,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.7712,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "124": {
+  "chronic": 124,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1593.0975,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "125": {
+  "chronic": 125,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1584.6459,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "126": {
+  "chronic": 126,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1647.1605,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "127": {
+  "chronic": 127,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1675.5067,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "128": {
+  "chronic": 128,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1585.4213,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "129": {
+  "chronic": 129,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1653.8432,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "130": {
+  "chronic": 130,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1612.7248,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "131": {
+  "chronic": 131,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1704.5888,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "132": {
+  "chronic": 132,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1750.4002,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "133": {
+  "chronic": 133,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1622.3604,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "134": {
+  "chronic": 134,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1670.8166,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "135": {
+  "chronic": 135,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1568.233,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "136": {
+  "chronic": 136,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1566.1963,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "137": {
+  "chronic": 137,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1660.7079,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "138": {
+  "chronic": 138,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1692.9795,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "139": {
+  "chronic": 139,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1621.5489,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "140": {
+  "chronic": 140,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1607.1461,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "141": {
+  "chronic": 141,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1547.1926,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "142": {
+  "chronic": 142,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1612.2188,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "143": {
+  "chronic": 143,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1578.0294,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "144": {
+  "chronic": 144,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1579.1992,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "145": {
+  "chronic": 145,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1669.2355,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "146": {
+  "chronic": 146,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1575.5284,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "147": {
+  "chronic": 147,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1652.3808,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "148": {
+  "chronic": 148,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1654.6549,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "149": {
+  "chronic": 149,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1526.735,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "150": {
+  "chronic": 150,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1614.5624,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "151": {
+  "chronic": 151,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1515.6324,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "152": {
+  "chronic": 152,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1608.1484,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "153": {
+  "chronic": 153,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1566.8992,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "154": {
+  "chronic": 154,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1615.1545,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "155": {
+  "chronic": 155,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1635.4748,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "156": {
+  "chronic": 156,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1668.2088,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "157": {
+  "chronic": 157,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1543.8028,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "158": {
+  "chronic": 158,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1675.8101,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "159": {
+  "chronic": 159,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1725.8878,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "160": {
+  "chronic": 160,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1673.6532,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "161": {
+  "chronic": 161,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1563.7346,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "162": {
+  "chronic": 162,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1577.7175,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "163": {
+  "chronic": 163,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1594.4707,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "164": {
+  "chronic": 164,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1586.898,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "165": {
+  "chronic": 165,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1580.948,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "166": {
+  "chronic": 166,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1541.3261,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "167": {
+  "chronic": 167,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1519.9145,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "168": {
+  "chronic": 168,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1722.8051,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "169": {
+  "chronic": 169,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1500.7164,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "170": {
+  "chronic": 170,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1660.0369,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "171": {
+  "chronic": 171,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1662.4101,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "172": {
+  "chronic": 172,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1637.3202,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "173": {
+  "chronic": 173,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1740.1497,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "174": {
+  "chronic": 174,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1566.644,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "175": {
+  "chronic": 175,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1482.8934,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "176": {
+  "chronic": 176,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1651.053,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "177": {
+  "chronic": 177,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1638.2848,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "178": {
+  "chronic": 178,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1529.7986,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "179": {
+  "chronic": 179,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1631.7479,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "180": {
+  "chronic": 180,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1615.603,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "181": {
+  "chronic": 181,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1619.6704,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "182": {
+  "chronic": 182,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1583.4196,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "183": {
+  "chronic": 183,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1543.8188,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "184": {
+  "chronic": 184,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.1438,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "185": {
+  "chronic": 185,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1606.242,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "186": {
+  "chronic": 186,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1588.952,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "187": {
+  "chronic": 187,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1660.128,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "188": {
+  "chronic": 188,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1617.9491,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "189": {
+  "chronic": 189,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1607.6293,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "190": {
+  "chronic": 190,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1558.0527,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "191": {
+  "chronic": 191,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1634.9334,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "192": {
+  "chronic": 192,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1704.8143,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "193": {
+  "chronic": 193,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1645.1259,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "194": {
+  "chronic": 194,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1545.4363,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "195": {
+  "chronic": 195,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1609.1662,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "196": {
+  "chronic": 196,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1571.6509,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "197": {
+  "chronic": 197,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1642.4721,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "198": {
+  "chronic": 198,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1626.5968,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "199": {
+  "chronic": 199,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1607.9393,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "200": {
+  "chronic": 200,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1686.9132,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "201": {
+  "chronic": 201,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.0152,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "202": {
+  "chronic": 202,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.1197,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "203": {
+  "chronic": 203,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1588.5436,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "204": {
+  "chronic": 204,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1651.9872,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "205": {
+  "chronic": 205,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1623.7541,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "206": {
+  "chronic": 206,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1600.4579,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "207": {
+  "chronic": 207,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1578.3584,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "208": {
+  "chronic": 208,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1653.8823,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "209": {
+  "chronic": 209,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1607.6475,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "210": {
+  "chronic": 210,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1699.0602,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "211": {
+  "chronic": 211,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1652.535,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "212": {
+  "chronic": 212,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1646.3122,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "213": {
+  "chronic": 213,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1565.7706,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "214": {
+  "chronic": 214,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1656.7108,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "215": {
+  "chronic": 215,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1585.5757,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "216": {
+  "chronic": 216,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1653.9469,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "217": {
+  "chronic": 217,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1606.5754,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "218": {
+  "chronic": 218,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1604.218,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "219": {
+  "chronic": 219,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1580.9641,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "220": {
+  "chronic": 220,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1556.1015,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "221": {
+  "chronic": 221,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1539.8011,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "222": {
+  "chronic": 222,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1661.8789,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "223": {
+  "chronic": 223,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1626.0663,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "224": {
+  "chronic": 224,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1617.665,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "225": {
+  "chronic": 225,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1625.3293,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "226": {
+  "chronic": 226,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1609.6161,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "227": {
+  "chronic": 227,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1617.3038,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "228": {
+  "chronic": 228,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1512.607,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "229": {
+  "chronic": 229,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1601.9189,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "230": {
+  "chronic": 230,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1648.8114,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "231": {
+  "chronic": 231,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1657.1693,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "232": {
+  "chronic": 232,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1641.5421,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "233": {
+  "chronic": 233,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1647.2246,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "234": {
+  "chronic": 234,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1576.0241,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "235": {
+  "chronic": 235,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1638.0696,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "236": {
+  "chronic": 236,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1599.1039,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "237": {
+  "chronic": 237,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1583.0446,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "238": {
+  "chronic": 238,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1711.8932,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "239": {
+  "chronic": 239,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1633.2364,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "240": {
+  "chronic": 240,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1611.1851,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "241": {
+  "chronic": 241,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1614.1776,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "242": {
+  "chronic": 242,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1640.3127,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "243": {
+  "chronic": 243,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1613.8029,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "244": {
+  "chronic": 244,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1589.243,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "245": {
+  "chronic": 245,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1655.4647,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "246": {
+  "chronic": 246,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1715.1251,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "247": {
+  "chronic": 247,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.1866,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "248": {
+  "chronic": 248,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 109.3403,
+  "dn_t": 3,
+  "dn_cause": "game_over"
+ },
+ "249": {
+  "chronic": 249,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1684.5538,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "250": {
+  "chronic": 250,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1682.2323,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "251": {
+  "chronic": 251,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1601.014,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "252": {
+  "chronic": 252,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1607.933,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "253": {
+  "chronic": 253,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1700.7277,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "254": {
+  "chronic": 254,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1652.5203,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "255": {
+  "chronic": 255,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1664.6063,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "256": {
+  "chronic": 256,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1656.9731,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "257": {
+  "chronic": 257,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1652.1145,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "258": {
+  "chronic": 258,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1585.5734,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "259": {
+  "chronic": 259,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1538.6475,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "260": {
+  "chronic": 260,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1581.5416,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "261": {
+  "chronic": 261,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1648.5595,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "262": {
+  "chronic": 262,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1594.5338,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "263": {
+  "chronic": 263,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1671.9204,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "264": {
+  "chronic": 264,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1618.2315,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "265": {
+  "chronic": 265,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1634.0336,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "266": {
+  "chronic": 266,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1633.1816,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "267": {
+  "chronic": 267,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1767.4213,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "268": {
+  "chronic": 268,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1572.0754,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "269": {
+  "chronic": 269,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1561.0858,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "270": {
+  "chronic": 270,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1531.2261,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "271": {
+  "chronic": 271,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1655.6651,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "272": {
+  "chronic": 272,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1618.2724,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "273": {
+  "chronic": 273,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1611.3034,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "274": {
+  "chronic": 274,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1567.8231,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "275": {
+  "chronic": 275,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1583.3196,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "276": {
+  "chronic": 276,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1656.4779,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "277": {
+  "chronic": 277,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1646.6902,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "278": {
+  "chronic": 278,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1603.5956,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "279": {
+  "chronic": 279,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1527.1014,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "280": {
+  "chronic": 280,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1673.2774,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "281": {
+  "chronic": 281,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1642.3223,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "282": {
+  "chronic": 282,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1610.9451,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "283": {
+  "chronic": 283,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1558.1298,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "284": {
+  "chronic": 284,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1623.8183,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "285": {
+  "chronic": 285,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1576.2868,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "286": {
+  "chronic": 286,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1599.1313,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "287": {
+  "chronic": 287,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1646.3331,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "288": {
+  "chronic": 288,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1633.7136,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "289": {
+  "chronic": 289,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1701.9842,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "290": {
+  "chronic": 290,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1550.5421,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "291": {
+  "chronic": 291,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1625.1512,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "292": {
+  "chronic": 292,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1656.1276,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "293": {
+  "chronic": 293,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1568.9085,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "294": {
+  "chronic": 294,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1577.6523,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "295": {
+  "chronic": 295,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1631.7081,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "296": {
+  "chronic": 296,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1562.9946,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "297": {
+  "chronic": 297,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1581.4143,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "298": {
+  "chronic": 298,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1693.1031,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "299": {
+  "chronic": 299,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1565.0438,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "300": {
+  "chronic": 300,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1641.9959,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "301": {
+  "chronic": 301,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1620.1065,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "302": {
+  "chronic": 302,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1629.5972,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "303": {
+  "chronic": 303,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1574.9543,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "304": {
+  "chronic": 304,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1663.27,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "305": {
+  "chronic": 305,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 111.7881,
+  "dn_t": 3,
+  "dn_cause": "game_over"
+ },
+ "306": {
+  "chronic": 306,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1632.7697,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "307": {
+  "chronic": 307,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1627.6866,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "308": {
+  "chronic": 308,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1645.521,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "309": {
+  "chronic": 309,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1633.5552,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "310": {
+  "chronic": 310,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1692.8314,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "311": {
+  "chronic": 311,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1618.721,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "312": {
+  "chronic": 312,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1585.3792,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "313": {
+  "chronic": 313,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1687.3106,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "314": {
+  "chronic": 314,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1609.2828,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "315": {
+  "chronic": 315,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1606.7688,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "316": {
+  "chronic": 316,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1657.3016,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "317": {
+  "chronic": 317,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1633.7227,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "318": {
+  "chronic": 318,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1662.1584,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "319": {
+  "chronic": 319,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1655.1508,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "996": {
+  "chronic": 996,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1590.8659,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "997": {
+  "chronic": 997,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1560.7928,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "998": {
+  "chronic": 998,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1563.9552,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "999": {
+  "chronic": 999,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1551.628,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "1000": {
+  "chronic": 1000,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1606.0544,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "1001": {
+  "chronic": 1001,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1682.2885,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "1002": {
+  "chronic": 1002,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1590.16,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ },
+ "1003": {
+  "chronic": 1003,
+  "horizon": 24,
+  "seed": 0,
+  "dn_cum_reward": 1578.3564,
+  "dn_t": 24,
+  "dn_cause": "time_exceeded"
+ }
+}

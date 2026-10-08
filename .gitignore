@@ -39,3 +39,4 @@ auth.json
 # os
 .DS_Store
 lego/logs/
+lego/tasks_scale/

@@ -1,6 +1,6 @@
 #!/bin/bash
-# grid2op verifier: read the cumulative episode reward the backend accumulated
-# and emit it as a CONTINUOUS float to /logs/verifier/reward.txt.
+# grid2op verifier: read the cumulative episode reward the backend accumulated, subtract
+# the do-nothing baseline, and emit it as a CONTINUOUS float to /logs/verifier/reward.txt.
 #
 # The backend (SIM-API) runs in this same container (started by the entrypoint).
 # If it is unreachable the episode produced no score: that is an INFRA failure, not
@@ -22,13 +22,23 @@ set -uo pipefail
 mkdir -p /logs/verifier
 rm -f /logs/verifier/reward.txt /logs/verifier/INFRA_FAILURE
 
-reward=$(python3 - <<'PY'
-import json, urllib.request
+# Reward = cum_reward - dn_cum_reward when tests/baseline.json exists (written by
+# make_tasks.py --baselines): surviving a calm episode by doing nothing scores ~0,
+# stopping early scores negative, and only beating do-nothing is positive. This removes
+# the incentive to fast-forward with blind no-ops. Without the file: raw cum_reward.
+BASELINE="$(dirname "$0")/baseline.json"
+reward=$(BASELINE="$BASELINE" python3 - <<'PY'
+import json, os, urllib.request
 try:
     d = json.load(urllib.request.urlopen("http://127.0.0.1:8731/sim/status", timeout=5))
-    print(float(d["data"]["cum_reward"]))
+    cum = float(d["data"]["cum_reward"])
 except Exception as e:
     print(f"ERR {type(e).__name__}: {e}")
+    raise SystemExit
+dn = 0.0
+if os.path.exists(os.environ["BASELINE"]):
+    dn = float(json.load(open(os.environ["BASELINE"]))["dn_cum_reward"])
+print(round(cum - dn, 4))
 PY
 )
 
@@ -38,7 +48,7 @@ if [[ ! "$reward" =~ ^-?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$ ]]; then
 fi
 
 echo "$reward" > /logs/verifier/reward.txt
-echo "grid2op cumulative reward: $reward"
+echo "grid2op reward (cum_reward - do-nothing baseline): $reward"
 
 # Persist a small summary for inspection alongside the reward.
 curl -sf "http://127.0.0.1:8731/sim/status" > /logs/verifier/final_status.json 2>/dev/null || true

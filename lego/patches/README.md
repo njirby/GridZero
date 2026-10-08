@@ -6,7 +6,7 @@ Neither upstream is ours, so our changes live here instead of being pushed there
 
 | file | apply in | what |
 |---|---|---|
-| `lego-rl.patch` | lego-rl root: `git apply lego/patches/lego-rl.patch` | proxy on a fixed UFW-allowed port (8011+), 27B-safe Ray cleanup (+ pipefail fix), LoRA/sdpa/`add_force` hydra args, `AGENT_LOOP_CONFIG_PATH` in oc.env, sync config (`load_format: safetensors`, `layered_summon`), runtime-image pull falls back to the local copy |
+| `lego-rl.patch` | lego-rl root: `git apply lego/patches/lego-rl.patch` | proxy on a fixed UFW-allowed port (8011+), 27B-safe Ray cleanup (+ pipefail fix), LoRA/sdpa/`add_force` hydra args, `AGENT_LOOP_CONFIG_PATH` in oc.env, sync config (`load_format: safetensors`, `layered_summon`), runtime-image pull falls back to the local copy, `HARBOR_MAX_CONCURRENT_TRIALS` per-worker trial cap |
 | `agent_loop_config_oc_docker.yaml` | copy to `lego-rl/src/verl_patch/config/` | docker-backend agent loop for the opencode scaffold |
 | `verl-7aed6b23.patch` | `third_party/verl`: `git apply` | 3D mRoPE nested-tensor rebuild (`tensordict_utils.py`), activation-offload bounds checks |
 

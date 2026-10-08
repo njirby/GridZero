@@ -149,10 +149,66 @@ index 46af9f0..1baea84 100644
              # Already staged on the remote host (possibly by another worker process)?
              # The marker + all path ops go through the remote daemon (host_dir lives on
 diff --git a/src/verl_patch/agent_loop/builtin_swe_agent_loop.py b/src/verl_patch/agent_loop/builtin_swe_agent_loop.py
-index 07bf791..9f27203 100644
+index 07bf791..1c3b57e 100644
 --- a/src/verl_patch/agent_loop/builtin_swe_agent_loop.py
 +++ b/src/verl_patch/agent_loop/builtin_swe_agent_loop.py
-@@ -428,6 +428,12 @@ class BuiltinSWEAgentLoop(AgentLoopBase):
+@@ -64,6 +64,20 @@ from pathlib import Path
+ from typing import Any
+ from uuid import uuid4
+ 
++import asyncio
++
++# Per-process cap on concurrent Harbor trials (each AgentLoopWorker is its own process).
++# HARBOR_MAX_CONCURRENT_TRIALS<=0 or unset means unlimited (the old behaviour).
++_TRIAL_SLOTS: "asyncio.Semaphore | None" = None
++
++
++def _trial_slots() -> asyncio.Semaphore:
++    global _TRIAL_SLOTS
++    if _TRIAL_SLOTS is None:
++        n = int(os.environ.get("HARBOR_MAX_CONCURRENT_TRIALS", "0") or 0)
++        _TRIAL_SLOTS = asyncio.Semaphore(n if n > 0 else 1_000_000)
++    return _TRIAL_SLOTS
++
+ # Harbor phase timing keys reported via AgentLoopOutput.metrics. They surface as
+ # ``timing_s/agent_loop/{key}/{min,max,mean}`` in the trainer's timing metrics.
+ # - harbor_env_setup      : environment build + start
+@@ -398,16 +412,24 @@ class BuiltinSWEAgentLoop(AgentLoopBase):
+         # api_base path, trial_name, and trajectory dir (see ``_run_harbor_trial``).
+         proxy = await self._get_vllm_chat_proxy()
+ 
+-        with simple_timer("harbor_total", metrics):
+-            reward, trial_reason, session_meta = await self._run_harbor_trial(
+-                task_path=task_path,
+-                global_steps=global_steps,
+-                sampling_params=sampling_params,
+-                proxy=proxy,
+-                metrics=metrics,
+-                is_val=is_val,
+-                harness_selection=harness_selection,
+-            )
++        # Cap concurrent trials per worker process (verl gathers every sample at once, so a
++        # 64-rollout batch would otherwise start 64 containers together). The wait happens
++        # before the trial starts, so it doesn't eat into the trial's own timeouts.
++        with simple_timer("harbor_queue_wait", metrics):
++            await _trial_slots().acquire()
++        try:
++            with simple_timer("harbor_total", metrics):
++                reward, trial_reason, session_meta = await self._run_harbor_trial(
++                    task_path=task_path,
++                    global_steps=global_steps,
++                    sampling_params=sampling_params,
++                    proxy=proxy,
++                    metrics=metrics,
++                    is_val=is_val,
++                    harness_selection=harness_selection,
++                )
++        finally:
++            _trial_slots().release()
+ 
+         # Alias harbor_total into the standard ``generate_sequences`` key so verl's
+         # ``AgentLoopManager._performance_metrics`` slowest-sample logic -- which
+@@ -428,6 +450,12 @@ class BuiltinSWEAgentLoop(AgentLoopBase):
              and len(tail_mask) == (len(traj_acc) - prompt_token_len)
              and len(tail_lp) == len(tail_mask)
          )
@@ -165,7 +221,7 @@ index 07bf791..9f27203 100644
  
          if not traj_ok:
              logger.warning(
-@@ -452,6 +458,11 @@ class BuiltinSWEAgentLoop(AgentLoopBase):
+@@ -452,6 +480,11 @@ class BuiltinSWEAgentLoop(AgentLoopBase):
          response_ids = traj_acc[prompt_token_len:]
          response_mask = tail_mask
          response_logprobs = tail_lp

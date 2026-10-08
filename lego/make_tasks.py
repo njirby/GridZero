@@ -19,6 +19,7 @@ Then build the index with Lego-RL's own tool:
 """
 from __future__ import annotations
 import argparse
+import json
 import shutil
 from pathlib import Path
 from string import Template
@@ -47,7 +48,8 @@ def render(template: Path, **kw: str) -> str:
     return Template(template.read_text(encoding="utf-8")).substitute(**kw)
 
 
-def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeout: float) -> Path:
+def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeout: float,
+             baselines: dict | None = None) -> Path:
     instance_id = f"c{chronic}_h{horizon}_s{seed}"
     task_dir = out_root / f"gridzero_{instance_id}"
     (task_dir / "tests").mkdir(parents=True, exist_ok=True)
@@ -59,6 +61,14 @@ def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeou
     (task_dir / "task.toml").write_text(render(TEMPLATE / "task.toml", **kw), encoding="utf-8")
     shutil.copyfile(TEMPLATE / "tests" / "test.sh", task_dir / "tests" / "test.sh")
     (task_dir / "tests" / "test.sh").chmod(0o755)
+    # Do-nothing baseline for this exact episode: the verifier scores cum_reward - dn.
+    # Lives in tests/, which Harbor copies in only at verification time (after the agent).
+    if baselines is not None:
+        row = baselines.get(str(chronic))
+        if row is None or row["horizon"] != horizon or row["seed"] != seed:
+            raise SystemExit(f"no DN baseline for chronic={chronic} horizon={horizon} seed={seed}; "
+                             f"run lego/baselines/compute_dn.py first")
+        (task_dir / "tests" / "baseline.json").write_text(json.dumps(row), encoding="utf-8")
     # Harbor's env validation requires an environment/Dockerfile (or compose) even for
     # prebuilt images (docker_image in task.toml). Not built when force_build=False.
     shutil.copyfile(TEMPLATE / "environment" / "Dockerfile", task_dir / "environment" / "Dockerfile")
@@ -72,7 +82,11 @@ def main() -> None:
     ap.add_argument("--horizon", type=int, default=24, help="episode horizon (steps)")
     ap.add_argument("--seed", default="0", help="seed(s): '0' | '0,1'")
     ap.add_argument("--agent-timeout", type=float, default=1800.0, help="agent phase timeout (s)")
+    ap.add_argument("--baselines", default=None,
+                    help="DN baseline json from lego/baselines/compute_dn.py; enables the "
+                         "do-nothing-relative reward (reward = cum_reward - dn_cum_reward)")
     args = ap.parse_args()
+    baselines = json.load(open(args.baselines)) if args.baselines else None
 
     out_root = Path(args.out)
     out_root.mkdir(parents=True, exist_ok=True)
@@ -82,7 +96,7 @@ def main() -> None:
     made = []
     for c in chronic_ids:
         for s in seed_ids:
-            made.append(make_one(out_root, c, args.horizon, s, args.agent_timeout))
+            made.append(make_one(out_root, c, args.horizon, s, args.agent_timeout, baselines))
 
     print(f"generated {len(made)} task(s) under {out_root}")
     for t in made[:10]:
