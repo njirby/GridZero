@@ -1,0 +1,34 @@
+# Fast in-place update of an existing base image (no pip / no network): re-applies only
+# the layers that change when backend/cli/docs/entrypoint change. Use when PyPI is slow:
+#   UPDATE_FROM=gridzero-rl-base:v1 bash lego/base/build.sh gridzero-rl-base:v2
+# Must stay in sync with the tail of lego/base/Dockerfile (from `useradd` down).
+ARG BASE
+FROM ${BASE}
+
+RUN id agent >/dev/null 2>&1 || useradd -m -u 1000 -s /bin/bash agent
+
+WORKDIR /app
+RUN rm -rf /app/backend /app/docs /app/recipes
+COPY backend/ /app/backend/
+COPY cli/simctl /usr/local/bin/simctl
+RUN chmod +x /usr/local/bin/simctl
+COPY AGENTS.md /app/AGENTS.md
+COPY docs/ /app/docs/
+COPY recipes/ /app/recipes/
+
+ENV OPENCODE_DISABLE=1 \
+    RENDER_DISABLED=1 \
+    SIMCTL_NO_RESET=1 \
+    SIMCTL_BACKEND_PORT=8731 \
+    MPLBACKEND=Agg \
+    PYTHONUNBUFFERED=1
+
+RUN mkdir -p /logs/agent /logs/artifacts /logs/verifier \
+    && chmod 777 /logs/agent /logs/artifacts \
+    && chmod 755 /logs /logs/verifier
+
+COPY lego/base/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 8731
+ENTRYPOINT ["/entrypoint.sh"]

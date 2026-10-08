@@ -3,7 +3,8 @@
 #   docker build -f lego/base/Dockerfile -t gridzero-rl-base:v1 .
 #
 # Contains: python 3.12 + grid2op stack + the SIM-API backend + simctl + agent docs.
-# Each per-task image is `FROM gridzero-rl-base:v1` + one COPY of episode.json.
+# Episode params (SIM_CHRONIC/SIM_HORIZON/SIM_SEED) arrive as env vars set from each
+# task's task.toml [environment.env], so every task shares this one prebuilt image.
 
 FROM python:3.12-slim
 
@@ -21,6 +22,11 @@ RUN pip install --no-cache-dir \
         "requests==2.33.1" "psutil==7.2.2" "httpx==0.28.1" \
         "sse-starlette==3.4.2" "prometheus-fastapi-instrumentator==7.1.0"
 
+# Unprivileged user the Harbor agent runs as (task.toml [agent] user = "agent").
+# The backend + verifier stay root, so the agent cannot kill the backend, read its
+# env (/proc/<pid>/environ) or the operator token, or edit /app.
+RUN useradd -m -u 1000 -s /bin/bash agent
+
 # Backend package + CLI + agent-facing docs (the operator manual is AGENTS.md,
 # which opencode auto-loads from its cwd=/app).
 WORKDIR /app
@@ -37,11 +43,21 @@ COPY data_grid2op/ /root/data_grid2op/
 
 # The SIM-API backend is a pure sim server here (opencode is launched by the
 # Harbor agent, not the backend).
+# SIMCTL_NO_RESET=1 makes `simctl reset` refuse client-side (the backend's token
+# gate, set in the entrypoint, is the real enforcement).
 ENV OPENCODE_DISABLE=1 \
     RENDER_DISABLED=1 \
+    SIMCTL_NO_RESET=1 \
     SIMCTL_BACKEND_PORT=8731 \
     MPLBACKEND=Agg \
     PYTHONUNBUFFERED=1
+
+# Harbor creates /logs/{agent,verifier,artifacts} as root at trial start (mkdir -p
+# is a no-op on existing dirs), but the non-root agent must write /logs/agent
+# (opencode.txt tee). The verifier dir stays root-only-writable.
+RUN mkdir -p /logs/agent /logs/artifacts /logs/verifier \
+    && chmod 777 /logs/agent /logs/artifacts \
+    && chmod 755 /logs /logs/verifier
 
 COPY lego/base/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

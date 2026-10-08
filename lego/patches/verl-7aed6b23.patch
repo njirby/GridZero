@@ -1,0 +1,157 @@
+diff --git a/verl/utils/activation_offload.py b/verl/utils/activation_offload.py
+index 2358b8ce..b236747b 100644
+--- a/verl/utils/activation_offload.py
++++ b/verl/utils/activation_offload.py
+@@ -326,8 +326,13 @@ class AsyncDoubleBufferGroupOffloadHandler(SynchronizedGroupOffloadHandler):
+             self.bulk_offload_group(current_group)
+ 
+         # Window map data structure helps us synchronize based on number
+-        # of layers offloaded
+-        if self.layer_window_map[self.offloaded_group_count] == current_group:
++        # of layers offloaded. Guard against offloaded_group_count reaching
++        # num_offload_group (all groups already offloaded; an extra commit in
++        # hybrid-attention models like Qwen3.5 would otherwise KeyError).
++        if (
++            self.offloaded_group_count < self.num_offload_group
++            and self.layer_window_map[self.offloaded_group_count] == current_group
++        ):
+             # Stream synchronization both ways
+             self.d2h_stream.wait_stream(get_torch_device().current_stream())
+             get_torch_device().current_stream().wait_stream(self.d2h_stream)
+@@ -377,8 +382,13 @@ class AsyncDoubleBufferGroupOffloadHandler(SynchronizedGroupOffloadHandler):
+         self.current_group -= 1
+         assert self.current_group >= 0
+ 
+-        # Layer window data structure helps us to reload at right times
+-        if self.layer_window_map[self.offloaded_group_count - 1] == self.current_group:
++        # Layer window data structure helps us to reload at right times.
++        # Guard the index so an out-of-range offloaded_group_count (extra commits
++        # in hybrid-attention models) can't KeyError or wrap to -1.
++        if (
++            0 < self.offloaded_group_count <= self.num_offload_group
++            and self.layer_window_map[self.offloaded_group_count - 1] == self.current_group
++        ):
+             # Stream synchronization both ways
+             self.h2d_stream.wait_stream(get_torch_device().current_stream())
+             get_torch_device().current_stream().wait_stream(self.h2d_stream)
+diff --git a/verl/utils/tensordict_utils.py b/verl/utils/tensordict_utils.py
+index 91d82b15..2904af9c 100644
+--- a/verl/utils/tensordict_utils.py
++++ b/verl/utils/tensordict_utils.py
+@@ -168,8 +168,14 @@ def nested_tensor_from_tensor_list(tensors: list[torch.Tensor], ragged_idx: int
+         f"ragged_idx must be in [1, {sample_dim}]. Got {ragged_idx=} and {sample_dim=}"
+     )
+ 
+-    if sample_dim == 1:
+-        return torch.nested.as_nested_tensor(tensors, layout=torch.jagged)
++    # When the ragged dim is the last dim of each sample, as_nested_tensor builds
++    # the correct jagged NestedTensor (right shape metadata + working to_padded_tensor).
++    # nested_tensor_from_jagged(values, offsets) misreports the shape for >1D values
++    # (places the jagged marker on the wrong dim) and breaks to_padded_tensor.
++    if ragged_idx == sample_dim:
++        nested_tensor = torch.nested.as_nested_tensor(tensors, layout=torch.jagged)
++        nested_tensor._ragged_idx = ragged_idx
++        return nested_tensor
+ 
+     cat_dim = ragged_idx - 1
+     values = torch.cat(tensors, dim=cat_dim)
+@@ -182,6 +188,45 @@ def nested_tensor_from_tensor_list(tensors: list[torch.Tensor], ragged_idx: int
+     return nested_tensor
+ 
+ 
++def rebuild_3d_nested_from_values(nt: torch.Tensor) -> torch.Tensor:
++    """Rebuild a 3D jagged NestedTensor from its values + offsets.
++
++    After ``consolidate()`` and a Ray pickle/unpickle round-trip, a 3D jagged
++    NestedTensor (e.g. mRoPE ``position_ids``) can come back with the jagged marker
++    on the wrong dim (shape ``(B, j, total)`` instead of ``(B, rope_dim, j)``), which
++    breaks ``unbind``/``to_padded_tensor``. The underlying ``values`` tensor and
++    ``offsets`` are still intact, so we rebuild a well-formed NestedTensor with
++    ``as_nested_tensor`` (which sets the correct shape metadata).
++
++    Returns the original tensor unchanged if it is not a 3D nested tensor or the
++    layout cannot be determined.
++    """
++    if nt.dim() != 3 or not nt.is_nested:
++        return nt
++    try:
++        values = nt.values()
++        offsets = nt.offsets()
++        total = int(offsets[-1])
++        n = len(offsets) - 1
++        if values.dim() != 2 or n == 0:
++            return nt
++        if values.shape[-1] == total:
++            # (B, rope_dim, J): per-sample (rope_dim, L_i), ragged dim is last
++            per_sample = [values[:, int(offsets[i]) : int(offsets[i + 1])] for i in range(n)]
++            ragged_idx = 2
++        elif values.shape[0] == total:
++            # (B, J, rope_dim): per-sample (L_i, rope_dim), ragged dim is first
++            per_sample = [values[int(offsets[i]) : int(offsets[i + 1]), :] for i in range(n)]
++            ragged_idx = 1
++        else:
++            return nt
++        fixed = torch.nested.as_nested_tensor(per_sample, layout=torch.jagged)
++        fixed._ragged_idx = ragged_idx
++        return fixed
++    except Exception:
++        return nt
++
++
+ def concat_nested_tensors(tensors: list[torch.Tensor]) -> torch.Tensor:
+     """Concatenate multiple nested tensors along the batch dimension.
+ 
+@@ -350,6 +395,11 @@ def chunk_tensordict(td: TensorDict, chunks: int) -> list[TensorDict]:
+     tds = new_td.chunk(chunks=chunks)
+     for key in nested_keys:
+         nt = td[key]
++        # 3D jagged NestedTensors (e.g. mRoPE position_ids) can arrive with broken
++        # shape metadata after consolidate + Ray pickle/unpickle; rebuild them so
++        # unbind/to_padded_tensor work.
++        if nt.dim() == 3:
++            nt = rebuild_3d_nested_from_values(nt)
+         try:
+             tensors = nt.unbind(dim=0)
+         except RuntimeError:
+@@ -359,7 +409,11 @@ def chunk_tensordict(td: TensorDict, chunks: int) -> list[TensorDict]:
+             lengths = offsets.diff().tolist()
+             for i, chunk_td in enumerate(tds):
+                 chunk_lengths = lengths[i * chunk_size : (i + 1) * chunk_size]
+-                chunk_tensors = [padded_chunks[i][j, :seq_len] for j, seq_len in enumerate(chunk_lengths)]
++                # padded_chunks[i] is (chunk_size, ..., max_ragged); the ragged dim is the last.
++                # Index intermediate dims with ':' and slice the last (ragged) dim to seq_len.
++                pc = padded_chunks[i]
++                mid = (slice(None),) * (pc.dim() - 2)
++                chunk_tensors = [pc[(j,) + mid + (slice(None, seq_len),)] for j, seq_len in enumerate(chunk_lengths)]
+                 chunk_td[key] = nested_tensor_from_tensor_list(
+                     chunk_tensors, ragged_idx=getattr(nt, "_ragged_idx", nt.dim() - 1)
+                 )
+@@ -908,11 +962,24 @@ def contiguous(data: TensorDict) -> TensorDict:
+ 
+ 
+ def maybe_fix_3d_position_ids(data: TensorDict):
+-    # note for tensordict with pickle/unpickle. nested tensor in tensordict after consolidate and pickle/unpickle
+-    # will incur indexing error for ragged tensor. This only happens when using 3D position ids in VLMs.
+-    # This is likely a bug in tensordict. As a workaround, we manually set _ragged_index.
++    # After consolidate + Ray pickle/unpickle, a 3D nested position_ids tensor is
++    # rebuilt with the jagged marker on the wrong dim (e.g. (B, j, total) instead of
++    # (B, rope_dim, j)), which breaks unbind/to_padded_tensor. Merely resetting
++    # _ragged_idx is not enough: the shape metadata is also wrong. Rebuild the tensor
++    # from values + offsets with as_nested_tensor to restore the correct layout.
+     if "position_ids" in data.keys() and data["position_ids"].dim() == 3 and data["position_ids"].is_nested:
+-        data["position_ids"]._ragged_idx = 2
++        nt = data["position_ids"]
++        fixed = rebuild_3d_nested_from_values(nt)
++        if fixed is nt:
++            # Could not rebuild (unexpected layout); fall back to just fixing _ragged_idx.
++            ragged_idx = nt.dim() - 1
++            for i, s in enumerate(nt.shape):
++                if not isinstance(s, int):
++                    ragged_idx = i
++                    break
++            nt._ragged_idx = ragged_idx
++        else:
++            data["position_ids"] = fixed
+ 
+ 
+ def list_of_dict_to_tensordict(list_of_dicts: list[dict[str, Any]]) -> TensorDict:

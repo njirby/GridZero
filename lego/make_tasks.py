@@ -51,6 +51,7 @@ def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeou
     instance_id = f"c{chronic}_h{horizon}_s{seed}"
     task_dir = out_root / f"gridzero_{instance_id}"
     (task_dir / "tests").mkdir(parents=True, exist_ok=True)
+    (task_dir / "environment").mkdir(parents=True, exist_ok=True)
 
     kw = dict(chronic=chronic, horizon=horizon, seed=seed,
               instance_id=instance_id, agent_timeout=int(agent_timeout))
@@ -58,6 +59,9 @@ def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeou
     (task_dir / "task.toml").write_text(render(TEMPLATE / "task.toml", **kw), encoding="utf-8")
     shutil.copyfile(TEMPLATE / "tests" / "test.sh", task_dir / "tests" / "test.sh")
     (task_dir / "tests" / "test.sh").chmod(0o755)
+    # Harbor's env validation requires an environment/Dockerfile (or compose) even for
+    # prebuilt images (docker_image in task.toml). Not built when force_build=False.
+    shutil.copyfile(TEMPLATE / "environment" / "Dockerfile", task_dir / "environment" / "Dockerfile")
     return task_dir
 
 

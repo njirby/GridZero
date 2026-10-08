@@ -1,0 +1,243 @@
+diff --git a/scripts/templates/scaffold/oc.env b/scripts/templates/scaffold/oc.env
+index 8323413..979c955 100644
+--- a/scripts/templates/scaffold/oc.env
++++ b/scripts/templates/scaffold/oc.env
+@@ -38,6 +38,15 @@ print(json.dumps({
+     "$schema": "https://opencode.ai/config.json",
+     "model": opencode_model,
+     "small_model": opencode_model,
++    # Non-interactive rollouts: never block on a permission prompt. (The agent
++    # also passes --dangerously-skip-permissions; this is a second safeguard.)
++    "permission": {
++        "edit": "allow",
++        "bash": "allow",
++        "webfetch": "allow",
++        "file_read": "allow",
++        "task": "allow",
++    },
+     "enabled_providers": ["hosted_vllm"],
+     "provider": {
+         "hosted_vllm": {
+diff --git a/scripts/train/lib/hydra_args.sh b/scripts/train/lib/hydra_args.sh
+index 8124587..5991a1e 100644
+--- a/scripts/train/lib/hydra_args.sh
++++ b/scripts/train/lib/hydra_args.sh
+@@ -60,6 +60,18 @@ append_common_hydra_args() {
+     add actor_rollout_ref.model.use_fused_kernels "$FUSED_KERNELS"
+     add actor_rollout_ref.model.path "$MODEL_PATH"
+     add actor_rollout_ref.model.use_remove_padding "$USE_REMOVE_PADDING"
++    # FSDP trainer attention backend. flash_attention_2 needs the flash-attn package
++    # (not built here); default to sdpa so the trainer runs without it.
++    add_force actor_rollout_ref.model.override_config.attn_implementation "${ATTN_IMPL:-sdpa}"
++    # LoRA (parameter-efficient fine-tuning). When LORA_RANK is set, freeze the base
++    # weights and train only LoRA adapters. The FSDP actor and the vLLM rollout both
++    # read model_config.lora_rank from the shared model config. LORA_ALPHA defaults to
++    # 2x rank (standard practice). add_force (++) since the base config lacks these keys.
++    if [ -n "${LORA_RANK:-}" ]; then
++        add_force actor_rollout_ref.model.lora_rank "$LORA_RANK"
++        add_force actor_rollout_ref.model.lora_alpha "${LORA_ALPHA:-$(( 2 * LORA_RANK ))}"
++        add_force actor_rollout_ref.model.target_modules "${LORA_TARGET_MODULES:-all-linear}"
++    fi
+ 
+     add actor_rollout_ref.ref.log_prob_use_dynamic_bsz "$REF_LOG_PROB_USE_DYNAMIC_BSZ"
+     add actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu "$REF_LOG_PROB_MICRO_BATCH_SIZE_PER_GPU"
+@@ -96,18 +108,19 @@ append_common_hydra_args() {
+     add actor_rollout_ref.rollout.val_kwargs.top_k "$VAL_TOP_K"
+     add actor_rollout_ref.rollout.val_kwargs.top_p "$VAL_TOP_P"
+ 
+-    add algorithm.adv_estimator "$ADV_ESTIMATOR"
+-    add algorithm.gae_whiten_advantages "$GAE_WHITEN_ADVANTAGES"
+-    add algorithm.gamma "$GAMMA"
+-    add algorithm.kl_ctrl.kl_coef "$KL_COEF"
+-    add algorithm.lam "$LAM"
+-    add algorithm.lam_critic "$LAM_CRITIC"
+-    add algorithm.length_adaptive_lam_alpha "$LENGTH_ADAPTIVE_LAM_ALPHA"
+-    add algorithm.rollout_correction.bypass_mode "$ROLLOUT_CORRECTION_BYPASS"
+-    add algorithm.rollout_correction.loss_type "$ROLLOUT_CORRECTION_LOSS_TYPE"
+-    add algorithm.rollout_correction.rollout_is "$ROLLOUT_IS"
+-    add algorithm.rollout_correction.rollout_is_threshold "$ROLLOUT_IS_THRESHOLD"
+-    add algorithm.rollout_correction.seq_dist_metrics "$SEQ_DIST_METRICS"
++    add_force algorithm.adv_estimator "$ADV_ESTIMATOR"
++    # gae_whiten_advantages is not in the base ppo_trainer config tree -> must use ++ (force).
++    add_force algorithm.gae_whiten_advantages "$GAE_WHITEN_ADVANTAGES"
++    add_force algorithm.gamma "$GAMMA"
++    add_force algorithm.kl_ctrl.kl_coef "$KL_COEF"
++    add_force algorithm.lam "$LAM"
++    add_force algorithm.lam_critic "$LAM_CRITIC"
++    add_force algorithm.length_adaptive_lam_alpha "$LENGTH_ADAPTIVE_LAM_ALPHA"
++    add_force algorithm.rollout_correction.bypass_mode "$ROLLOUT_CORRECTION_BYPASS"
++    add_force algorithm.rollout_correction.loss_type "$ROLLOUT_CORRECTION_LOSS_TYPE"
++    add_force algorithm.rollout_correction.rollout_is "$ROLLOUT_IS"
++    add_force algorithm.rollout_correction.rollout_is_threshold "$ROLLOUT_IS_THRESHOLD"
++    add_force algorithm.rollout_correction.seq_dist_metrics "$SEQ_DIST_METRICS"
+ 
+     # >>> LOAD-BEARING MIRROR. Do not delete as "redundant". <<<
+     # algorithm.rollout_correction is NOT what the policy loss reads. In the actor,
+@@ -133,12 +146,12 @@ append_common_hydra_args() {
+     add_force actor_rollout_ref.actor.policy_loss.rollout_correction.rollout_is_threshold "$ROLLOUT_IS_THRESHOLD"
+     add_force actor_rollout_ref.actor.policy_loss.rollout_correction.seq_dist_metrics "$SEQ_DIST_METRICS"
+ 
+-    add algorithm.trajectory_filter.enable "$TRAJ_FILTER_ENABLE"
++    add_force algorithm.trajectory_filter.enable "$TRAJ_FILTER_ENABLE"
+     # Trajectory filter v6 (patches/verl_sao_7aed6b23.patch): one drop_reasons
+     # list replaces the per-reason booleans (filter_overlong, ...) of the
+     # earlier schema. TRAJ_FILTER_FILTER_OVERLONG is no longer read.
+-    add algorithm.trajectory_filter.drop_reasons "$TRAJ_FILTER_DROP_REASONS"
+-    add algorithm.use_kl_in_reward "$USE_KL_IN_REWARD"
++    add_force algorithm.trajectory_filter.drop_reasons "$TRAJ_FILTER_DROP_REASONS"
++    add_force algorithm.use_kl_in_reward "$USE_KL_IN_REWARD"
+ 
+     # data.gen_batch_size and the top-level rollout.* group exist only in
+     # lego_rl_fully_async_*.yaml. lego_rl_sync.yaml derives from ppo_trainer,
+diff --git a/scripts/train/lib/ray.sh b/scripts/train/lib/ray.sh
+index 5624f90..2c94bb6 100644
+--- a/scripts/train/lib/ray.sh
++++ b/scripts/train/lib/ray.sh
+@@ -5,12 +5,31 @@ cleanup_ray_and_shm() {
+     rm -rf /tmp/ray/* 2>/dev/null || true
+     sleep 5
+ 
++    # Protect the long-running 27B vllm service (cards 2-3, venv "vllm-qwen35") from
++    # this cleanup: its main + EngineCore + Worker procs all match the pattern below
++    # and would otherwise be kill -9'd, taking the interactive model down with them.
++    local _27b_protect _m _c _g _p
++    _27b_protect=" "
++    for _m in $(pgrep -f "vllm-qwen35" 2>/dev/null | grep -vw -e "$$" -e "${PPID:-0}"); do
++        _27b_protect="${_27b_protect}${_m} "
++        for _c in $(pgrep -P "$_m" 2>/dev/null); do
++            _27b_protect="${_27b_protect}${_c} "
++            for _g in $(pgrep -P "$_c" 2>/dev/null); do _27b_protect="${_27b_protect}${_g} "; done
++        done
++    done
++
+     echo "[shm] before cleanup:"
+     df -h /dev/shm 2>/dev/null || true
+     pgrep -f "VLLM|vllm|EngineCore|raylet|gcs_server|FullyAsync|WorkerDict|fully_async_main|fully_async_policy" 2>/dev/null \
+-        | grep -vw -e "$$" -e "$PPID" | xargs -r kill -9 2>/dev/null || true
++        | grep -vw -e "$$" -e "${PPID:-0}" \
++        | while read -r _p; do case "$_27b_protect" in *" ${_p} "*) ;; *) echo "$_p" ;; esac; done \
++        | xargs -r kill -9 2>/dev/null || true
+     for _ in $(seq 1 15); do
+-        pgrep -f "VLLM::Worker|EngineCore|WorkerDict" 2>/dev/null | grep -vqw -e "$$" -e "$PPID" || break
++        local _left
++        _left=$(pgrep -f "VLLM::Worker|EngineCore|WorkerDict" 2>/dev/null \
++            | grep -vw -e "$$" -e "${PPID:-0}" \
++            | while read -r _p; do case "$_27b_protect" in *" ${_p} "*) ;; *) echo "$_p" ;; esac; done) || true  # pgrep exits 1 when nothing matches; under set -e+pipefail that aborted the launch
++        [ -z "$_left" ] && break
+         sleep 1
+     done
+     rm -rf /tmp/ray/* 2>/dev/null || true
+diff --git a/src/harbor_patch/environments/remote_docker.py b/src/harbor_patch/environments/remote_docker.py
+index 46af9f0..1baea84 100644
+--- a/src/harbor_patch/environments/remote_docker.py
++++ b/src/harbor_patch/environments/remote_docker.py
+@@ -137,8 +137,14 @@ class RemoteDockerEnvironment(DockerEnvironment):
+ 
+             rc, out = await self._run_cmd(f"docker pull -q {image}")
+             if rc != 0:
+-                logger.warning("runtime image pull failed (%d): %s", rc, out)
+-                return None
++                # A failed pull (registry/DNS down, slow network) is fine if the image is
++                # already on the daemon — otherwise no runtime gets mounted and every trial
++                # falls back to installing opencode in-container.
++                lrc, _ = await self._run_cmd(f"docker image inspect {image} >/dev/null")
++                if lrc != 0:
++                    logger.warning("runtime image pull failed (%d) and not present locally: %s", rc, out)
++                    return None
++                logger.warning("runtime image pull failed (%d); using local copy of %s", rc, image)
+ 
+             # Already staged on the remote host (possibly by another worker process)?
+             # The marker + all path ops go through the remote daemon (host_dir lives on
+diff --git a/src/verl_patch/agent_loop/builtin_swe_agent_loop.py b/src/verl_patch/agent_loop/builtin_swe_agent_loop.py
+index 07bf791..9f27203 100644
+--- a/src/verl_patch/agent_loop/builtin_swe_agent_loop.py
++++ b/src/verl_patch/agent_loop/builtin_swe_agent_loop.py
+@@ -428,6 +428,12 @@ class BuiltinSWEAgentLoop(AgentLoopBase):
+             and len(tail_mask) == (len(traj_acc) - prompt_token_len)
+             and len(tail_lp) == len(tail_mask)
+         )
++        print(
++            f"[RM-DBG-OK] task={task_path} traj_ok={traj_ok} disable={session_meta.get('disable_proxy_trajectory')} "
++            f"traj_acc_len={len(traj_acc)} prompt_len={prompt_token_len} tail_mask_len={len(tail_mask)} "
++            f"tail_lp_len={len(tail_lp)} expect_len={len(traj_acc) - prompt_token_len}",
++            flush=True,
++        )
+ 
+         if not traj_ok:
+             logger.warning(
+@@ -452,6 +458,11 @@ class BuiltinSWEAgentLoop(AgentLoopBase):
+         response_ids = traj_acc[prompt_token_len:]
+         response_mask = tail_mask
+         response_logprobs = tail_lp
++        print(
++            f"[RM-DBG-TRAJ] task={task_path} len_ids={len(response_ids)} len_mask={len(response_mask)} "
++            f"mask_ones={sum(1 for x in response_mask if x)} prompt_len={prompt_token_len}",
++            flush=True,
++        )
+         # R3: routing aligned to the response region (same length as mask/logprobs).
+         # Empty when routing was not captured (R3 off / non-MoE).
+         response_routing = tail_routing if len(tail_routing) == len(tail_mask) else []
+diff --git a/src/verl_patch/agent_loop/vllm_chat_completion_proxy.py b/src/verl_patch/agent_loop/vllm_chat_completion_proxy.py
+index e66b436..77459c7 100644
+--- a/src/verl_patch/agent_loop/vllm_chat_completion_proxy.py
++++ b/src/verl_patch/agent_loop/vllm_chat_completion_proxy.py
+@@ -1142,11 +1142,34 @@ class _VLLMChatCompletionsProxy:
+             self._runner = aiohttp.web.AppRunner(self._app, access_log=None)
+             await self._runner.setup()
+             self._advertise_host = _advertise_ipv4_for_proxy()
+-            self._site = aiohttp.web.TCPSite(self._runner, host="0.0.0.0", port=0)
+-            await self._site.start()
+-            sockets = list(self._site._server.sockets) if self._site._server else []
+-            assert sockets, "aiohttp TCPSite did not bind a socket"
+-            self._port = sockets[0].getsockname()[1]
++            # Bind to a fixed base port so the in-container agent can reach this
++            # proxy: the host firewall (UFW) only allows the docker trial
++            # networks (172.16.0.0/12) through specific host ports, and the
++            # ephemeral port=0 the proxy used before was not in that allow-set
++            # (trials timed out waiting on the LLM). Each agent-loop worker runs
++            # its own proxy, so increment on EADDRINUSE (8011, 8012, ...).
++            base_port = int(os.environ.get("HARBOR_PROXY_BASE_PORT", "8011"))
++            bound_port = None
++            for candidate in range(base_port, base_port + 16):
++                try:
++                    site = aiohttp.web.TCPSite(self._runner, host="0.0.0.0", port=candidate)
++                    await site.start()
++                except OSError:
++                    continue
++                # site.start() succeeded -> we are bound on `candidate`. Don't
++                # read it back from site._server.sockets: aiohttp can transiently
++                # hold a None entry there right after start(), which crashed the
++                # proxy with AttributeError on .getsockname().
++                self._site = site
++                bound_port = candidate
++                break
++            if bound_port is None:
++                self._site = aiohttp.web.TCPSite(self._runner, host="0.0.0.0", port=0)
++                await self._site.start()
++                socks = [s for s in (self._site._server.sockets if self._site._server else ()) if s is not None]
++                assert socks, "aiohttp TCPSite did not bind a socket"
++                bound_port = socks[0].getsockname()[1]
++            self._port = bound_port
+             logger.info(
+                 "[Proxy] vLLM proxy listening on 0.0.0.0:%d — api_base uses http://%s:%d/...",
+                 self._port,
+diff --git a/src/verl_patch/config/lego_rl_sync.yaml b/src/verl_patch/config/lego_rl_sync.yaml
+index ffa69a1..cdbf84d 100644
+--- a/src/verl_patch/config/lego_rl_sync.yaml
++++ b/src/verl_patch/config/lego_rl_sync.yaml
+@@ -15,6 +15,15 @@ actor_rollout_ref:
+   rollout:
+     name: vllm
+     mode: async
++    # Load the real base model into vLLM from disk (not dummy weights). Then the
++    # weight sync only needs to stream the small LoRA delta instead of the whole
++    # model — required for layered_summon, and it cuts the per-card GPU peak at
++    # update_weights (the full-model all-gather was OOMing the 24GB card).
++    load_format: safetensors
++    # All-gather the LoRA delta layer-by-layer during weight sync instead of
++    # summoning the whole model at once — keeps the FSDP GPU footprint at its
++    # ~9G baseline rather than spiking to ~18G.
++    layered_summon: true
+     val_kwargs:
+       do_sample: True
+     engine_kwargs:

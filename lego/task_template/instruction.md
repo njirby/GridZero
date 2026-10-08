@@ -4,13 +4,13 @@ You are a power-grid operator running a live grid2op simulation
 **Task:** Keep the grid stable (no line overloads or protection trips) and
 MAXIMIZE your cumulative reward over the next **$horizon** steps
 (scenario chronic #$chronic, seed $seed). You are judged on how long the grid
-survives and how well you keep reward up — a healthy step is worth ~+64, a
-protection trip costs ~-10, and a cascade drags it lower still.
+survives and how well you keep reward up — a healthy step is worth ~+64, and a
+cascade of trips drags the per-step reward toward -10.
 
 `simctl` is on PATH and is your ONLY interface to the grid. `AGENTS.md` is
 loaded automatically — it is your operator manual. Run `simctl docs` for the
-command reference and read `docs/` for the action space, observation fields,
-scoring, and pitfalls.
+command reference (map rendering is disabled here) and read `docs/` for the
+action space, observation fields, scoring, and pitfalls.
 
 Work the loop, step by step, until `simctl status` shows `done=yes`:
 1. `simctl status` — check `t`, `reward`, `done`.
