@@ -1,0 +1,1732 @@
+diff --git a/tests/models/test_fsdp_no_padding_on_gpu.py b/tests/models/test_fsdp_no_padding_on_gpu.py
+index 64cd4b04..c27f39ca 100644
+--- a/tests/models/test_fsdp_no_padding_on_gpu.py
++++ b/tests/models/test_fsdp_no_padding_on_gpu.py
+@@ -137,6 +137,36 @@ def test_prepare_model_inputs_uses_full_sequence_attention_mask_on_gpu():
+     assert output_args["input_ids_rmpad_rolled"].shape == (8,)
+ 
+ 
++def test_prepare_model_inputs_passes_declared_packed_sequence_boundaries_on_gpu():
++    from verl.utils import tensordict_utils as tu
++    from verl.utils.dataset.dataset_utils import DatasetPadMode
++
++    device = "cuda"
++    FSDPEngineWithLMHead = _fsdp_engine_with_lm_head_cls()
++    engine = FSDPEngineWithLMHead.__new__(FSDPEngineWithLMHead)
++    engine.use_ulysses_sp = False
++    engine.pass_packed_cu_seqlens = True
++    micro_batch = _make_micro_batch(device)
++    tu.assign_non_tensor(
++        micro_batch,
++        use_remove_padding=True,
++        use_fused_kernels=False,
++        pad_mode=DatasetPadMode.NO_PADDING,
++        pad_token_id=0,
++        max_response_len=2,
++        max_response_length=2,
++    )
++
++    model_inputs, output_args = engine.prepare_model_inputs(micro_batch)
++
++    expected_cu_seqlens = torch.tensor([0, 5, 8], device=device, dtype=torch.long)
++    torch.testing.assert_close(model_inputs["cu_seqlens"], expected_cu_seqlens)
++    torch.testing.assert_close(model_inputs["cu_seqlens_cpu"], expected_cu_seqlens.cpu())
++    assert model_inputs["input_ids"].shape == (1, 8)
++    assert model_inputs["attention_mask"] is None
++    assert output_args["input_ids_rmpad_rolled"].shape == (8,)
++
++
+ def test_prepare_model_outputs_can_be_sliced_back_to_response_shape_on_gpu():
+     from verl.utils.torch_functional import logprobs_from_logits
+     from verl.workers.utils.padding import no_padding_2_padding
+diff --git a/verl/models/transformers/monkey_patch.py b/verl/models/transformers/monkey_patch.py
+index 7a5d6f0b..b5e59c81 100644
+--- a/verl/models/transformers/monkey_patch.py
++++ b/verl/models/transformers/monkey_patch.py
+@@ -155,6 +155,117 @@ def _ulysses_flash_attention_forward(
+     return attn_output
+ 
+ 
++_ORIGINAL_SDPA_ATTENTION_FORWARD = None
++
++
++def _packed_segment_bounds(position_ids: torch.Tensor) -> list[tuple[int, int]]:
++    """Split a packed (1, seq_len) position_ids row into [start, end) segments where positions restart.
++
++    Same boundary rule as transformers' find_packed_sequence_indices; the tail padding added by
++    ulysses_pad (positions arange(pad_size)) becomes its own segment.
++    """
++    starts = (torch.diff(position_ids[0]) != 1).nonzero().flatten().add(1).tolist()
++    bounds = [0] + starts + [position_ids.size(-1)]
++    return list(zip(bounds[:-1], bounds[1:], strict=True))
++
++
++def _ulysses_sdpa_attention_forward(
++    module: torch.nn.Module,
++    query: torch.Tensor,
++    key: torch.Tensor,
++    value: torch.Tensor,
++    attention_mask: Optional[torch.Tensor],
++    dropout: float = 0.0,
++    scaling: Optional[float] = None,
++    is_causal: Optional[bool] = None,
++    position_ids: Optional[torch.Tensor] = None,
++    **kwargs,
++):
++    """Insert all-to-all before and after sdpa, the sdpa counterpart of `_ulysses_flash_attention_forward`.
++
++    Installed as ALL_ATTENTION_FUNCTIONS["sdpa"] when ulysses_sp_size > 1. RoPE has already been applied by the
++    caller with each rank's local positions, as in the flash attention path.
++
++    The incoming `attention_mask` was built by the model from the local shard and is ignored: causality and packed
++    sequence boundaries are recovered from the all-gathered position_ids, and each packed sequence runs as its own
++    causal sdpa call (no O(seq_len^2) mask). Only the remove-padding layout (batch size 1) is supported.
++
++    Args:
++        query (torch.Tensor): (batch_size, nheads, seqlen/sp_size, head_dim)
++        key (torch.Tensor): (batch_size, nheads_k, seqlen/sp_size, head_dim)
++        value (torch.Tensor): (batch_size, nheads_k, seqlen/sp_size, head_dim)
++        position_ids (torch.Tensor, optional): (batch_size, seqlen/sp_size)
++
++    Returns:
++        torch.Tensor: (batch_size, seqlen/sp_size, nheads, head_dim)
++    """
++    ulysses_sp_size = get_ulysses_sequence_parallel_world_size()
++
++    # Same ViT exclusion as the flash attention wrapper: vision attention doesn't pass position_ids.
++    if ulysses_sp_size <= 1 or position_ids is None:
++        return _ORIGINAL_SDPA_ATTENTION_FORWARD(
++            module, query, key, value, attention_mask, dropout=dropout, scaling=scaling, is_causal=is_causal, **kwargs
++        )
++
++    if query.size(0) != 1 or position_ids.dim() != 2 or position_ids.size(0) != 1:
++        raise NotImplementedError(
++            "Ulysses SP with attn_implementation=sdpa requires use_remove_padding=True (packed batch size 1), "
++            f"got query {tuple(query.shape)}, position_ids {tuple(position_ids.shape)}."
++        )
++
++    # NOTE: repeat kv heads to be divided by sequence parallel, see `_ulysses_flash_attention_forward`.
++    repeats = max(ulysses_sp_size // key.size(1), 1)
++    key = repeat_kv(key.transpose(1, 2), repeats).transpose(1, 2)
++    value = repeat_kv(value.transpose(1, 2), repeats).transpose(1, 2)
++
++    # (bsz, n_head, seq_len/n, head_dim) -> (bsz, n_head/n, seq_len, head_dim)
++    query = gather_seq_scatter_heads(query, seq_dim=2, head_dim=1)
++    key = gather_seq_scatter_heads(key, seq_dim=2, head_dim=1)
++    value = gather_seq_scatter_heads(value, seq_dim=2, head_dim=1)
++
++    # (bsz, seq_len/n) -> (bsz, seq_len)
++    position_ids_list = [torch.empty_like(position_ids) for _ in range(ulysses_sp_size)]
++    torch.distributed.all_gather(position_ids_list, position_ids, group=get_ulysses_sequence_parallel_group())
++    position_ids = torch.concat(position_ids_list, dim=-1)
++
++    # Each rank now holds a contiguous block of q heads plus the kv heads serving them, so the GQA ratio is
++    # local q heads / local kv heads (not module.num_key_value_groups once kv heads were repeated above).
++    sdpa_kwargs = {"enable_gqa": True} if query.size(1) != key.size(1) else {}
++    is_causal = is_causal if is_causal is not None else getattr(module, "is_causal", True)
++    attn_output = torch.cat(
++        [
++            torch.nn.functional.scaled_dot_product_attention(
++                query[:, :, start:end],
++                key[:, :, start:end],
++                value[:, :, start:end],
++                dropout_p=dropout,
++                scale=scaling,
++                is_causal=is_causal and end - start > 1,
++                **sdpa_kwargs,
++            )
++            for start, end in _packed_segment_bounds(position_ids)
++        ],
++        dim=2,
++    )
++
++    # (bsz, n_head/n, seq_len, head_dim) -> (bsz, n_head, seq_len/n, head_dim)
++    attn_output = gather_heads_scatter_seq(attn_output, seq_dim=2, head_dim=1)
++    return attn_output.transpose(1, 2).contiguous(), None
++
++
++def patch_sdpa_for_ulysses():
++    """Replace ALL_ATTENTION_FUNCTIONS["sdpa"] with `_ulysses_sdpa_attention_forward` (idempotent)."""
++    global _ORIGINAL_SDPA_ATTENTION_FORWARD
++    if _ORIGINAL_SDPA_ATTENTION_FORWARD is not None:
++        return
++
++    from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
++
++    _ORIGINAL_SDPA_ATTENTION_FORWARD = ALL_ATTENTION_FUNCTIONS["sdpa"]
++    ALL_ATTENTION_FUNCTIONS["sdpa"] = _ulysses_sdpa_attention_forward
++    print("Monkey patch ALL_ATTENTION_FUNCTIONS['sdpa'] for Ulysses SP")
++
++
+ def patch_vlm_for_ulysses_input_slicing(model_class: type):
+     """
+     Applies a monkey patch to the forward method of a given model class
+@@ -495,13 +606,17 @@ def apply_monkey_patch(
+     elif model.config.model_type in ["qwen3_5", "qwen3_5_moe"]:
+         # Step 1: patch model to support image-text mixed data
+         from transformers.models.qwen3_5.modeling_qwen3_5 import (
++            Qwen3_5DecoderLayer,
+             Qwen3_5ForConditionalGeneration,
++            Qwen3_5GatedDeltaNet,
+             Qwen3_5Model,
+             Qwen3_5TextModel,
+             Qwen3_5VisionModel,
+         )
+         from transformers.models.qwen3_5_moe.modeling_qwen3_5_moe import (
++            Qwen3_5MoeDecoderLayer,
+             Qwen3_5MoeForConditionalGeneration,
++            Qwen3_5MoeGatedDeltaNet,
+             Qwen3_5MoeModel,
+             Qwen3_5MoeTextModel,
+             Qwen3_5MoeVisionModel,
+@@ -511,10 +626,16 @@ def apply_monkey_patch(
+             fast_pos_embed_interpolate,
+             forward_with_normal_backend,
+             qwen3_5_base_forward,
++            qwen3_5_decoder_layer_forward,
++            qwen3_5_gated_delta_net_forward,
+         )
+ 
+         Qwen3_5Model.forward = qwen3_5_base_forward
+         Qwen3_5MoeModel.forward = qwen3_5_base_forward
++        Qwen3_5DecoderLayer.forward = qwen3_5_decoder_layer_forward
++        Qwen3_5MoeDecoderLayer.forward = qwen3_5_decoder_layer_forward
++        Qwen3_5GatedDeltaNet.forward = qwen3_5_gated_delta_net_forward
++        Qwen3_5MoeGatedDeltaNet.forward = qwen3_5_gated_delta_net_forward
+         Qwen3_5ForConditionalGeneration.forward = forward_with_normal_backend
+         Qwen3_5MoeForConditionalGeneration.forward = forward_with_normal_backend
+         print(f"Monkey patch {model.__class__.__name__} model forward")
+@@ -536,4 +657,14 @@ def apply_monkey_patch(
+             flash_attention._flash_attention_forward = _ulysses_flash_attention_forward
+             print(f"Monkey patch _flash_attention_forward in {flash_attention.__name__}")
+ 
++    # The flash attention patch above never runs under sdpa, so sdpa needs its own all-to-all. Scoped to Qwen3.5,
++    # the only model validated with it; other models' verl attention forwards may do their own all-to-all.
++    attn_implementations = {
++        getattr(config, "_attn_implementation", None)
++        for config in (model.config, getattr(model.config, "text_config", None))
++        if config is not None
++    }
++    if ulysses_sp_size > 1 and "sdpa" in attn_implementations and model.config.model_type in ["qwen3_5", "qwen3_5_moe"]:
++        patch_sdpa_for_ulysses()
++
+     patch_forward_with_backends(model, use_fused_kernels=use_fused_kernels, fused_kernels_backend=fused_kernels_backend)
+diff --git a/verl/models/transformers/qwen3_5.py b/verl/models/transformers/qwen3_5.py
+index c4fda481..3217ac5e 100644
+--- a/verl/models/transformers/qwen3_5.py
++++ b/verl/models/transformers/qwen3_5.py
+@@ -15,9 +15,13 @@
+ import logging
+ import os
+ from dataclasses import dataclass
++from importlib import import_module
++from inspect import signature
+ from typing import Optional
+ 
+ import torch
++import torch.distributed as dist
++import torch.nn.functional as F
+ from torch.distributed.tensor import DTensor
+ from transformers.models.qwen3_5.modeling_qwen3_5 import (
+     Qwen3_5CausalLMOutputWithPast,
+@@ -25,6 +29,7 @@ from transformers.models.qwen3_5.modeling_qwen3_5 import (
+ )
+ 
+ from verl.utils.ulysses import (
++    get_ulysses_sequence_parallel_group,
+     get_ulysses_sequence_parallel_world_size,
+     ulysses_pad_and_slice_inputs,
+ )
+@@ -33,6 +38,348 @@ logger = logging.getLogger(__file__)
+ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
+ 
+ 
++def _call_accepts_kwarg(fn, name: str) -> bool:
++    params = signature(fn).parameters
++    return name in params or any(param.kind == param.VAR_KEYWORD for param in params.values())
++
++
++def _prepare_packed_seq_idx(cu_seqlens: torch.LongTensor, cu_seqlens_cpu: Optional[torch.LongTensor]):
++    try:
++        from fla.ops.utils import prepare_sequence_ids
++
++        return prepare_sequence_ids(cu_seqlens, cu_seqlens_cpu=cu_seqlens_cpu).to(torch.int32).unsqueeze(0)
++    except Exception:
++        offsets = (cu_seqlens_cpu if cu_seqlens_cpu is not None else cu_seqlens.detach().cpu()).tolist()
++        seq_idx = [
++            torch.full((end - start,), i, device=cu_seqlens.device, dtype=torch.int32)
++            for i, (start, end) in enumerate(zip(offsets[:-1], offsets[1:], strict=True))
++        ]
++        return torch.cat(seq_idx, dim=0).unsqueeze(0)
++
++
++def _split_packed_args(
++    cu_seqlens: torch.LongTensor,
++    tensors: tuple[torch.Tensor, ...],
++    cu_seqlens_cpu: Optional[torch.LongTensor] = None,
++    dim: int = 1,
++):
++    offsets = (cu_seqlens_cpu if cu_seqlens_cpu is not None else cu_seqlens.detach().cpu()).tolist()
++    for start, end in zip(offsets[:-1], offsets[1:], strict=True):
++        chunks = []
++        for tensor in tensors:
++            split_dim = dim if dim >= 0 else tensor.ndim + dim
++            slices = [slice(None)] * tensor.ndim
++            slices[split_dim] = slice(start, end)
++            chunks.append(tensor[tuple(slices)])
++        yield tuple(chunks)
++
++
++class _ConvPrefixExchange(torch.autograd.Function):
++    @staticmethod
++    def forward(ctx, tails: torch.Tensor, group: dist.ProcessGroup):
++        from fla.ops.cp.comm import conv_cp_send_recv_fwd
++
++        ctx.group = group
++        return conv_cp_send_recv_fwd(tails.contiguous(), group)
++
++    @staticmethod
++    def backward(ctx, grad_prefix: torch.Tensor):
++        from fla.ops.cp.comm import conv_cp_send_recv_bwd
++
++        return conv_cp_send_recv_bwd(grad_prefix.contiguous(), ctx.group), None
++
++
++def _build_fla_cp_context(
++    cu_seqlens: torch.LongTensor,
++    cu_seqlens_cpu: Optional[torch.LongTensor],
++    conv_kernel_size: int,
++):
++    group = get_ulysses_sequence_parallel_group()
++    if group is None:
++        return None
++    from fla.ops.cp.context import build_cp_context
++
++    return build_cp_context(
++        cu_seqlens=cu_seqlens,
++        cu_seqlens_cpu=cu_seqlens_cpu,
++        group=group,
++        conv1d_kernel_size=conv_kernel_size,
++    )
++
++
++def _prepend_cp_conv_prefix(mixed_qkv: torch.Tensor, cp_context) -> tuple[torch.Tensor, int]:
++    prefix_len = max(int(cp_context.conv1d_kernel_size or 0) - 1, 0)
++    if prefix_len == 0:
++        return mixed_qkv, 0
++
++    if mixed_qkv.shape[-1] >= prefix_len:
++        tails = mixed_qkv[..., -prefix_len:]
++    else:
++        tails = F.pad(mixed_qkv, (prefix_len - mixed_qkv.shape[-1], 0))
++
++    prefix = _ConvPrefixExchange.apply(tails, cp_context.group)
++    valid_prefix_len = min(prefix_len, int(cp_context.pre_num_conv_tokens or 0))
++    if valid_prefix_len < prefix_len:
++        prefix = prefix.clone()
++        prefix[..., : prefix_len - valid_prefix_len] = 0
++    return torch.cat((prefix, mixed_qkv), dim=-1), prefix_len
++
++
++def _as_channel_last_conv1d_input(x: torch.Tensor) -> torch.Tensor:
++    if x.stride(1) == 1:
++        return x
++    return x.transpose(1, 2).contiguous().transpose(1, 2)
++
++
++def _prepare_cp_conv_seq_idx(
++    cu_seqlens: torch.LongTensor,
++    cu_seqlens_cpu: Optional[torch.LongTensor],
++    prefix_len: int,
++):
++    seq_idx = _prepare_packed_seq_idx(cu_seqlens, cu_seqlens_cpu)
++    if prefix_len == 0:
++        return seq_idx
++    prefix_idx = seq_idx[:, :1].expand(seq_idx.shape[0], prefix_len)
++    return torch.cat((prefix_idx, seq_idx), dim=1)
++
++
++def _packed_causal_conv1d_fallback(
++    self,
++    mixed_qkv: torch.Tensor,
++    cu_seqlens: torch.LongTensor,
++    cu_seqlens_cpu: Optional[torch.LongTensor] = None,
++):
++    outputs = []
++    for (segment,) in _split_packed_args(cu_seqlens, (mixed_qkv,), cu_seqlens_cpu=cu_seqlens_cpu, dim=2):
++        outputs.append(F.silu(self.conv1d(segment)[:, :, : segment.shape[-1]]))
++    return torch.cat(outputs, dim=-1)
++
++
++def _packed_chunk_gated_delta_rule(self, query, key, value, g, beta, cu_seqlens, cu_seqlens_cpu, cp_context=None):
++    kwargs = {
++        "g": g,
++        "beta": beta,
++        "initial_state": None,
++        "output_final_state": False,
++        "use_qk_l2norm_in_kernel": True,
++    }
++    if cu_seqlens is None:
++        return self.chunk_gated_delta_rule(query, key, value, **kwargs)
++
++    if cp_context is not None:
++        if not _call_accepts_kwarg(self.chunk_gated_delta_rule, "cp_context"):
++            raise NotImplementedError("Qwen3.5 Ulysses SP requires FLA chunk_gated_delta_rule cp_context support.")
++        kwargs["cp_context"] = cp_context
++        return self.chunk_gated_delta_rule(query, key, value, **kwargs)
++
++    if _call_accepts_kwarg(self.chunk_gated_delta_rule, "cu_seqlens"):
++        kwargs["cu_seqlens"] = cu_seqlens
++        if _call_accepts_kwarg(self.chunk_gated_delta_rule, "cu_seqlens_cpu"):
++            kwargs["cu_seqlens_cpu"] = cu_seqlens_cpu
++        return self.chunk_gated_delta_rule(query, key, value, **kwargs)
++
++    outputs = []
++    for q_i, k_i, v_i, g_i, beta_i in _split_packed_args(
++        cu_seqlens, (query, key, value, g, beta), cu_seqlens_cpu=cu_seqlens_cpu
++    ):
++        split_kwargs = dict(kwargs)
++        split_kwargs["g"] = g_i
++        split_kwargs["beta"] = beta_i
++        out_i, _ = self.chunk_gated_delta_rule(q_i, k_i, v_i, **split_kwargs)
++        outputs.append(out_i)
++    return torch.cat(outputs, dim=1), None
++
++
++def qwen3_5_gated_delta_net_forward(
++    self,
++    hidden_states: torch.Tensor,
++    cache_params=None,
++    attention_mask: Optional[torch.Tensor] = None,
++    cu_seqlens: Optional[torch.LongTensor] = None,
++    cu_seqlens_cpu: Optional[torch.LongTensor] = None,
++):
++    if cu_seqlens is not None and cache_params is not None:
++        raise NotImplementedError("Packed Qwen3.5 linear attention does not support cached forward.")
++
++    module = import_module(self.__class__.__module__)
++    hidden_states = module.apply_mask_to_padding_states(hidden_states, attention_mask)
++
++    batch_size, seq_len, _ = hidden_states.shape
++    cp_context = None
++    model_cu_seqlens = cu_seqlens
++    model_cu_seqlens_cpu = cu_seqlens_cpu
++    if cu_seqlens is not None:
++        if batch_size != 1:
++            raise ValueError("Packed Qwen3.5 linear attention expects batch size 1.")
++        total_seq_len = int(cu_seqlens[-1].item())
++        ulysses_sp_size = get_ulysses_sequence_parallel_world_size()
++        if total_seq_len != seq_len:
++            if (
++                ulysses_sp_size <= 1
++                or total_seq_len % ulysses_sp_size != 0
++                or seq_len != total_seq_len // ulysses_sp_size
++            ):
++                raise ValueError(f"Packed cu_seqlens end {total_seq_len} does not match seq_len {seq_len}.")
++            cp_context = _build_fla_cp_context(cu_seqlens, cu_seqlens_cpu, self.conv_kernel_size)
++            model_cu_seqlens = cp_context.cu_seqlens
++            model_cu_seqlens_cpu = cp_context.cu_seqlens_cpu
++
++    use_precomputed_states = cache_params is not None and cache_params.has_previous_state and seq_len == 1
++    if cache_params is not None:
++        conv_state = cache_params.conv_states[self.layer_idx]
++        recurrent_state = cache_params.recurrent_states[self.layer_idx]
++
++    mixed_qkv = self.in_proj_qkv(hidden_states)
++    mixed_qkv = mixed_qkv.transpose(1, 2)
++
++    z = self.in_proj_z(hidden_states)
++    z = z.reshape(batch_size, seq_len, -1, self.head_v_dim)
++
++    b = self.in_proj_b(hidden_states)
++    a = self.in_proj_a(hidden_states)
++
++    if use_precomputed_states:
++        mixed_qkv = self.causal_conv1d_update(
++            mixed_qkv,
++            conv_state,
++            self.conv1d.weight.squeeze(1),
++            self.conv1d.bias,
++            self.activation,
++        )
++    else:
++        if cache_params is not None:
++            conv_state = F.pad(mixed_qkv, (self.conv_kernel_size - mixed_qkv.shape[-1], 0))
++            cache_params.conv_states[self.layer_idx] = conv_state
++        if self.causal_conv1d_fn is not None:
++            conv_prefix_len = 0
++            conv_input = mixed_qkv
++            if cp_context is not None:
++                conv_input, conv_prefix_len = _prepend_cp_conv_prefix(mixed_qkv, cp_context)
++            if model_cu_seqlens is not None:
++                conv_input = _as_channel_last_conv1d_input(conv_input)
++            seq_idx = (
++                _prepare_cp_conv_seq_idx(model_cu_seqlens, model_cu_seqlens_cpu, conv_prefix_len)
++                if model_cu_seqlens is not None
++                else None
++            )
++            conv_output = self.causal_conv1d_fn(
++                x=conv_input,
++                weight=self.conv1d.weight.squeeze(1),
++                bias=self.conv1d.bias,
++                activation=self.activation,
++                seq_idx=seq_idx,
++            )
++            mixed_qkv = conv_output[..., conv_prefix_len:] if conv_prefix_len else conv_output
++        elif model_cu_seqlens is not None:
++            if cp_context is not None:
++                mixed_qkv, conv_prefix_len = _prepend_cp_conv_prefix(mixed_qkv, cp_context)
++                model_cu_seqlens = model_cu_seqlens + conv_prefix_len
++                model_cu_seqlens[0] = 0
++                if model_cu_seqlens_cpu is not None:
++                    model_cu_seqlens_cpu = model_cu_seqlens_cpu + conv_prefix_len
++                    model_cu_seqlens_cpu[0] = 0
++                mixed_qkv = _packed_causal_conv1d_fallback(self, mixed_qkv, model_cu_seqlens, model_cu_seqlens_cpu)[
++                    ..., conv_prefix_len:
++                ]
++            else:
++                mixed_qkv = _packed_causal_conv1d_fallback(self, mixed_qkv, model_cu_seqlens, model_cu_seqlens_cpu)
++        else:
++            mixed_qkv = F.silu(self.conv1d(mixed_qkv)[:, :, :seq_len])
++
++    mixed_qkv = mixed_qkv.transpose(1, 2)
++    query, key, value = torch.split(
++        mixed_qkv,
++        [
++            self.key_dim,
++            self.key_dim,
++            self.value_dim,
++        ],
++        dim=-1,
++    )
++
++    query = query.reshape(batch_size, seq_len, -1, self.head_k_dim)
++    key = key.reshape(batch_size, seq_len, -1, self.head_k_dim)
++    value = value.reshape(batch_size, seq_len, -1, self.head_v_dim)
++
++    beta = b.sigmoid()
++    g = -self.A_log.float().exp() * F.softplus(a.float() + self.dt_bias)
++    if self.num_v_heads // self.num_k_heads > 1:
++        query = query.repeat_interleave(self.num_v_heads // self.num_k_heads, dim=2)
++        key = key.repeat_interleave(self.num_v_heads // self.num_k_heads, dim=2)
++
++    if not use_precomputed_states:
++        core_attn_out, last_recurrent_state = _packed_chunk_gated_delta_rule(
++            self, query, key, value, g, beta, model_cu_seqlens, model_cu_seqlens_cpu, cp_context
++        )
++    else:
++        core_attn_out, last_recurrent_state = self.recurrent_gated_delta_rule(
++            query,
++            key,
++            value,
++            g=g,
++            beta=beta,
++            initial_state=recurrent_state,
++            output_final_state=cache_params is not None,
++            use_qk_l2norm_in_kernel=True,
++        )
++
++    if cache_params is not None:
++        cache_params.recurrent_states[self.layer_idx] = last_recurrent_state
++
++    core_attn_out = core_attn_out.reshape(-1, self.head_v_dim)
++    z = z.reshape(-1, self.head_v_dim)
++    core_attn_out = self.norm(core_attn_out, z)
++    core_attn_out = core_attn_out.reshape(batch_size, seq_len, -1)
++
++    output = self.out_proj(core_attn_out)
++    return output
++
++
++def qwen3_5_decoder_layer_forward(
++    self,
++    hidden_states: torch.Tensor,
++    position_embeddings: tuple[torch.Tensor, torch.Tensor],
++    attention_mask: Optional[torch.Tensor] = None,
++    position_ids: Optional[torch.LongTensor] = None,
++    past_key_values=None,
++    **kwargs,
++):
++    cu_seqlens = kwargs.pop("cu_seqlens", None)
++    cu_seqlens_cpu = kwargs.pop("cu_seqlens_cpu", None)
++    residual = hidden_states
++
++    hidden_states = self.input_layernorm(hidden_states)
++
++    if self.layer_type == "linear_attention":
++        hidden_states = self.linear_attn(
++            hidden_states=hidden_states,
++            cache_params=past_key_values,
++            attention_mask=attention_mask,
++            cu_seqlens=cu_seqlens,
++            cu_seqlens_cpu=cu_seqlens_cpu,
++        )
++    elif self.layer_type == "full_attention":
++        hidden_states, _ = self.self_attn(
++            hidden_states=hidden_states,
++            attention_mask=attention_mask,
++            position_ids=position_ids,
++            past_key_values=past_key_values,
++            position_embeddings=position_embeddings,
++            **kwargs,
++        )
++
++    hidden_states = residual + hidden_states
++
++    residual = hidden_states
++    hidden_states = self.post_attention_layernorm(hidden_states)
++    hidden_states = self.mlp(hidden_states)
++    if isinstance(hidden_states, tuple):
++        hidden_states, _ = hidden_states
++    hidden_states = residual + hidden_states
++
++    return hidden_states
++
++
+ def fast_pos_embed_interpolate(self, grid_thw):
+     grid_thw_list = grid_thw.tolist()
+     grid_ts = [row[0] for row in grid_thw_list]
+@@ -189,8 +536,14 @@ def forward_with_normal_backend(
+     input_ids: torch.LongTensor = None,
+     labels: Optional[torch.LongTensor] = None,
+     temperature: float = 1.0,
++    cu_seqlens: Optional[torch.LongTensor] = None,
++    cu_seqlens_cpu: Optional[torch.LongTensor] = None,
+     **kwargs,
+ ) -> "Qwen3_5CausalLMOutputForPPO":
++    if cu_seqlens is not None:
++        kwargs["cu_seqlens"] = cu_seqlens
++    if cu_seqlens_cpu is not None:
++        kwargs["cu_seqlens_cpu"] = cu_seqlens_cpu
+     outputs = self.model(input_ids, **kwargs)
+     hidden_states = outputs[0]
+     logits = self.lm_head(hidden_states)
+@@ -206,10 +559,16 @@ def forward_with_torch_backend(
+     labels: Optional[torch.LongTensor] = None,
+     temperature: float = 1.0,
+     shift_labels: Optional[torch.LongTensor] = None,
++    cu_seqlens: Optional[torch.LongTensor] = None,
++    cu_seqlens_cpu: Optional[torch.LongTensor] = None,
+     **kwargs,
+ ) -> "Qwen3_5CausalLMOutputForPPO":
+     from verl.utils.experimental.torch_functional import FusedLinearForPPO
+ 
++    if cu_seqlens is not None:
++        kwargs["cu_seqlens"] = cu_seqlens
++    if cu_seqlens_cpu is not None:
++        kwargs["cu_seqlens_cpu"] = cu_seqlens_cpu
+     outputs = self.model(input_ids, **kwargs)
+     hidden_states = outputs[0]
+ 
+@@ -230,7 +589,7 @@ def forward_with_torch_backend(
+         vocab_weights = vocab_weights.full_tensor()
+ 
+     ulysses_sequence_parallel_size = get_ulysses_sequence_parallel_world_size()
+-    if ulysses_sequence_parallel_size > 1:
++    if shift_labels is None and ulysses_sequence_parallel_size > 1:
+         rolled_labels, _, _ = ulysses_pad_and_slice_inputs(
+             rolled_labels, position_ids_rmpad=None, sp_size=ulysses_sequence_parallel_size
+         )
+@@ -254,10 +613,16 @@ def forward_with_triton_backend(
+     labels: Optional[torch.LongTensor] = None,
+     temperature: float = 1.0,
+     shift_labels: Optional[torch.LongTensor] = None,
++    cu_seqlens: Optional[torch.LongTensor] = None,
++    cu_seqlens_cpu: Optional[torch.LongTensor] = None,
+     **kwargs,
+ ) -> "Qwen3_5CausalLMOutputForPPO":
+     from verl.utils.kernel.linear_cross_entropy import linear_cross_entropy
+ 
++    if cu_seqlens is not None:
++        kwargs["cu_seqlens"] = cu_seqlens
++    if cu_seqlens_cpu is not None:
++        kwargs["cu_seqlens_cpu"] = cu_seqlens_cpu
+     outputs = self.model(input_ids, **kwargs)
+     hidden_states = outputs[0]
+ 
+@@ -272,7 +637,7 @@ def forward_with_triton_backend(
+     else:
+         raise RuntimeError("To use forward_with_triton_backend, either labels or input_ids must be provided.")
+     ulysses_sequence_parallel_size = get_ulysses_sequence_parallel_world_size()
+-    if ulysses_sequence_parallel_size > 1:
++    if shift_labels is None and ulysses_sequence_parallel_size > 1:
+         rolled_labels, _, _ = ulysses_pad_and_slice_inputs(
+             rolled_labels, position_ids_rmpad=None, sp_size=ulysses_sequence_parallel_size
+         )
+diff --git a/verl/utils/activation_offload.py b/verl/utils/activation_offload.py
+index 2358b8ce..44c06059 100644
+--- a/verl/utils/activation_offload.py
++++ b/verl/utils/activation_offload.py
+@@ -170,8 +170,15 @@ class SynchronizedGroupOffloadHandler(OffloadHandler):
+         assert self.current_group >= 0
+ 
+     @staticmethod
+-    def offload(src_tensor, pin_memory=True):
+-        """Offload."""
++    def offload(src_tensor, pin_memory=None):
++        """Offload.
++
++        Pinned host memory can't be swapped, so on a RAM-constrained box with
++        plenty of swap set VERL_ACTIVATION_OFFLOAD_PIN=0: buffers become pageable
++        (swappable) at the cost of synchronous copies (reload() already falls back
++        to a blocking copy for unpinned buffers)."""
++        if pin_memory is None:
++            pin_memory = os.environ.get("VERL_ACTIVATION_OFFLOAD_PIN", "1") != "0"
+ 
+         cpu_backup = torch.empty(
+             src_tensor.size(),
+@@ -326,8 +333,13 @@ class AsyncDoubleBufferGroupOffloadHandler(SynchronizedGroupOffloadHandler):
+             self.bulk_offload_group(current_group)
+ 
+         # Window map data structure helps us synchronize based on number
+-        # of layers offloaded
+-        if self.layer_window_map[self.offloaded_group_count] == current_group:
++        # of layers offloaded. Guard against offloaded_group_count reaching
++        # num_offload_group (all groups already offloaded; an extra commit in
++        # hybrid-attention models like Qwen3.5 would otherwise KeyError).
++        if (
++            self.offloaded_group_count < self.num_offload_group
++            and self.layer_window_map[self.offloaded_group_count] == current_group
++        ):
+             # Stream synchronization both ways
+             self.d2h_stream.wait_stream(get_torch_device().current_stream())
+             get_torch_device().current_stream().wait_stream(self.d2h_stream)
+@@ -377,8 +389,13 @@ class AsyncDoubleBufferGroupOffloadHandler(SynchronizedGroupOffloadHandler):
+         self.current_group -= 1
+         assert self.current_group >= 0
+ 
+-        # Layer window data structure helps us to reload at right times
+-        if self.layer_window_map[self.offloaded_group_count - 1] == self.current_group:
++        # Layer window data structure helps us to reload at right times.
++        # Guard the index so an out-of-range offloaded_group_count (extra commits
++        # in hybrid-attention models) can't KeyError or wrap to -1.
++        if (
++            0 < self.offloaded_group_count <= self.num_offload_group
++            and self.layer_window_map[self.offloaded_group_count - 1] == self.current_group
++        ):
+             # Stream synchronization both ways
+             self.h2d_stream.wait_stream(get_torch_device().current_stream())
+             get_torch_device().current_stream().wait_stream(self.h2d_stream)
+diff --git a/verl/utils/tensordict_utils.py b/verl/utils/tensordict_utils.py
+index 91d82b15..2904af9c 100644
+--- a/verl/utils/tensordict_utils.py
++++ b/verl/utils/tensordict_utils.py
+@@ -168,8 +168,14 @@ def nested_tensor_from_tensor_list(tensors: list[torch.Tensor], ragged_idx: int
+         f"ragged_idx must be in [1, {sample_dim}]. Got {ragged_idx=} and {sample_dim=}"
+     )
+ 
+-    if sample_dim == 1:
+-        return torch.nested.as_nested_tensor(tensors, layout=torch.jagged)
++    # When the ragged dim is the last dim of each sample, as_nested_tensor builds
++    # the correct jagged NestedTensor (right shape metadata + working to_padded_tensor).
++    # nested_tensor_from_jagged(values, offsets) misreports the shape for >1D values
++    # (places the jagged marker on the wrong dim) and breaks to_padded_tensor.
++    if ragged_idx == sample_dim:
++        nested_tensor = torch.nested.as_nested_tensor(tensors, layout=torch.jagged)
++        nested_tensor._ragged_idx = ragged_idx
++        return nested_tensor
+ 
+     cat_dim = ragged_idx - 1
+     values = torch.cat(tensors, dim=cat_dim)
+@@ -182,6 +188,45 @@ def nested_tensor_from_tensor_list(tensors: list[torch.Tensor], ragged_idx: int
+     return nested_tensor
+ 
+ 
++def rebuild_3d_nested_from_values(nt: torch.Tensor) -> torch.Tensor:
++    """Rebuild a 3D jagged NestedTensor from its values + offsets.
++
++    After ``consolidate()`` and a Ray pickle/unpickle round-trip, a 3D jagged
++    NestedTensor (e.g. mRoPE ``position_ids``) can come back with the jagged marker
++    on the wrong dim (shape ``(B, j, total)`` instead of ``(B, rope_dim, j)``), which
++    breaks ``unbind``/``to_padded_tensor``. The underlying ``values`` tensor and
++    ``offsets`` are still intact, so we rebuild a well-formed NestedTensor with
++    ``as_nested_tensor`` (which sets the correct shape metadata).
++
++    Returns the original tensor unchanged if it is not a 3D nested tensor or the
++    layout cannot be determined.
++    """
++    if nt.dim() != 3 or not nt.is_nested:
++        return nt
++    try:
++        values = nt.values()
++        offsets = nt.offsets()
++        total = int(offsets[-1])
++        n = len(offsets) - 1
++        if values.dim() != 2 or n == 0:
++            return nt
++        if values.shape[-1] == total:
++            # (B, rope_dim, J): per-sample (rope_dim, L_i), ragged dim is last
++            per_sample = [values[:, int(offsets[i]) : int(offsets[i + 1])] for i in range(n)]
++            ragged_idx = 2
++        elif values.shape[0] == total:
++            # (B, J, rope_dim): per-sample (L_i, rope_dim), ragged dim is first
++            per_sample = [values[int(offsets[i]) : int(offsets[i + 1]), :] for i in range(n)]
++            ragged_idx = 1
++        else:
++            return nt
++        fixed = torch.nested.as_nested_tensor(per_sample, layout=torch.jagged)
++        fixed._ragged_idx = ragged_idx
++        return fixed
++    except Exception:
++        return nt
++
++
+ def concat_nested_tensors(tensors: list[torch.Tensor]) -> torch.Tensor:
+     """Concatenate multiple nested tensors along the batch dimension.
+ 
+@@ -350,6 +395,11 @@ def chunk_tensordict(td: TensorDict, chunks: int) -> list[TensorDict]:
+     tds = new_td.chunk(chunks=chunks)
+     for key in nested_keys:
+         nt = td[key]
++        # 3D jagged NestedTensors (e.g. mRoPE position_ids) can arrive with broken
++        # shape metadata after consolidate + Ray pickle/unpickle; rebuild them so
++        # unbind/to_padded_tensor work.
++        if nt.dim() == 3:
++            nt = rebuild_3d_nested_from_values(nt)
+         try:
+             tensors = nt.unbind(dim=0)
+         except RuntimeError:
+@@ -359,7 +409,11 @@ def chunk_tensordict(td: TensorDict, chunks: int) -> list[TensorDict]:
+             lengths = offsets.diff().tolist()
+             for i, chunk_td in enumerate(tds):
+                 chunk_lengths = lengths[i * chunk_size : (i + 1) * chunk_size]
+-                chunk_tensors = [padded_chunks[i][j, :seq_len] for j, seq_len in enumerate(chunk_lengths)]
++                # padded_chunks[i] is (chunk_size, ..., max_ragged); the ragged dim is the last.
++                # Index intermediate dims with ':' and slice the last (ragged) dim to seq_len.
++                pc = padded_chunks[i]
++                mid = (slice(None),) * (pc.dim() - 2)
++                chunk_tensors = [pc[(j,) + mid + (slice(None, seq_len),)] for j, seq_len in enumerate(chunk_lengths)]
+                 chunk_td[key] = nested_tensor_from_tensor_list(
+                     chunk_tensors, ragged_idx=getattr(nt, "_ragged_idx", nt.dim() - 1)
+                 )
+@@ -908,11 +962,24 @@ def contiguous(data: TensorDict) -> TensorDict:
+ 
+ 
+ def maybe_fix_3d_position_ids(data: TensorDict):
+-    # note for tensordict with pickle/unpickle. nested tensor in tensordict after consolidate and pickle/unpickle
+-    # will incur indexing error for ragged tensor. This only happens when using 3D position ids in VLMs.
+-    # This is likely a bug in tensordict. As a workaround, we manually set _ragged_index.
++    # After consolidate + Ray pickle/unpickle, a 3D nested position_ids tensor is
++    # rebuilt with the jagged marker on the wrong dim (e.g. (B, j, total) instead of
++    # (B, rope_dim, j)), which breaks unbind/to_padded_tensor. Merely resetting
++    # _ragged_idx is not enough: the shape metadata is also wrong. Rebuild the tensor
++    # from values + offsets with as_nested_tensor to restore the correct layout.
+     if "position_ids" in data.keys() and data["position_ids"].dim() == 3 and data["position_ids"].is_nested:
+-        data["position_ids"]._ragged_idx = 2
++        nt = data["position_ids"]
++        fixed = rebuild_3d_nested_from_values(nt)
++        if fixed is nt:
++            # Could not rebuild (unexpected layout); fall back to just fixing _ragged_idx.
++            ragged_idx = nt.dim() - 1
++            for i, s in enumerate(nt.shape):
++                if not isinstance(s, int):
++                    ragged_idx = i
++                    break
++            nt._ragged_idx = ragged_idx
++        else:
++            data["position_ids"] = fixed
+ 
+ 
+ def list_of_dict_to_tensordict(list_of_dicts: list[dict[str, Any]]) -> TensorDict:
+diff --git a/verl/workers/engine/fsdp/transformer_impl.py b/verl/workers/engine/fsdp/transformer_impl.py
+index 2c66c6a3..1c7e1c28 100644
+--- a/verl/workers/engine/fsdp/transformer_impl.py
++++ b/verl/workers/engine/fsdp/transformer_impl.py
+@@ -20,6 +20,7 @@ import logging
+ import os
+ import warnings
+ from contextlib import nullcontext
++from inspect import signature
+ from typing import Callable, ContextManager, Optional
+ 
+ import torch
+@@ -82,6 +83,19 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
+ device_name = get_device_name()
+ 
+ 
++
++def _detach_tree(obj):
++    """Detach every tensor in a (nested) dict/list/TensorDict of model outputs."""
++    if isinstance(obj, torch.Tensor):
++        return obj.detach()
++    if isinstance(obj, dict):
++        return {k: _detach_tree(v) for k, v in obj.items()}
++    if isinstance(obj, list | tuple):
++        return type(obj)(_detach_tree(v) for v in obj)
++    if hasattr(obj, "detach") and callable(obj.detach):  # TensorDict
++        return obj.detach()
++    return obj
++
+ class FSDPEngine(BaseEngine):
+     """
+     Concrete Engine implementation using PyTorch FullyShardedDataParallel (FSDP).
+@@ -545,6 +559,10 @@ class FSDPEngine(BaseEngine):
+ 
+         # Load base model with specified configuration and dtype
+         module = self._build_module()
++        try:
++            self.pass_packed_cu_seqlens = "cu_seqlens" in signature(module.forward).parameters
++        except (TypeError, ValueError):
++            self.pass_packed_cu_seqlens = False
+         # Apply LoRA adapters if low-rank adaptation is enabled
+         if self._is_lora:
+             module = self._build_lora_module(module)
+@@ -638,7 +656,16 @@ class FSDPEngine(BaseEngine):
+         # and _build_fsdp_module, so self.scaler may not be set.
+         scaler = getattr(self, "scaler", None)
+ 
+-        for micro_batch in micro_batches:
++        # VERL_MEM_TRACE=1: per-micro-batch GPU memory trace (live after the micro-batch, and its
++        # peak). Live memory climbing across micro-batches = a leak; flat live + per-batch peaks
++        # = sequence-length-driven activation peaks.
++        mem_trace = os.environ.get("VERL_MEM_TRACE") == "1"
++        if mem_trace:
++            torch.cuda.reset_peak_memory_stats()
++            print(f"[MEM-TRACE] rank={torch.distributed.get_rank()} forward_only={forward_only} start "
++                  f"alloc={torch.cuda.memory_allocated() / 2**30:.2f}G n_micro={len(micro_batches)}", flush=True)
++
++        for mb_idx, micro_batch in enumerate(micro_batches):
+             with ctx:
+                 loss, meta_info = self.forward_step(micro_batch, loss_function=loss_function, forward_only=forward_only)
+ 
+@@ -648,7 +675,24 @@ class FSDPEngine(BaseEngine):
+                     else:
+                         loss.backward()
+ 
++            # Detach what we keep for postprocessing: model_output tensors still carry their
++            # autograd graph, and backward() only frees saved tensors on branches it traversed.
++            # Branches feeding outputs unused by the loss (e.g. entropy with entropy_coeff=0)
++            # would otherwise pin their activations for every micro-batch until the step ends.
++            if not forward_only and isinstance(meta_info, dict) and "model_output" in meta_info:
++                meta_info["model_output"] = _detach_tree(meta_info["model_output"])
+             output_lst.append(meta_info)
++            if mem_trace:
++                try:
++                    lm = micro_batch["loss_mask"]
++                    ntok = int(lm.values().numel() if lm.is_nested else lm.numel())
++                except Exception:
++                    ntok = -1
++                print(f"[MEM-TRACE] rank={torch.distributed.get_rank()} fwd_only={forward_only} mb={mb_idx} "
++                      f"tokens={ntok} live={torch.cuda.memory_allocated() / 2**30:.2f}G "
++                      f"peak={torch.cuda.max_memory_allocated() / 2**30:.2f}G "
++                      f"reserved={torch.cuda.memory_reserved() / 2**30:.2f}G", flush=True)
++                torch.cuda.reset_peak_memory_stats()
+ 
+         # postprocess and return
+         return postprocess_batch_func(output_lst=output_lst, indices=indices, data=data)
+@@ -935,6 +979,7 @@ class FSDPEngineWithLMHead(FSDPEngine):
+         multi_modal_inputs = extract_multi_modal_inputs(micro_batch.get("multi_modal_inputs", []))
+         input_ids = micro_batch["input_ids"]
+         position_ids = micro_batch["position_ids"]
++        pass_packed_cu_seqlens = getattr(self, "pass_packed_cu_seqlens", False)
+ 
+         if not isinstance(temperature, torch.Tensor):
+             temperature = torch.tensor([temperature] * input_ids.shape[0], device=input_ids.device)
+@@ -951,9 +996,11 @@ class FSDPEngineWithLMHead(FSDPEngine):
+             # input_ids (bsz, j1)
+             temperature_rmpad = verl_F.expand_as_nested(temperature, input_ids).values()  # (total_nnz,)
+             temperature_rmpad = temperature_rmpad.unsqueeze(0)  # (1, total_nnz)
++            packed_cu_seqlens = None
+ 
+             if pad_mode == DatasetPadMode.NO_PADDING:
+                 input_ids_rmpad = input_ids.values().unsqueeze(0)  # (1, total_nnz)
++                packed_cu_seqlens = input_ids.offsets().to(device=input_ids_rmpad.device, dtype=torch.long)
+                 if position_ids.dim() == 3:
+                     position_ids_rmpad = position_ids.values().unsqueeze(1)  # (4, 1, total_nnz)
+                 else:
+@@ -965,6 +1012,8 @@ class FSDPEngineWithLMHead(FSDPEngine):
+             input_ids_rmpad_rolled = torch.roll(input_ids_rmpad, shifts=-1, dims=1)  # (1, total_nnz)
+ 
+             # pad and slice the inputs if sp > 1
++            sp_pad_size = 0
++            is_vlm_model = False
+             if self.use_ulysses_sp:
+                 is_vlm_model = hasattr(getattr(self.module, "module", self.module).config, "vision_config")
+                 if is_vlm_model:
+@@ -992,6 +1041,7 @@ class FSDPEngineWithLMHead(FSDPEngine):
+                 )
+ 
+                 output_args["pad_size"] = pad_size
++                sp_pad_size = pad_size
+ 
+             input_ids_rmpad_rolled = input_ids_rmpad_rolled.squeeze(0)  # ((total_nnz / sp) + pad)
+             temperature_rmpad = temperature_rmpad.squeeze(0)
+@@ -1005,6 +1055,18 @@ class FSDPEngineWithLMHead(FSDPEngine):
+                 "attention_mask": None,
+                 "position_ids": position_ids_rmpad,
+             }
++            if packed_cu_seqlens is not None and pass_packed_cu_seqlens:
++                model_cu_seqlens = packed_cu_seqlens
++                if self.use_ulysses_sp and sp_pad_size:
++                    padded_total = int(model_cu_seqlens[-1].item()) + int(sp_pad_size)
++                    model_cu_seqlens = torch.cat(
++                        [
++                            model_cu_seqlens,
++                            model_cu_seqlens.new_tensor([padded_total]),
++                        ]
++                    )
++                model_inputs["cu_seqlens"] = model_cu_seqlens
++                model_inputs["cu_seqlens_cpu"] = model_cu_seqlens.cpu()
+ 
+         else:
+             if pad_mode == DatasetPadMode.NO_PADDING:
+diff --git a/tests/models/test_qwen35_sdpa_ulysses_sp_on_cpu.py b/tests/models/test_qwen35_sdpa_ulysses_sp_on_cpu.py
+new file mode 100644
+index 00000000..2d84ef38
+--- /dev/null
++++ b/tests/models/test_qwen35_sdpa_ulysses_sp_on_cpu.py
+@@ -0,0 +1,211 @@
++# Copyright 2026 Bytedance Ltd. and/or its affiliates
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Ulysses SP=2 vs SP=1 for Qwen3.5 full-attention layers with attn_implementation=sdpa, on CPU (gloo).
++
++A tiny Qwen3.5 with every layer full_attention (no FLA/triton needed) is driven the way
++FSDPEngineWithLMHead.prepare_model_inputs drives it with use_remove_padding=True + fused torch kernels:
++packed (1, total_nnz) input_ids, (4, 1, total_nnz) mRoPE position_ids, cu_seqlens, pre-sliced shift_labels,
++VLM path (pad only; Qwen3_5TextModel slices inputs_embeds after embedding).
++
++gloo has no list all_to_all, so verl's `dist.all_to_all` is emulated with `all_to_all_single` in this test only.
++
++    CUDA_VISIBLE_DEVICES="" python -m pytest -svv tests/models/test_qwen35_sdpa_ulysses_sp_on_cpu.py
++"""
++
++import os
++import socket
++
++import pytest
++import torch
++import torch.distributed as dist
++import torch.multiprocessing as mp
++
++qwen35_config_mod = pytest.importorskip("transformers.models.qwen3_5.configuration_qwen3_5")
++
++SP_SIZE = 2
++TOL = 1e-4
++# (sequence lengths packed into one micro-batch) -- odd totals exercise ulysses_pad, [8, 8] puts a sequence
++# boundary exactly on the shard boundary.
++CASES = [[31], [7, 12, 6], [8, 8], [3, 20, 1, 9]]
++
++
++def _gloo_all_to_all(output_tensor_list, input_tensor_list, group=None, async_op=False):
++    assert not async_op
++    world_size = len(input_tensor_list)
++    send = torch.cat([t.contiguous().flatten() for t in input_tensor_list])
++    recv = torch.empty_like(send)
++    dist.all_to_all_single(recv, send, group=group)
++    for out, chunk in zip(output_tensor_list, recv.chunk(world_size), strict=True):
++        out.copy_(chunk.view_as(out))
++
++
++def _make_model():
++    from transformers.models.qwen3_5.modeling_qwen3_5 import Qwen3_5ForConditionalGeneration
++
++    config = qwen35_config_mod.Qwen3_5Config(
++        text_config=dict(
++            vocab_size=256,
++            hidden_size=128,
++            intermediate_size=256,
++            num_hidden_layers=3,
++            num_attention_heads=8,
++            num_key_value_heads=2,
++            head_dim=64,
++            layer_types=["full_attention"] * 3,
++            rope_parameters={
++                "rope_type": "default",
++                "rope_theta": 10000.0,
++                "partial_rotary_factor": 0.25,
++                "mrope_section": [3, 3, 2],
++                "mrope_interleaved": True,
++            },
++            tie_word_embeddings=False,
++        ),
++        vision_config=dict(depth=1, hidden_size=32, intermediate_size=64, num_heads=2, out_hidden_size=128),
++        tie_word_embeddings=False,
++    )
++    config._attn_implementation = "sdpa"
++    config.text_config._attn_implementation = "sdpa"
++    torch.manual_seed(0)
++    model = Qwen3_5ForConditionalGeneration(config).float()
++    # Random init leaves q_norm/k_norm at identity and small weights; perturb so attention is non-trivial.
++    with torch.no_grad():
++        for p in model.parameters():
++            p.add_(torch.randn_like(p) * 0.05)
++    for p in model.parameters():
++        dist.broadcast(p.data, src=0)
++    return model
++
++
++def _forward(model, input_ids, position_ids, cu_seqlens, shift_labels):
++    out = model(
++        input_ids=input_ids,
++        attention_mask=None,
++        position_ids=position_ids,
++        cu_seqlens=cu_seqlens,
++        cu_seqlens_cpu=cu_seqlens.cpu(),
++        temperature=1.0,
++        shift_labels=shift_labels,
++        return_dict=True,
++        use_cache=False,
++    )
++    return out.log_probs.reshape(-1)
++
++
++def _grads(model):
++    return {n: p.grad.detach().clone() for n, p in model.named_parameters() if p.grad is not None}
++
++
++def _run_case(model, seqlens, sp_group, gen):
++    from verl.utils.ulysses import (
++        set_ulysses_sequence_parallel_group,
++        slice_input_tensor,
++        ulysses_pad,
++        ulysses_pad_and_slice_inputs,
++    )
++
++    total = sum(seqlens)
++    input_ids = torch.randint(0, 256, (1, total), generator=gen)
++    text_pos = torch.cat([torch.arange(n) for n in seqlens]).view(1, 1, total)
++    position_ids = text_pos.expand(4, 1, total).contiguous()
++    cu_seqlens = torch.tensor([0] + list(torch.tensor(seqlens).cumsum(0)), dtype=torch.long)
++    rolled = torch.roll(input_ids, shifts=-1, dims=1)
++    weights = torch.randn(total, generator=gen)
++
++    # SP=1 reference (HF sdpa with its own packed-sequence mask)
++    set_ulysses_sequence_parallel_group(None)
++    model.zero_grad(set_to_none=True)
++    ref_lp = _forward(model, input_ids, position_ids, cu_seqlens, rolled)
++    (ref_lp * weights).sum().backward()
++    ref_grads = _grads(model)
++
++    # SP=2: VLM path pads only, the text model slices inputs_embeds/position_ids after embedding.
++    set_ulysses_sequence_parallel_group(sp_group)
++    model.zero_grad(set_to_none=True)
++    ids_pad, pos_pad, pad_size = ulysses_pad(input_ids, position_ids, sp_size=SP_SIZE)
++    sp_cu_seqlens = cu_seqlens
++    if pad_size:
++        sp_cu_seqlens = torch.cat([cu_seqlens, cu_seqlens.new_tensor([total + pad_size])])
++    rolled_local, _, _ = ulysses_pad_and_slice_inputs(rolled, sp_size=SP_SIZE)
++    lp_local = _forward(model, ids_pad, pos_pad, sp_cu_seqlens, rolled_local)
++    w_local = slice_input_tensor(torch.nn.functional.pad(weights, (0, pad_size)).unsqueeze(0), dim=1, padding=False)
++    (lp_local * w_local.reshape(-1)).sum().backward()
++    sp_grads = _grads(model)
++    for g in sp_grads.values():
++        dist.all_reduce(g, group=sp_group)
++
++    gathered = [torch.empty_like(lp_local) for _ in range(SP_SIZE)]
++    dist.all_gather(gathered, lp_local.detach().contiguous(), group=sp_group)
++    sp_lp = torch.cat(gathered)[:total]
++    set_ulysses_sequence_parallel_group(None)
++
++    lp_diff = (sp_lp - ref_lp.detach()).abs().max().item()
++    assert ref_grads.keys() == sp_grads.keys()
++    grad_diff = max((sp_grads[n] - ref_grads[n]).abs().max().item() for n in ref_grads)
++    grad_scale = max(ref_grads[n].abs().max().item() for n in ref_grads)
++    return lp_diff, grad_diff, grad_scale
++
++
++def _worker(rank, world_size, port):
++    os.environ.update(MASTER_ADDR="127.0.0.1", MASTER_PORT=str(port))
++    dist.init_process_group("gloo", rank=rank, world_size=world_size)
++    dist.all_to_all = _gloo_all_to_all
++    torch.set_num_threads(2)
++    try:
++        from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
++
++        from verl.models.transformers import monkey_patch
++        from verl.models.transformers.monkey_patch import apply_monkey_patch
++
++        model = _make_model()
++        apply_monkey_patch(
++            model,
++            ulysses_sp_size=SP_SIZE,
++            use_remove_padding=True,
++            use_fused_kernels=True,
++            fused_kernels_backend="torch",
++        )
++        assert ALL_ATTENTION_FUNCTIONS["sdpa"] is monkey_patch._ulysses_sdpa_attention_forward
++        sp_group = dist.group.WORLD
++        gen = torch.Generator().manual_seed(1234)
++
++        for seqlens in CASES:
++            lp_diff, grad_diff, grad_scale = _run_case(model, seqlens, sp_group, gen)
++            if rank == 0:
++                print(
++                    f"[sdpa SP{SP_SIZE}] seqlens={seqlens} logprob max|diff|={lp_diff:.3e} "
++                    f"grad max|diff|={grad_diff:.3e} (max|grad|={grad_scale:.3e})"
++                )
++            assert lp_diff < TOL, (seqlens, lp_diff)
++            assert grad_diff < TOL, (seqlens, grad_diff)
++
++        # Negative control: without the sdpa all-to-all, SP=2 attends only within each shard.
++        ALL_ATTENTION_FUNCTIONS["sdpa"] = monkey_patch._ORIGINAL_SDPA_ATTENTION_FORWARD
++        lp_diff, _, _ = _run_case(model, [31], sp_group, gen)
++        ALL_ATTENTION_FUNCTIONS["sdpa"] = monkey_patch._ulysses_sdpa_attention_forward
++        if rank == 0:
++            print(f"[sdpa SP{SP_SIZE}] negative control (unpatched sdpa) logprob max|diff|={lp_diff:.3e}")
++        assert lp_diff > 1e-2, lp_diff
++    finally:
++        dist.destroy_process_group()
++
++
++def _free_port():
++    with socket.socket() as s:
++        s.bind(("127.0.0.1", 0))
++        return s.getsockname()[1]
++
++
++def test_qwen35_sdpa_ulysses_sp_matches_sp1_on_cpu():
++    mp.spawn(_worker, args=(SP_SIZE, _free_port()), nprocs=SP_SIZE, join=True)
+diff --git a/tests/special_distributed/test_qwen35_linear_attention_ulysses_sp.py b/tests/special_distributed/test_qwen35_linear_attention_ulysses_sp.py
+new file mode 100644
+index 00000000..8901130b
+--- /dev/null
++++ b/tests/special_distributed/test_qwen35_linear_attention_ulysses_sp.py
+@@ -0,0 +1,194 @@
++# Copyright 2026 Bytedance Ltd. and/or its affiliates
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Qwen3.5 linear-attention regression test for packed Ulysses SP.
++
++Run on GPUs, for example:
++    torchrun --nproc_per_node=8 -m pytest -svv \
++        tests/special_distributed/test_qwen35_linear_attention_ulysses_sp.py
++"""
++
++import os
++
++import pytest
++import torch
++import torch.distributed as dist
++
++from verl.models.transformers.qwen3_5 import qwen3_5_decoder_layer_forward, qwen3_5_gated_delta_net_forward
++from verl.utils.ulysses import set_ulysses_sequence_parallel_group
++
++pytest.importorskip("fla")
++qwen35_config_mod = pytest.importorskip("transformers.models.qwen3_5.configuration_qwen3_5")
++qwen35_modeling_mod = pytest.importorskip("transformers.models.qwen3_5.modeling_qwen3_5")
++
++
++Qwen3_5TextConfig = qwen35_config_mod.Qwen3_5TextConfig
++Qwen3_5DecoderLayer = qwen35_modeling_mod.Qwen3_5DecoderLayer
++Qwen3_5GatedDeltaNet = qwen35_modeling_mod.Qwen3_5GatedDeltaNet
++
++pytestmark = pytest.mark.skipif("LOCAL_RANK" not in os.environ, reason="run with torchrun")
++
++PROBE_HIDDEN_SIZE = 512
++PROBE_HEAD_DIM = 128
++
++
++def _err_ratio(ref: torch.Tensor, actual: torch.Tensor) -> float:
++    err = (ref.detach() - actual.detach()).flatten().float().square().mean().sqrt().item()
++    base = ref.detach().flatten().float().square().mean().sqrt().item()
++    return err / (base + 1e-8)
++
++
++def _make_layer(device: torch.device) -> Qwen3_5DecoderLayer:
++    config = Qwen3_5TextConfig(
++        vocab_size=128,
++        hidden_size=PROBE_HIDDEN_SIZE,
++        intermediate_size=1024,
++        num_hidden_layers=1,
++        num_attention_heads=4,
++        num_key_value_heads=2,
++        head_dim=PROBE_HEAD_DIM,
++        linear_key_head_dim=PROBE_HEAD_DIM,
++        linear_value_head_dim=PROBE_HEAD_DIM,
++        linear_num_key_heads=2,
++        linear_num_value_heads=4,
++        linear_conv_kernel_dim=4,
++        layer_types=["linear_attention"],
++        dtype=torch.bfloat16,
++    )
++    torch.manual_seed(1234)
++    layer = Qwen3_5DecoderLayer(config, 0).to(device=device, dtype=torch.bfloat16)
++    layer.eval()
++    return layer
++
++
++def _broadcast_params(model: torch.nn.Module):
++    for param in model.parameters():
++        dist.broadcast(param.data, src=0)
++
++
++def _all_gather_seq(x: torch.Tensor) -> torch.Tensor:
++    world_size = dist.get_world_size()
++    gathered = [torch.empty_like(x) for _ in range(world_size)]
++    dist.all_gather(gathered, x.contiguous())
++    return torch.cat(gathered, dim=1)
++
++
++def _cases_for_world_size(world_size: int) -> list[tuple[str, list[int]]]:
++    total = 8 * world_size
++    if world_size == 2:
++        return [
++            ("boundary_aligned", [8, 8]),
++            ("sequence_cut", [6, 10]),
++            ("single_sequence", [16]),
++            ("many_short_sequences", [3, 4, 5, 4]),
++        ]
++    if world_size == 4:
++        return [
++            ("boundary_aligned", [8, 8, 8, 8]),
++            ("sequence_cut", [20, 12]),
++            ("single_sequence", [32]),
++            ("many_short_sequences", [5, 7, 9, 11]),
++        ]
++    if world_size == 8:
++        return [
++            ("boundary_aligned", [128, 128, 128, 128, 128, 128, 128, 128]),
++            ("sequence_cut", [700, 324]),
++            ("single_sequence", [1024]),
++            ("many_short_sequences", [100, 150, 200, 250, 124, 100, 100]),
++        ]
++    return [("single_sequence", [total])]
++
++
++def _run_case(case_name: str, lengths: list[int], layer: Qwen3_5DecoderLayer, device: torch.device):
++    world_size = dist.get_world_size()
++    rank = dist.get_rank()
++    total_tokens = sum(lengths)
++    if total_tokens % world_size != 0:
++        raise RuntimeError(f"{case_name}: total tokens {total_tokens} must divide world_size {world_size}.")
++
++    cu_seqlens = torch.tensor([0] + torch.cumsum(torch.tensor(lengths), 0).tolist(), device=device, dtype=torch.long)
++    cu_seqlens_cpu = cu_seqlens.cpu()
++    position_embeddings = (torch.empty(0, device=device), torch.empty(0, device=device))
++
++    torch.manual_seed(5678 + total_tokens + len(lengths))
++    full_hidden = torch.randn(1, total_tokens, PROBE_HIDDEN_SIZE, device=device, dtype=torch.bfloat16)
++
++    set_ulysses_sequence_parallel_group(None)
++    full_hidden_ref = full_hidden.detach().clone().requires_grad_(True)
++    ref_out = layer(
++        full_hidden_ref,
++        position_embeddings=position_embeddings,
++        cu_seqlens=cu_seqlens,
++        cu_seqlens_cpu=cu_seqlens_cpu,
++    )
++    ref_out.sum().backward()
++    ref_grad = full_hidden_ref.grad.detach()
++    layer.zero_grad(set_to_none=True)
++
++    set_ulysses_sequence_parallel_group(dist.group.WORLD)
++    local_seq_len = total_tokens // world_size
++    start = rank * local_seq_len
++    local_hidden = full_hidden[:, start : start + local_seq_len].detach().clone().requires_grad_(True)
++    sp_out_local = layer(
++        local_hidden,
++        position_embeddings=position_embeddings,
++        cu_seqlens=cu_seqlens,
++        cu_seqlens_cpu=cu_seqlens_cpu,
++    )
++    sp_out_local.sum().backward()
++
++    sp_out = _all_gather_seq(sp_out_local.detach())
++    sp_grad = _all_gather_seq(local_hidden.grad.detach())
++
++    max_out_diff = (sp_out - ref_out.detach()).abs().max().item()
++    max_grad_diff = (sp_grad - ref_grad).abs().max().item()
++    out_err_ratio = _err_ratio(ref_out.detach(), sp_out)
++    grad_err_ratio = _err_ratio(ref_grad, sp_grad)
++    if rank == 0:
++        print(
++            f"{case_name}: max_out_diff={max_out_diff:.6f} max_grad_diff={max_grad_diff:.6f} "
++            f"out_err_ratio={out_err_ratio:.6f} grad_err_ratio={grad_err_ratio:.6f}"
++        )
++
++    torch.testing.assert_close(sp_out, ref_out.detach(), atol=2e-2, rtol=2e-2)
++    assert grad_err_ratio < 2e-3
++
++
++@pytest.mark.parametrize(
++    "use_causal_conv1d_fn",
++    [True, False],
++    ids=["causal_conv1d_fn", "torch_conv1d_fallback"],
++)
++def test_qwen35_linear_attention_matches_full_forward_under_ulysses_sp(use_causal_conv1d_fn: bool):
++    assert torch.cuda.is_available(), "CUDA is required"
++    if not dist.is_initialized():
++        dist.init_process_group("nccl")
++
++    local_rank = int(os.environ["LOCAL_RANK"])
++    device = torch.device("cuda", local_rank)
++    torch.cuda.set_device(device)
++
++    Qwen3_5DecoderLayer.forward = qwen3_5_decoder_layer_forward
++    Qwen3_5GatedDeltaNet.forward = qwen3_5_gated_delta_net_forward
++
++    layer = _make_layer(device)
++    if not use_causal_conv1d_fn:
++        for module in layer.modules():
++            if isinstance(module, Qwen3_5GatedDeltaNet):
++                module.causal_conv1d_fn = None
++    _broadcast_params(layer)
++
++    for case_name, lengths in _cases_for_world_size(dist.get_world_size()):
++        _run_case(case_name, lengths, layer, device)
++
++    set_ulysses_sequence_parallel_group(None)
+diff --git a/tests/special_distributed/test_qwen35_full_model_sp_gridzero.py b/tests/special_distributed/test_qwen35_full_model_sp_gridzero.py
+new file mode 100644
+index 00000000..8a01c218
+--- /dev/null
++++ b/tests/special_distributed/test_qwen35_full_model_sp_gridzero.py
+@@ -0,0 +1,337 @@
++# Copyright 2026 Bytedance Ltd. and/or its affiliates
++#
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#     http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++"""Full-model Qwen3.5 Ulysses SP=2 vs SP=1 check in the GridZero training configuration.
++
++Mirrors the FSDP engine's actor path: FSDPEngineWithLMHead.prepare_model_inputs / prepare_model_outputs,
++use_remove_padding=True, use_fused_kernels=True (torch backend), attn_implementation=sdpa, LoRA r16/a32
++all-linear, gradient checkpointing, fp32 params + bf16 autocast. FSDP itself is left out (it does not change
++the SP math); SP grads are averaged over the SP group the way FSDP's dp*sp reduction does.
++
++Per model it reports log-prob max/mean |diff| and LoRA-grad relative error for SP=2 vs SP=1, a bf16 noise floor
++(SP=1 bf16 vs SP=1 fp32), and a negative control (SP=2 with the sdpa all-to-all removed).
++
++Run (2 free GPUs; the script uses every process in the world as one SP group):
++    CUDA_VISIBLE_DEVICES=0,1 torchrun --nproc_per_node=2 \
++        tests/special_distributed/test_qwen35_full_model_sp_gridzero.py --models tiny,2b
++
++Script self-check on CPU (all-full-attention tiny model only, no FLA needed):
++    CUDA_VISIBLE_DEVICES="" torchrun --nproc_per_node=2 \
++        tests/special_distributed/test_qwen35_full_model_sp_gridzero.py --models tiny-full --device cpu
++"""
++
++import argparse
++import glob
++import os
++import sys
++
++import torch
++import torch.distributed as dist
++
++QWEN35_2B = (
++    "/home/nate/.cache/huggingface/hub/models--Qwen--Qwen3.5-2B/snapshots/15852e8c16360a2fea060d615a32b45270f8a8fc"
++)
++SP_SIZE = 2
++LP_MAX_TOL = float(os.environ.get("LP_MAX_TOL", "2e-2"))
++GRAD_REL_TOL = float(os.environ.get("GRAD_REL_TOL", "5e-2"))
++
++# packed micro-batches (sequence lengths); odd totals exercise ulysses_pad
++CASES = {
++    "tiny": [[255], [100, 60, 97]],
++    "tiny-full": [[255], [100, 60, 97]],
++    "2b": [[8191], [4000, 2500, 1693]],
++}
++
++
++def _rank0_print(*args):
++    if dist.get_rank() == 0:
++        print(*args, flush=True)
++
++
++def _gloo_all_to_all(output_tensor_list, input_tensor_list, group=None, async_op=False):
++    assert not async_op
++    send = torch.cat([t.contiguous().flatten() for t in input_tensor_list])
++    recv = torch.empty_like(send)
++    dist.all_to_all_single(recv, send, group=group)
++    for out, chunk in zip(output_tensor_list, recv.chunk(len(input_tensor_list)), strict=True):
++        out.copy_(chunk.view_as(out))
++
++
++def _tiny_config(layer_types):
++    from transformers.models.qwen3_5.configuration_qwen3_5 import Qwen3_5Config
++
++    return Qwen3_5Config(
++        text_config=dict(
++            vocab_size=1024,
++            hidden_size=256,
++            intermediate_size=512,
++            num_hidden_layers=len(layer_types),
++            num_attention_heads=8,
++            num_key_value_heads=2,
++            head_dim=64,
++            linear_key_head_dim=64,
++            linear_value_head_dim=64,
++            linear_num_key_heads=2,
++            linear_num_value_heads=4,
++            linear_conv_kernel_dim=4,
++            layer_types=layer_types,
++            rope_parameters={
++                "rope_type": "default",
++                "rope_theta": 10000.0,
++                "partial_rotary_factor": 0.25,
++                "mrope_section": [3, 3, 2],
++                "mrope_interleaved": True,
++            },
++            tie_word_embeddings=False,
++        ),
++        vision_config=dict(depth=1, hidden_size=32, intermediate_size=64, num_heads=2, out_hidden_size=256),
++        tie_word_embeddings=False,
++    )
++
++
++def _build_model(name, device):
++    from transformers import AutoConfig
++    from transformers.models.qwen3_5.modeling_qwen3_5 import Qwen3_5ForConditionalGeneration
++
++    torch.manual_seed(0)
++    if name == "2b":
++        config = AutoConfig.from_pretrained(QWEN35_2B)
++        config._attn_implementation = "sdpa"
++        config.text_config._attn_implementation = "sdpa"
++        model = Qwen3_5ForConditionalGeneration.from_pretrained(
++            QWEN35_2B, config=config, torch_dtype=torch.float32, attn_implementation="sdpa"
++        )
++    else:
++        layer_types = ["full_attention"] * 4 if name == "tiny-full" else ["linear_attention"] * 3 + ["full_attention"]
++        config = _tiny_config(layer_types)
++        config._attn_implementation = "sdpa"
++        config.text_config._attn_implementation = "sdpa"
++        model = Qwen3_5ForConditionalGeneration(config).float()
++        with torch.no_grad():
++            for p in model.parameters():
++                p.add_(torch.randn_like(p) * 0.02)
++    model = model.to(device)
++    for p in model.parameters():
++        dist.broadcast(p.data, src=0)
++    return model
++
++
++def _wrap_like_engine(model):
++    """apply_monkey_patch -> pass_packed_cu_seqlens -> gradient checkpointing -> LoRA, as FSDPEngine does."""
++    from inspect import signature
++
++    from peft import LoraConfig, TaskType, get_peft_model
++
++    from verl.models.transformers.monkey_patch import apply_monkey_patch
++
++    apply_monkey_patch(
++        model=model,
++        use_remove_padding=True,
++        ulysses_sp_size=SP_SIZE,
++        use_fused_kernels=True,
++        fused_kernels_backend="torch",
++    )
++    pass_packed_cu_seqlens = "cu_seqlens" in signature(model.forward).parameters
++    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
++    model.enable_input_require_grads()
++    model = get_peft_model(
++        model,
++        LoraConfig(task_type=TaskType.CAUSAL_LM, r=16, lora_alpha=32, target_modules="all-linear", bias="none"),
++    )
++    # lora_B starts at zero (so lora_A grads would be zero); give both factors non-trivial grads.
++    torch.manual_seed(1)
++    with torch.no_grad():
++        for n, p in model.named_parameters():
++            if "lora_B" in n:
++                p.copy_(torch.randn_like(p) * 1e-2)
++            if p.requires_grad:
++                dist.broadcast(p.data, src=0)
++    model.train()
++    return model, pass_packed_cu_seqlens
++
++
++def _token_stream(name, n_tokens, vocab_size):
++    if name != "2b":
++        g = torch.Generator().manual_seed(7)
++        return torch.randint(0, vocab_size, (n_tokens,), generator=g).tolist()
++    # Natural text (this repo's own source) so log-probs are in a realistic range.
++    from transformers import AutoTokenizer
++
++    tok = AutoTokenizer.from_pretrained(QWEN35_2B)
++    root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
++    ids = []
++    for path in sorted(glob.glob(os.path.join(root, "verl", "**", "*.py"), recursive=True)):
++        with open(path) as f:
++            ids.extend(tok(f.read(), add_special_tokens=False)["input_ids"])
++        if len(ids) >= n_tokens:
++            break
++    return ids[:n_tokens]
++
++
++def _micro_batch(seqlens, tokens, device):
++    from tensordict import TensorDict
++
++    from verl.utils import tensordict_utils as tu
++    from verl.utils.dataset.dataset_utils import DatasetPadMode
++
++    offsets = [0]
++    for n in seqlens:
++        offsets.append(offsets[-1] + n)
++    ids = [torch.tensor(tokens[s:e], device=device) for s, e in zip(offsets[:-1], offsets[1:], strict=True)]
++    pos = [torch.arange(n, device=device) for n in seqlens]
++    mb = TensorDict(
++        {
++            "input_ids": torch.nested.as_nested_tensor(ids, layout=torch.jagged),
++            "position_ids": torch.nested.as_nested_tensor(pos, layout=torch.jagged),
++        },
++        batch_size=[len(seqlens)],
++    )
++    tu.assign_non_tensor(
++        mb,
++        use_remove_padding=True,
++        use_fused_kernels=True,
++        pad_mode=DatasetPadMode.NO_PADDING,
++        pad_token_id=0,
++        temperature=1.0,
++        calculate_entropy=True,
++    )
++    return mb
++
++
++def _engine(model, pass_packed_cu_seqlens):
++    from verl.workers.engine.fsdp.transformer_impl import FSDPEngineWithLMHead
++
++    engine = FSDPEngineWithLMHead.__new__(FSDPEngineWithLMHead)
++    engine.module = model
++    engine.pass_packed_cu_seqlens = pass_packed_cu_seqlens
++    return engine
++
++
++def _run(engine, mb, sp_size, weights, autocast_dtype, device_type):
++    """One engine forward/backward. Returns (log_probs (total_nnz,), {lora param: grad})."""
++    from verl.utils.ulysses import set_ulysses_sequence_parallel_group
++
++    engine.use_ulysses_sp = sp_size > 1
++    engine.ulysses_sequence_parallel_size = sp_size
++    set_ulysses_sequence_parallel_group(dist.group.WORLD if sp_size > 1 else None)
++    model = engine.module
++    model.zero_grad(set_to_none=True)
++    try:
++        model_inputs, output_args = engine.prepare_model_inputs(mb)
++        if sp_size > 1:
++            assert "cu_seqlens" in model_inputs, "engine did not pass packed cu_seqlens"
++        with torch.autocast(device_type=device_type, dtype=autocast_dtype, enabled=autocast_dtype != torch.float32):
++            raw = model(**model_inputs, use_cache=False)
++            out = engine.prepare_model_outputs(raw, output_args, mb, None)
++        log_probs = out["log_probs"].values().float()
++        (log_probs * weights).sum().backward()
++    finally:
++        set_ulysses_sequence_parallel_group(None)
++    grads = {n: p.grad.detach().float().clone() for n, p in model.named_parameters() if p.requires_grad}
++    if sp_size > 1:
++        # FSDP averages over dp*sp ranks; gather_outputs_and_unpad scales grads by sp to compensate.
++        for g in grads.values():
++            dist.all_reduce(g)
++            g.div_(dist.get_world_size())
++    return log_probs.detach(), grads
++
++
++def _compare(ref_lp, lp, ref_g, g):
++    d = (lp - ref_lp).abs()
++    num = sum((g[n] - ref_g[n]).square().sum() for n in ref_g).sqrt().item()
++    den = sum(ref_g[n].square().sum() for n in ref_g).sqrt().item()
++    gmax = max((g[n] - ref_g[n]).abs().max().item() for n in ref_g)
++    return d.max().item(), d.mean().item(), num / (den + 1e-30), gmax
++
++
++def run_model(name, device, device_type):
++    from transformers.modeling_utils import ALL_ATTENTION_FUNCTIONS
++
++    from verl.models.transformers import monkey_patch
++
++    autocast_dtype = torch.float32 if device_type == "cpu" else torch.bfloat16
++    model, pass_packed = _wrap_like_engine(_build_model(name, device))
++    assert pass_packed, "Qwen3.5 forward does not accept cu_seqlens; is the PR #6660 cherry-pick applied?"
++    assert ALL_ATTENTION_FUNCTIONS["sdpa"] is monkey_patch._ulysses_sdpa_attention_forward, "sdpa not patched"
++    engine = _engine(model, pass_packed)
++    vocab = model.config.text_config.vocab_size if hasattr(model.config, "text_config") else model.config.vocab_size
++
++    ok = True
++    for seqlens in CASES[name]:
++        tokens = _token_stream(name, sum(seqlens), vocab)
++        mb = _micro_batch(seqlens, tokens, device)
++        weights = torch.randn(sum(seqlens), generator=torch.Generator().manual_seed(3)).to(device)
++
++        ref_lp, ref_g = _run(engine, mb, 1, weights, autocast_dtype, device_type)
++        lp, g = _run(engine, mb, SP_SIZE, weights, autocast_dtype, device_type)
++        lp_max, lp_mean, g_rel, g_max = _compare(ref_lp, lp, ref_g, g)
++
++        floor = ""
++        noise_max = 0.0
++        # fp32 FLA backward picks a TileLang kernel that doesn't compile on sm_86 (RTX 3090):
++        # set SKIP_FP32_FLOOR=1 there; the PASS criterion then relies on LP_MAX_TOL alone.
++        if autocast_dtype != torch.float32 and os.environ.get("SKIP_FP32_FLOOR") != "1":
++            fp32_lp, fp32_g = _run(engine, mb, 1, weights, torch.float32, device_type)
++            noise_max, noise_mean, noise_g_rel, _ = _compare(fp32_lp, ref_lp, fp32_g, ref_g)
++            floor = f" | bf16 noise floor (SP1 bf16 vs fp32): lp max={noise_max:.3e} mean={noise_mean:.3e} "
++            floor += f"grad rel={noise_g_rel:.3e}"
++
++        ALL_ATTENTION_FUNCTIONS["sdpa"] = monkey_patch._ORIGINAL_SDPA_ATTENTION_FORWARD
++        try:
++            bad_lp, _ = _run(engine, mb, SP_SIZE, weights, autocast_dtype, device_type)
++        finally:
++            ALL_ATTENTION_FUNCTIONS["sdpa"] = monkey_patch._ulysses_sdpa_attention_forward
++        bad_max = (bad_lp - ref_lp).abs().max().item()
++        bad_mean = (bad_lp - ref_lp).abs().mean().item()
++
++        passed = (lp_max < LP_MAX_TOL or lp_max <= noise_max) and g_rel < GRAD_REL_TOL
++        ok &= passed
++        _rank0_print(
++            f"[{name}] seqlens={seqlens} {'PASS' if passed else 'FAIL'}: SP{SP_SIZE} vs SP1 "
++            f"lp max={lp_max:.3e} mean={lp_mean:.3e} | lora grad rel={g_rel:.3e} max={g_max:.3e} "
++            f"(|ref lp| mean={ref_lp.abs().mean().item():.2f}){floor} | "
++            f"negative control (no sdpa all-to-all): lp max={bad_max:.3e} mean={bad_mean:.3e}"
++        )
++    del model, engine
++    if device_type == "cuda":
++        torch.cuda.empty_cache()
++    return ok
++
++
++def main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--models", default="tiny,2b", help="comma list of tiny, tiny-full, 2b")
++    parser.add_argument("--device", default="cuda", choices=["cuda", "cpu"])
++    args = parser.parse_args()
++
++    if args.device == "cuda":
++        local_rank = int(os.environ["LOCAL_RANK"])
++        torch.cuda.set_device(local_rank)
++        dist.init_process_group("nccl")
++        device = torch.device("cuda", local_rank)
++    else:
++        dist.init_process_group("gloo")
++        dist.all_to_all = _gloo_all_to_all
++        device = torch.device("cpu")
++    assert dist.get_world_size() == SP_SIZE, f"run with --nproc_per_node={SP_SIZE}"
++
++    ok = True
++    for name in args.models.split(","):
++        ok &= run_model(name, device, args.device)
++    _rank0_print("ALL PASS" if ok else "SOME FAILED")
++    dist.destroy_process_group()
++    sys.exit(0 if ok else 1)
++
++
++if __name__ == "__main__":
++    main()

@@ -9,6 +9,8 @@ LEGO=/home/nate/Documents/lego-rl
 export RAY_memory_monitor_refresh_ms=0
 # Cards 2-3 are reserved — training uses only 0-1.
 export CUDA_VISIBLE_DEVICES=0,1
+# Show every line (Ray otherwise collapses identical-looking worker lines, hiding diagnostics).
+export RAY_DEDUP_LOGS=0
 if pgrep -f "[D]ocuments/lego-rl/.venv.*(raylet|gcs_server)" >/dev/null; then
     echo "[FATAL] stale lego-rl ray is running; clean up first (see debug-journal.md)" >&2; exit 1
 fi
