@@ -19,6 +19,8 @@ export function App() {
   const summary = useStore((s) => s.summary);
   const series = useStore((s) => s.series);
   const ticks = useStore((s) => s.ticks);
+  const error = useStore((s) => s.error);
+  const setError = useStore((s) => s.setError);
   const [view, setView] = useState<"map" | "model">("map");
   const [attackMode, setAttackMode] = useState(false);
   const [selectedTarget, setSelectedTarget] = useState<GridTarget | null>(null);
@@ -29,6 +31,7 @@ export function App() {
 
   return (
     <div className="app">
+      {error && <div className="error-banner" role="alert">{error}<button onClick={() => setError(null)}>Dismiss</button></div>}
       <TopBar sim={sim} mode={mode} sessionStatus={sessionStatus} conn={conn} />
       <div className="main">
         <div className="left">

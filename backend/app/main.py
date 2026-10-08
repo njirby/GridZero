@@ -110,8 +110,13 @@ def _ep_id():
     return "ep-" + time.strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
 
 
-async def _emit_outcome(outcome, source, action=None):
+async def _emit_outcome(outcome, source, action=None, predicted=None):
     # sim.state (full C3) + sim.step_outcome (the "why/what")
+    await asyncio.to_thread(_emit_outcome_sync, outcome, source, action, predicted)
+    await _drain_opponent()
+
+
+def _emit_outcome_sync(outcome, source, action, predicted):
     ST.bus.emit("sim.state", ST.sim.latest_state())
     ST.bus.emit("sim.step_outcome", {
         "t": outcome.get("t"), "source": source,
@@ -121,9 +126,8 @@ async def _emit_outcome(outcome, source, action=None):
         "done": outcome.get("done", False), "disc_lines": outcome.get("disc_lines", []),
         "illegal": outcome.get("illegal", False), "ambiguous": outcome.get("ambiguous", False),
         "new_overloads": outcome.get("new_overloads", []),
-        "predicted_disc_lines": [],
+        "predicted_disc_lines": predicted or [],
     })
-    await _drain_opponent()
 
 
 async def _drain_opponent():
@@ -195,6 +199,7 @@ async def sim_state():
 async def sim_reset(request: Request, body: dict = {}):
     if not _authorized(request, _op_token()):
         return _forbidden()
+    await asyncio.to_thread(ST.sim.set_attack_schedule, [])  # no stale schedule into a new episode
     c3 = await asyncio.to_thread(ST.sim.reset, body.get("env"))
     ST.bus.start_episode(_ep_id(), RUNS)
     await _emit_outcome({"t": 0, "reward": c3["reward"], "cum_reward": 0.0, "applied": {}}, "system")
@@ -204,25 +209,28 @@ async def sim_reset(request: Request, body: dict = {}):
 @app.post("/sim/step")
 async def sim_step(request: Request, body: dict = {}):
     n = int(body.get("n", 1) or 1)
-    # unauthenticated (model) traffic may advance at most 1 step — no fast-forward
-    if not _authorized(request, _op_token(), ATK_TOKEN):
+    # only the operator may fast-forward; model and attacker advance at most 1 step
+    if not _authorized(request, _op_token()):
         n = min(n, 1)
     out, verb = await asyncio.to_thread(ST.sim.step, n)
+    rejected = verb.pop("rejected", None)
+    if rejected:
+        return envelope(False, out, error=rejected, verbose=verb)
     await _emit_outcome(out, ST.mode if ST.mode != "agent" else "auto")
     return envelope(True, out, verbose=verb)
 
 
 @app.post("/sim/act")
-async def sim_act(body: dict = {}):
+async def sim_act(request: Request, body: dict = {}):
     action = body.get("action") or {}
     if not isinstance(action, dict):
         return JSONResponse({"ok": False, "data": None, "error": "malformed action", "verbose": {}}, status_code=400)
-    src = body.get("source", "agent")
+    # only the operator may label an act's source; anything else is the agent
+    src = body.get("source", "agent") if _authorized(request, _op_token()) else "agent"
     out, verb, err = await asyncio.to_thread(ST.sim.act, action, src)
+    await _emit_outcome(out, src, action, verb.get("predicted_disc_lines"))
     if err:
-        await _emit_outcome(out, src, action)
         return envelope(False, out, error=err, verbose=verb)
-    await _emit_outcome(out, src, action)
     return envelope(True, out, verbose=verb)
 
 
@@ -252,9 +260,11 @@ async def sim_attack(request: Request, body: dict = {}):
 @app.post("/sim/render")
 async def sim_render(body: dict = {}):
     if RENDER_DISABLED:
-        return envelope(False, None, error="render disabled in this benchmark config (no-vision ablation); "
-                                           "use `simctl observe --detailed` for the full numeric state instead.")
-    d = await asyncio.to_thread(ST.sim.render, int(body.get("width", 800) or 800), body.get("out"))
+        return envelope(False, None, error="render is disabled in this environment")
+    try:
+        d = await asyncio.to_thread(ST.sim.render, int(body.get("width", 800) or 800), body.get("out"))
+    except ValueError as e:
+        return envelope(False, None, error=str(e))
     return envelope(True, d)
 
 
@@ -297,6 +307,8 @@ def _json(frame):
 @app.get("/event")
 @app.get("/api/event")
 async def event(request: Request):
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     last = request.headers.get("Last-Event-ID") or request.query_params.get("after_seq")
     after = int(last) if last and str(last).isdigit() else -1
     return EventSourceResponse(_event_gen(request, after))
@@ -304,7 +316,9 @@ async def event(request: Request):
 
 # ===================== REST =====================
 @app.get("/state")
-async def state():
+async def state(request: Request):
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     s = await asyncio.to_thread(ST.sim.latest_state)
     return {"sim": s, "mode": ST.mode, "running": ST.running, "last_seq": ST.bus.last_seq,
             "model": ST.oc.model, "variant": ST.oc.variant or "default"}
@@ -350,8 +364,7 @@ async def bench_start(request: Request, body: BenchStart):
     crash mid-episode leaves a resumable/auditable record)."""
     ep = _ep_id()
     ST.bus.start_episode(ep, RUNS)
-    if body.attacks:
-        await asyncio.to_thread(ST.sim.set_attack_schedule, body.attacks)
+    await asyncio.to_thread(ST.sim.set_attack_schedule, body.attacks or [])
     await asyncio.to_thread(ST.sim.reset, seed=body.seed,
                             options={"time serie id": body.chronic, "max step": body.horizon})
     ST.kickoff = body.kickoff or None
@@ -373,9 +386,11 @@ async def bench_start(request: Request, body: BenchStart):
 
 
 @app.get("/bench/stats")
-async def bench_stats():
+async def bench_stats(request: Request):
     """Ground-truth episode stats (sim) + cumulative LLM token/cost (opencode)
     + agent liveness (so a dead agent is detected, not mistaken for a no-action run)."""
+    if not _authorized(request, _op_token()):
+        return _forbidden()
     ep = ST.bus.episode
     sim = await asyncio.to_thread(ST.sim.episode_stats)
     llm = await ST.oc.session_stats()
@@ -513,6 +528,7 @@ async def control(request: Request, body: Control):
         # new episode + new session using the selected model/variant
         model = args.get("model") or ST.oc.model
         variant = args.get("variant") or ST.oc.variant or None
+        await asyncio.to_thread(ST.sim.set_attack_schedule, [])
         c3 = await asyncio.to_thread(ST.sim.reset)
         ST.bus.start_episode(_ep_id(), RUNS)
         await ST.oc.create_session(model=model, variant=variant)
@@ -522,7 +538,7 @@ async def control(request: Request, body: Control):
         ST.bus.emit("system", {"level": "info", "msg": f"episode reset; agent kicked off on {model}"
                                                                       + (f" ({variant})" if variant and variant != "default" else "")})
     elif cmd == "manual_action":
-        out, verb, err = await asyncio.to_thread(ST.sim.act, args.get("args", {}))
+        out, verb, err = await asyncio.to_thread(ST.sim.act, args.get("args", {}), "user")
         await _emit_outcome(out, "user", args.get("args"))
     else:
         ST.bus.emit("system", {"level": "warn", "msg": f"unknown control cmd: {cmd}"})
@@ -538,7 +554,7 @@ KICKOFF = (
     "Do NOT spend many turns only observing — take a concrete corrective `simctl act` within your first "
     "1-2 turns, and state your reasoning in one sentence before each act. Goal: keep the grid stable "
     "(no protection trips) and maximize cumulative reward. If you want to SEE the topology, `simctl render` "
-    "then Read the PNG it prints."
+    "then Read the PNG it prints (optional — if it says render is disabled, use `simctl observe --detailed`)."
 )
 
 

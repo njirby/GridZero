@@ -16,7 +16,7 @@ Plus a per-chronic heatmap and a rule-based error taxonomy.
 
 Output: <out>/leaderboard.md, <out>/leaderboard.html, <out>/summary.json
 """
-import argparse, glob, json, os, statistics, sys
+import argparse, dataclasses, glob, json, os, statistics, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 import numpy as np
@@ -85,10 +85,28 @@ def error_taxonomy(res, dn):
     return f"DIED-WHEN-DN-SURVIVED ({res.survived}; DN {dn.survived}) | {mechanism}"
 
 
+def build_anchors(dn_results):
+    """(chronic, horizon) -> DoNothing anchor; the MEAN over repeats (cum_reward,
+    survived) when there are several rows for the same key."""
+    groups = {}
+    for r in dn_results:
+        groups.setdefault((r.chronic, r.horizon), []).append(r)
+    anchors = {}
+    for k, rs in groups.items():
+        if len(rs) == 1:
+            anchors[k] = rs[0]
+        else:
+            anchors[k] = dataclasses.replace(
+                rs[0], cum_reward=statistics.mean(r.cum_reward for r in rs),
+                survived=round(statistics.mean(r.survived for r in rs)),
+                done=all(r.done for r in rs), game_over=any(r.game_over for r in rs))
+    return anchors
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--baselines", action="append", default=[])
-    ap.add_argument("--llm", action="append", default=[])
+    ap.add_argument("--baselines", nargs="+", action="extend", default=[])
+    ap.add_argument("--llm", nargs="+", action="extend", default=[])
     ap.add_argument("--out", required=True)
     ap.add_argument("--env", default="l2rpn_case14_sandbox")
     a = ap.parse_args()
@@ -104,23 +122,25 @@ def main():
             allres.setdefault(r.agent, []).append(r)
 
     # DN anchors: (chronic, horizon) -> DN result (mean cum if repeats)
-    anchors = {}
-    for r in allres.get("DoNothing", []):
-        key = (r.chronic, r.horizon)
-        anchors.setdefault(key, []).append(r)
-    anchors = {k: v[0] for k, v in anchors.items()}  # one DN per (chronic,horizon)
+    anchors = build_anchors(allres.get("DoNothing", []))
 
     # score every agent against its anchor
-    rows = []
+    rows, dropped = [], []
     for agent, res_list in allres.items():
         for res in res_list:
             dn = anchors.get((res.chronic, res.horizon))
             if dn is None:
+                dropped.append(res)
                 continue
             sc = normalize(res, dn)
             rows.append({"agent": agent, **res.to_dict(), **sc,
                          "error_bucket": error_taxonomy(res, dn)})
 
+    if dropped:
+        print(f"WARNING: {len(dropped)} episode(s) DROPPED (no DoNothing anchor for their "
+              "(chronic, horizon)):", file=sys.stderr)
+        for r in dropped:
+            print(f"  {r.agent} chronic={r.chronic}@{r.horizon} ep={r.ep}", file=sys.stderr)
     # aggregate per agent
     agents = {}
     for row in rows:

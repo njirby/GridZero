@@ -10,7 +10,8 @@ value at t=0); `cum_reward` = sum of COMPLETED step rewards only (0 at t=0, the
 t=0 reset reward is excluded).
 """
 from __future__ import annotations
-import os, threading
+import os, re, threading
+import copy
 import numpy as np
 
 from .c3 import to_c3, build_meta
@@ -33,6 +34,8 @@ class SimSession:
         # never touch a terminal grid2op env (which requires reset() to re-access).
         self._last_c3 = None
         self._finished = False
+        self._game_over = False
+        self._last_disc = []   # lines tripped since the agent's last decision point
         self._chronic = None
         self._horizon = 0
         # adversarial mode: a deterministic attack schedule fired by the backend at
@@ -116,16 +119,36 @@ class SimSession:
             self._peak_rho = 0.0
             self._game_over = False
             self._finished = False
+            self._last_disc = []
             # fresh fire-tracking for this episode (re-fires the schedule from t=0)
             self._atk_started = set()
             self._atk_ended = set()
             self._pending_opponent = []
-            self._last_c3 = to_c3(self._env, obs, self._last_reward, self._cum_reward, None, "")
+            self._last_c3 = self._build_c3(obs, None, "")
             return self._last_c3
+
+    def _cause(self):
+        return ("game_over" if self._game_over else "time_exceeded") if self._finished else None
+
+    def _build_c3(self, obs, last_action, png):
+        return to_c3(self._env, obs, self._last_reward, self._cum_reward, last_action, png,
+                     done=self._finished, cause=self._cause(), disc_lines=self._last_disc)
+
+    def _disc_names(self, info):
+        try:
+            # disc_lines is PER LINE: -1 = not disconnected, k>=0 = tripped at cascade level k
+            disc = np.asarray(info.get("disc_lines", []), dtype=int)
+            return [str(self._env.name_line[i]) for i, lvl in enumerate(disc) if lvl >= 0]
+        except Exception:
+            return []
+
+    def _over_msg(self):
+        return f"Episode is over ({self._cause() or 'finished'}). Stop acting and write your summary."
 
     def _after_step(self, obs, reward, done, info):
         self._obs = obs
         self._last_info = info
+        self._last_disc = self._disc_names(info)
         self._cum_reward += float(reward)
         self._last_reward = float(reward)
         # benchmark safety counters
@@ -144,8 +167,7 @@ class SimSession:
             self._game_over = True
         self._finished = self._game_over or t >= self._horizon
         # refresh the cached C3 while the env is still accessible
-        self._last_c3 = to_c3(self._env, obs, self._last_reward, self._cum_reward,
-                              self._last_action, f"t{t:04d}.png")
+        self._last_c3 = self._build_c3(obs, self._last_action, f"t{t:04d}.png")
         # adversarial: fire any scheduled attacks that crossed a step boundary
         self._fire_attacks()
 
@@ -166,9 +188,12 @@ class SimSession:
         c3 = self._last_c3 or {}
         return ({"t": c3.get("t", 0), "reward": c3.get("reward", 0.0),
                  "cum_reward": c3.get("cum_reward", 0.0), "done": True,
+                 "lines_down": int(c3.get("n_down", 0)),
+                 "overloads": [l["name"] for l in c3.get("lines", []) if l.get("overflow")],
                  "disc_lines": [], "new_overloads": [], "illegal": False,
                  "ambiguous": False, "applied": {}},
-                {"is_illegal": False, "is_ambiguous": False, "opponent_attack_line": None})
+                {"is_illegal": False, "is_ambiguous": False, "opponent_attack_line": None,
+                 "rejected": self._over_msg()})
 
     def set_attack_schedule(self, attacks):
         """Install a deterministic attack schedule (list of dicts: start, end, line,
@@ -189,6 +214,7 @@ class SimSession:
         obs, reward, done, info = self._env.step(act)
         self._obs = obs
         self._last_info = info
+        self._last_disc += self._disc_names(info)
         self._cum_reward += float(reward)
         self._last_reward = float(reward)
         try:
@@ -204,8 +230,7 @@ class SimSession:
         if done and t < self._horizon:
             self._game_over = True
         self._finished = self._game_over or t >= self._horizon
-        self._last_c3 = to_c3(self._env, obs, self._last_reward, self._cum_reward,
-                              self._last_action, f"t{t:04d}.png")
+        self._last_c3 = self._build_c3(obs, self._last_action, f"t{t:04d}.png")
         # caller (backend) emits the opponent.step event; we return the t for that
         return t
 
@@ -241,8 +266,7 @@ class SimSession:
     def step(self, n=1) -> tuple:
         with self._lock:
             if self._finished:
-                out, verb = self._finished_outcome()
-                return out, verb
+                return self._finished_outcome()
             self._ensure_env()
             A = self._env.action_space
             n = max(1, min(int(n), 50))
@@ -263,8 +287,7 @@ class SimSession:
         with self._lock:
             if self._finished:
                 out, verb = self._finished_outcome()
-                return out, verb, ("Episode is over (reached horizon or game-over); "
-                                   "run `simctl reset` to start a new one.")
+                return out, verb, self._over_msg()
             self._ensure_env()
             A = self._env.action_space
             try:
@@ -273,6 +296,8 @@ class SimSession:
                 cur = self.latest_state()
                 outcome = {"t": cur.get("t", 0), "reward": cur.get("reward", 0.0),
                            "cum_reward": cur.get("cum_reward", 0.0), "done": self._finished,
+                           "lines_down": int(cur.get("n_down", 0)),
+                           "overloads": [l["name"] for l in cur.get("lines", []) if l.get("overflow")],
                            "disc_lines": [], "new_overloads": [],
                            "illegal": True, "ambiguous": False, "applied": {}}
                 verbose = {"is_illegal": True, "is_ambiguous": True, "predicted_disc_lines": []}
@@ -281,23 +306,28 @@ class SimSession:
             predicted = []
             if source != "opponent":
                 try:
-                    _do, _dr, _dd, d_info = self._obs.simulate(act)
-                    disc = np.asarray(d_info.get("disc_lines", []), dtype=int)
-                    predicted = [str(self._env.name_line[j]) for j in disc if j is not None and j >= 0]
+                    # simulate() mutates the action in place (e.g. clips an out-of-range
+                    # redispatch), which would hide is_ambiguous from the real step below
+                    _do, _dr, _dd, d_info = self._obs.simulate(copy.deepcopy(act))
+                    predicted = self._disc_names(d_info)
                 except Exception:
                     pass
             prev_rho = np.asarray(self._obs.rho, dtype=float)
             applied = describe_applied(action_dict)
-            self._last_action = {"source": source, "summary": summarize_applied(applied),
-                                 "args": action_dict, "t": int(self._obs.current_step)}
+            if source != "opponent":
+                # the defender's "since your last act" feedback must only reflect its
+                # own (or the operator's) action — opponent moves stay in the event bus
+                self._last_action = {"source": source, "summary": summarize_applied(applied),
+                                     "args": action_dict, "t": int(self._obs.current_step)}
             obs, reward, done, info = self._env.step(act)
             self._after_step(obs, reward, done, info)
             out, verb = self._outcome_after(prev_rho, source=source, applied=applied)
             verb["predicted_disc_lines"] = predicted
             err = None
             if info.get("is_illegal") or info.get("is_ambiguous"):
-                err = (info.get("reason_alarm_illegal") or info.get("reason_alert_illegal")
-                       or ("Illegal action" if info.get("is_illegal") else "Ambiguous action"))
+                kind = "Illegal action" if info.get("is_illegal") else "Ambiguous action"
+                reasons = "; ".join(str(e) for e in (info.get("exception") or []))
+                err = f"{kind}: {reasons}" if reasons else kind
             return out, verb, err
 
     def _outcome_after(self, prev_rho, source, applied) -> tuple:
@@ -306,16 +336,12 @@ class SimSession:
         cur_rho = np.asarray(obs.rho, dtype=float)
         new_overloads = [str(env.name_line[i]) for i in range(env.n_line)
                          if cur_rho[i] > 1.0 and (prev_rho is None or prev_rho[i] <= 1.0)]
-        disc_lines = []
-        if self._last_info is not None:
-            try:
-                disc = np.asarray(self._last_info.get("disc_lines", []), dtype=int)
-                disc_lines = [str(env.name_line[j]) for j in disc if j is not None and j >= 0]
-            except Exception:
-                disc_lines = []
-        cur = self.latest_state()
+        disc_lines = list(self._last_disc)
+        lines_down = int(np.sum(~np.asarray(obs.line_status, dtype=bool)))
+        overloads = [str(env.name_line[i]) for i in range(env.n_line) if cur_rho[i] > 1.0]
         outcome = {"t": int(obs.current_step), "reward": round(self._last_reward, 4),
                    "cum_reward": round(self._cum_reward, 4), "done": self._finished,
+                   "lines_down": lines_down, "overloads": overloads,
                    "disc_lines": disc_lines, "new_overloads": new_overloads,
                    "illegal": bool(self._last_info.get("is_illegal")) if self._last_info else False,
                    "ambiguous": bool(self._last_info.get("is_ambiguous")) if self._last_info else False,
@@ -332,8 +358,12 @@ class SimSession:
             d = self._render_dir()
             t = int(self._obs.current_step) if self._obs is not None else 0
             fname = (out or f"t{t:04d}")
-            if not fname.endswith(".png"):
+            if not fname.endswith(".png") and "." not in fname:
                 fname += ".png"
+            # confine writes to the render dir: bare filename ending in .png only
+            if (os.path.basename(fname) != fname or not fname.endswith(".png")
+                    or not re.fullmatch(r"[\w][\w.-]*", fname)):
+                raise ValueError("invalid render filename: use a bare name like 't0052' or 't0052.png'")
             path = os.path.join(d, fname)
             self._env.render()
             self._env.viewer_fig.savefig(path, format="png", dpi=90, bbox_inches="tight")

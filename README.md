@@ -16,7 +16,7 @@ for the 5 pinned interfaces (C1–C5) everything is built against.
 ## Quick start (once workstreams are merged)
 
 ```bash
-cd /home/nate/grid2op-harness
+cd /home/nate/Documents/GridZero
 source .venv/bin/activate
 
 make backend          # FastAPI: owns grid2op + drives opencode  -> :8731

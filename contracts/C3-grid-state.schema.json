@@ -31,12 +31,13 @@
       "type":["object","null"],
       "description": "the most recently applied action, for the 'since your last act' line. null if none yet.",
       "properties": {
-        "source":{"enum":["agent","user","auto","system"]},
+        "source":{"enum":["agent","user","auto","system","opponent"]},
         "summary":{"type":"string"},
         "args":{"type":"object"},
         "t":{"type":"integer"}
       }
     },
+    "last_disc_lines": {"type":"array","items":{"type":"string"},"description":"lines that tripped (disconnected by protection) during the most recent step(s) since the last decision point; [] if none."},
     "png":{"type":"string","description":"path to the last render (or '')."}
   },
   "$defs": {

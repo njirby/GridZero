@@ -87,7 +87,10 @@ def compact_observe(s):
     L.append("gens: " + " ".join(f"{p:.1f}" for p in gens))
     la = s.get("last_action")
     if la:
-        note = f"overloads now: [{', '.join(over)}]" if over else "no trips"
+        tripped = s.get("last_disc_lines") or []
+        note = f"tripped: [{', '.join(tripped)}]" if tripped else "no trips"
+        if over:
+            note += f"; overloads now: [{', '.join(over)}]"
         L.append(f"since your last act (t={la.get('t')} {la.get('summary')}): {note} (max_rho={(maxline['rho'] if maxline else 0):.2f})")
     return "\n".join(L)
 
@@ -109,9 +112,9 @@ def cmd_reset(a):
             "(no-op: `simctl step` or `simctl act '{}'`)", 1)
     body = {"env": a.env} if a.env else {}
     b = post(a, "/sim/reset", a.base_url, a.token, body)
-    d = b.get("data", {})
+    d = b.get("data") or {}  # data is null on a 403 (no operator token)
     hum = f"reset · env={d.get('env', 'l2rpn_case14_sandbox')} · t=0 · reward={d.get('reward', 0):.2f}"
-    code = 0 if b.get("ok") else 2
+    code = 0 if b.get("ok") else 1
     return emit({**b, "_human": b.get("error") or hum}, a, code)
 
 
@@ -120,10 +123,10 @@ def cmd_step(a):
         die("step advances exactly 1 step (no fast-forward); to no-op several steps, "
             "run `simctl step` that many times or `simctl act '{}'`", 3)
     b = post(a, "/sim/step", a.base_url, a.token, {"n": a.n})
-    d = b.get("data", {})
+    d = b.get("data") or {}
     hum = (f"stepped {a.n} · t={d.get('t')} · reward={d.get('reward', 0):.1f} · "
            f"lines_down={d.get('lines_down', 0)} · overloads=[{', '.join(d.get('overloads', []))}]")
-    return emit({**b, "_human": b.get("error") or hum}, a, 0 if b.get("ok") else 2)
+    return emit({**b, "_human": b.get("error") or hum}, a, 0 if b.get("ok") else 1)
 
 
 def cmd_act(a):
@@ -134,7 +137,7 @@ def cmd_act(a):
     if not isinstance(action, dict):
         die("error: bad arguments — action must be a JSON object", 3)
     b = post(a, "/sim/act", a.base_url, a.token, {"action": action})
-    d = b.get("data", {})
+    d = b.get("data") or {}
     applied = d.get("applied", {})
     bits = []
     for k, v in applied.items():
@@ -170,9 +173,9 @@ def cmd_render(a):
     if a.width:
         body["width"] = a.width
     b = post(a, "/sim/render", a.base_url, a.token, body)
-    d = b.get("data", {})
+    d = b.get("data") or {}
     hum = f"wrote {d.get('path')} ({d.get('width')}x{d.get('height')})"
-    return emit({**b, "_human": b.get("error") or hum}, a, 0 if b.get("ok") else 2)
+    return emit({**b, "_human": b.get("error") or hum}, a, 0 if b.get("ok") else 1)
 
 
 def cmd_docs(a):
@@ -212,8 +215,10 @@ def cmd_attack(a):
     status, b = http("POST", "/sim/attack", a.base_url, a.token, spec)
     if status is None:
         die(f"error: backend unreachable at {a.base_url} ({b.get('_err')})", 2)
-    if status == 501 or not b.get("ok", False) and b.get("error"):
+    if status == 501:
         return emit({**b, "_human": "attack not available in v0"}, a, 3)
+    if status == 403:
+        return emit({**b, "_human": b.get("error") or "forbidden: token required"}, a, 1)
     return emit({**b, "_human": b.get("error") or json.dumps(b.get("data"))}, a, 0 if b.get("ok") else 1)
 
 

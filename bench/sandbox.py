@@ -9,14 +9,14 @@ opencode inside a bubblewrap sandbox whose filesystem contains ONLY the operator
 workspace (simctl + docs + renders). The real repo's benchmark internals simply
 do not exist in the sandbox's filesystem.
 
-Validated (2026-10-03): inside the sandbox `ls /home/nate/grid2op-harness` shows
+Validated (2026-10-03): inside the sandbox `ls <repo>` shows
 only AGENTS.md/cli/docs/recipes/render; `cat bench/score.py`, `ls bench/`, and
 `ls runs/` all return "No such file or directory"; `simctl` runs.
 
 Isolation details:
 - The clean operator workspace (a COPY, not symlinks — bwrap can't follow
   out-of-sandbox symlink targets) is bind-mounted at the real repo path
-  /home/nate/grid2op-harness, so the model's cwd looks normal.
+  <repo>, so the model's cwd looks normal.
 - Each sandbox gets its OWN per-port HOME (a fresh copy of the opencode config +
   gateway auth) so PARALLEL sessions don't collide on opencode's data dir.
 - /home/nate/.nvm (opencode binary + node) is shared read-only (safe).
@@ -29,8 +29,8 @@ from __future__ import annotations
 import os, shutil, subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-REPO_PATH = ROOT                                   # /home/nate/grid2op-harness
-REPO_NAME = os.path.basename(ROOT)                  # grid2op-harness
+REPO_PATH = ROOT                                   # the repo root
+REPO_NAME = os.path.basename(ROOT)
 SANDBOX_ROOT = os.path.join(ROOT, ".sb")            # per-port homes (gitignored)
 WS_ROOT = os.path.join(ROOT, ".sandbox-ws")         # clean operator workspace (gitignored)
 HOME = "/home/nate"
@@ -217,9 +217,10 @@ def bwrap_argv(oc_port, sim_port, ws, sb_home, attacker=False, atk_token="",
         args += ["--ro-bind", src, dst]
     # the operator workspace AT the repo path (rw copy)
     args += ["--bind", ws, REPO_PATH]
-    # render PNGs (written by the host backend) readable at their real path
+    # render PNGs (written by the host backend) readable at the IDENTICAL absolute
+    # path `simctl render` prints (<repo>/render/<port>/tNNNN.png)
     if os.path.isdir(real_render):
-        args += ["--ro-bind", real_render, os.path.join(REPO_PATH, "render")]
+        args += ["--ro-bind", real_render, real_render]
     # RL token capture (gridtrace plugin, see rl/gridtrace_plugin.js):
     #  - per-episode trace dir at /gridtrace (outside the operator workspace,
     #    so the model's default views don't trip over its own token records),

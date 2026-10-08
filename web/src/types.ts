@@ -15,7 +15,7 @@ export interface Gen {
 }
 export interface LastAction {
   source: "agent" | "user" | "auto" | "system";
-  summary: string; args: Record<string, unknown>; t: number; png?: string;
+  summary: string | Record<string, unknown>; args: Record<string, unknown>; t: number; png?: string;
 }
 export interface GridState {
   schema_version: number; env: string;
@@ -40,17 +40,17 @@ export interface GridMeta {
 export type EventType =
   | "sim.state" | "sim.step_outcome" | "session.status"
   | "agent.delta" | "agent.tool_call" | "agent.tool_result" | "agent.turn_end"
-  | "user.action" | "opponent.action" | "system" | "episode.summary" | "ping";
+  | "user.action" | "opponent.action" | "opponent.step" | "system" | "episode.summary" | "ping";
 
 export interface StepOutcome {
   t: number; source: string;
-  action: { tool?: string; args?: Record<string, unknown>; summary?: string } | null;
+  action: { tool?: string; args?: Record<string, unknown>; summary?: string | Record<string, unknown> } | null;
   reward: number; cum_reward: number; done: boolean;
   disc_lines: string[]; illegal: boolean; ambiguous: boolean;
   new_overloads: string[]; predicted_disc_lines?: string[];
 }
 export interface ActionLogEntry {
-  seq: number; t: number; source: string; summary: string;
+  seq: number; t: number; source: string; summary: string | Record<string, unknown>;
   reward: number; illegal: boolean; ambiguous: boolean;
   disc_lines: string[]; new_overloads: string[];
 }
@@ -75,6 +75,9 @@ export interface OpponentAction {
   action: Record<string, unknown>;
   summary: Record<string, unknown>;
 }
+export interface OpponentStep {
+  t: number; kind?: "start" | "end"; line?: string; action: Record<string, unknown>;
+}
 export interface UserAction { id: string; cmd: string; args: Record<string, unknown> }
 export interface SystemEvt { level: "info" | "warn" | "error"; msg: string }
 export interface EpisodeSummary {
@@ -86,7 +89,7 @@ export interface EpisodeSummary {
 export interface HarnessEvent {
   seq: number; type: EventType; ts: number;
   data: GridState | StepOutcome | AgentDelta | ToolCall | ToolResult | TurnEnd |
-        SessionStatus | UserAction | OpponentAction | SystemEvt | EpisodeSummary | Record<string, unknown>;
+        SessionStatus | UserAction | OpponentAction | OpponentStep | SystemEvt | EpisodeSummary | Record<string, unknown>;
 }
 
 // UI models
@@ -103,7 +106,6 @@ export interface Turn {
 }
 export interface TickMark { t: number; source: string; bad: boolean; overloaded: boolean }
 export interface SeriesPoint { t: number; cum: number; maxRho: number; nDown: number }
-export interface OperatorRow { id: string; cmd: string; args: Record<string, unknown>; ts: number }
 export interface Attack {
   id?: string;
   line: string;
@@ -112,7 +114,6 @@ export interface Attack {
   seq: number;
   effect?: { t: number; disc_lines: string[]; new_overloads: string[] };
 }
-export interface SystemRow { level: string; msg: string; ts: number }
 
 export type ConnState = "connecting" | "connected" | "reconnecting" | "disconnected";
 export type ControlMode = "agent" | "manual" | "paused";

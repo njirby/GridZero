@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import type { Turn, OperatorRow, SystemRow, EpisodeSummary, Attack } from "../types";
+import type { Turn, EpisodeSummary } from "../types";
 import { OperatorBox } from "./OperatorBox";
 
 function cmdSummary(tool: string, input: Record<string, unknown>): string {
@@ -55,17 +55,22 @@ function TurnRow({ turn }: { turn: Turn }) {
 
 export function AgentFeed({ turns, summary }: {
   turns: Turn[]; summary: EpisodeSummary | null;
-  operators?: OperatorRow[]; systems?: SystemRow[]; attacks?: Attack[];
 }) {
   const feedRef = useRef<HTMLDivElement>(null);
+  const stick = useRef(true); // only follow the stream while the user is near the bottom
+  const onScroll = () => {
+    const el = feedRef.current;
+    if (el) stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  };
   useEffect(() => {
-    if (feedRef.current) feedRef.current.scrollTop = feedRef.current.scrollHeight;
+    const el = feedRef.current;
+    if (el && stick.current) el.scrollTop = el.scrollHeight;
   });
 
   return (
     <section className="chat-panel">
       <div className="section-heading"><span>AGENT CONVERSATION</span><span className="chat-count">{turns.length} turns</span></div>
-        <div className="feed" data-testid="feed" ref={feedRef}>
+        <div className="feed" data-testid="feed" ref={feedRef} onScroll={onScroll}>
       {turns.length === 0 && <div className="chat-empty">The agent’s reasoning and replies will appear here.</div>}
       {turns.map((t) => <TurnRow key={t.id} turn={t} />)}
       {summary && (

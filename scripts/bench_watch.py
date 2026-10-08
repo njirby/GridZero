@@ -38,6 +38,18 @@ def landed_for(horizon, chronics):
     return {c: rf for c, (_, rf) in best.items()}
 
 
+def backend_conn(port):
+    """(base_url, auth headers) for a running bench backend. Episodes run inside a
+    per-episode netns, so 127.0.0.1:<port> is unreachable; run_llm writes
+    runs/backend-bench-<port>.json (netns address + operator token). Falls back to
+    localhost without a token when the file is absent (e.g. --allow-no-netns off-box)."""
+    try:
+        st = json.load(open(os.path.join(ROOT, "runs", f"backend-bench-{port}.json")))
+        return st["base"], {"Authorization": "Bearer " + st["token"]}
+    except Exception:
+        return f"http://127.0.0.1:{port}", {}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--ports", required=True)
@@ -54,7 +66,8 @@ def main():
         import httpx
         for p in ports:
             try:
-                s = httpx.get(f"http://127.0.0.1:{p}/bench/stats", timeout=3).json()["sim"]
+                base, hdr = backend_conn(p)
+                s = httpx.get(base + "/bench/stats", headers=hdr, timeout=3).json()["sim"]
                 running[p] = {"chronic": s.get("chronic"), "t": s.get("t"),
                               "trips": s.get("n_trips"), "cum": round(s.get("cum_reward", 0))}
             except Exception:

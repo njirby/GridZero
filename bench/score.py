@@ -46,6 +46,7 @@ class EpisodeResult:
     simctl_acts: Optional[int] = None
     simctl_observes: Optional[int] = None
     simctl_renders: Optional[int] = None
+    isolated: Optional[bool] = None      # ran in a per-episode netns (None = baseline / pre-flag)
     error_bucket: Optional[str] = None   # filled by the error-taxonomy pass
     notes: str = ""
 

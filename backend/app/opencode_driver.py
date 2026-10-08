@@ -40,7 +40,6 @@ class OpenCodeDriver:
         self.sandbox = os.environ.get("OPENCODE_SANDBOX", "0") == "1"
         self.with_docs = os.environ.get("OPENCODE_NO_DOCS", "0") != "1"
         self.doc_warning = os.environ.get("OPENCODE_DOC_WARNING", "")  # A/B doc variant
-        self.model = os.environ.get("OPENCODE_MODEL", "qwen3.5-4b")  # cross-model
         self.base = f"http://127.0.0.1:{self.oc_port}"
         self.session_id = None
         self.model = os.environ.get("OPENCODE_MODEL", "qwen3.5-4b")
@@ -281,7 +280,7 @@ class OpenCodeDriver:
         except Exception:
             pass
         try:
-            sid = await self.create_session()
+            sid = await self.create_session(model=self.model, variant=self.variant or None)
             if sid:
                 self.last_model_output_ts = time.time()
                 txt = resume_text or self._kickoff_text

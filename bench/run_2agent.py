@@ -33,7 +33,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 import httpx
 from bench.score import EpisodeResult
-from bench.run_llm import start_backend, wait_up, kickoff_prompt, build_result, dn_attack_anchor, PY
+from bench.run_llm import start_backend, wait_up, kickoff_prompt, build_result, dn_attack_anchor, _hdr, state_path, PY
 from bench.panel import load_panel, config_hash
 
 ATTACKER_KICKOFF = (
@@ -50,6 +50,35 @@ ATTACKER_KICKOFF = (
     "observing and attacking until `simctl status` reports done=yes or the horizon. When done, "
     "print a 2-line summary of your attack."
 )
+
+
+def teardown_backend(bp, net, port):
+    """Stop the backend, sweep both opencode sandboxes, tear down the netns. Each
+    step reports its own failure instead of hiding it (a leaked root backend/netns
+    is costly), and one failing step does not skip the rest."""
+    try:
+        bp.terminate()
+        try:
+            bp.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            bp.kill()
+    except Exception as e:
+        print(f"  (backend terminate failed: {e!r})")
+    try:
+        os.remove(state_path(port))
+    except OSError:
+        pass
+    try:
+        from bench import sandbox
+        sandbox.kill_sandbox_proc(None, oc_port=port + 200)
+        sandbox.kill_sandbox_proc(None, oc_port=port + 201)
+    except Exception as e:
+        print(f"  (sandbox sweep after shutdown: {e})")
+    if net:
+        try:
+            net.teardown()
+        except Exception as e:
+            print(f"  (netns teardown: {e})")
 
 
 def attacker_kickoff(horizon):
@@ -140,7 +169,8 @@ def main():
                     help="no model output this long -> restart that session once, then fail it")
     ap.add_argument("--poke-idle-s", type=int, default=240,
                     help="poke that session if it's alive but idle (no step / no attack) this long")
-    ap.add_argument("--no-sandbox", action="store_true", help="debug: run opencode without bwrap")
+    ap.add_argument("--allow-no-netns", action="store_true",
+                    help="continue WITHOUT network isolation if netns setup fails (result flagged isolated=false)")
     a = ap.parse_args()
     panel = load_panel()
     horizon = a.horizon
@@ -151,15 +181,19 @@ def main():
            "chronic": a.chronic, "horizon": horizon, "seed": a.seed, "port": a.port,
            "safety_cap_h": a.safety_cap_h, "liveness_min": a.liveness_min,
            "stall_min": a.stall_min, "poke_idle_s": a.poke_idle_s,
-           "config_hash": config_hash(model=a.defender_model, horizon=horizon, panel=panel),
+           "config_hash": config_hash(model=a.defender_model, horizon=horizon, panel=panel, seed=a.seed,
+                                      adversarial={"llm_attacker": a.attacker_model}),
            "outdir": outdir, "started_at": ts}
     json.dump(cfg, open(os.path.join(outdir, "config.json"), "w"), indent=2)
 
-    base = f"http://127.0.0.1:{a.port}"
     acfg = {"render": True, "docs": True}
-    if a.no_sandbox:
-        acfg["sandbox"] = False
-    bp = start_backend(a.port, acfg, model=a.defender_model)
+    bp, tok, net = start_backend(a.port, acfg, model=a.defender_model,
+                                 allow_no_netns=a.allow_no_netns)
+    a.isolated = net is not None
+    cfg["isolated"] = a.isolated
+    json.dump(cfg, open(os.path.join(outdir, "config.json"), "w"), indent=2)
+    base = net.backend_base() if net else f"http://127.0.0.1:{a.port}"
+    hdr = _hdr(tok)
     ep, terminal, st_a_final = None, None, {"active": False, "events": 0, "last_output_ts": None, "llm": {}}
     t_start, attacker_start_wall = None, None
     attacker_failed, notes = False, []
@@ -174,7 +208,7 @@ def main():
                              "model": a.defender_model,
                              "kickoff": kickoff_prompt(a.chronic, horizon, acfg, adversarial=True),
                              "attacks": []},
-                       timeout=300)
+                       headers=hdr, timeout=300)
         r.raise_for_status()
         ep = r.json()["data"]["ep"]
         t_start = time.time()
@@ -182,7 +216,7 @@ def main():
         # 2) start the ATTACKER session (second opencode, same sim, attacker sandbox)
         r_a = httpx.post(base + "/bench/attacker",
                          json={"model": a.attacker_model, "kickoff": attacker_kickoff(horizon)},
-                         timeout=900)
+                         headers=hdr, timeout=900)
         attacker_start_wall = time.time()
         d_a = r_a.json().get("data", {})
         print(f"  attacker started: model={a.attacker_model} active={d_a.get('attacker_active')} oc_port={d_a.get('oc_port')}")
@@ -191,8 +225,8 @@ def main():
         d_ok = a_ok = False
         dl = time.time()
         while time.time() - dl < liveness:
-            st = httpx.get(base + "/bench/stats", timeout=30).json()
-            st_a = httpx.get(base + "/bench/attacker_status", timeout=30).json()
+            st = httpx.get(base + "/bench/stats", headers=hdr, timeout=30).json()
+            st_a = httpx.get(base + "/bench/attacker_status", headers=hdr, timeout=30).json()
             d_ok = st.get("agent_active", False)
             a_ok = st_a.get("active", False)
             if d_ok and a_ok:
@@ -202,7 +236,7 @@ def main():
             time.sleep(10)
         if not d_ok:
             print(f"  DEFENDER failed liveness ({a.liveness_min} min) -> agent_failed")
-            st = httpx.get(base + "/bench/stats", timeout=30).json()
+            st = httpx.get(base + "/bench/stats", headers=hdr, timeout=30).json()
             terminal = st
             notes.append("agent_failed(defender never active)")
         if not a_ok:
@@ -211,7 +245,7 @@ def main():
             print(f"  ATTACKER failed liveness ({a.liveness_min} min) -> attacker_failed (aborting: "
                   "a 2-agent episode with no attacker is not this experiment)")
         if not d_ok or not a_ok:
-            return finish(a, outdir, base, bp, ep, terminal, st_a_final if not a_ok else st_a,
+            return finish(a, outdir, base, hdr, ep, terminal, st_a_final if not a_ok else st_a,
                           t_start, attacker_start_wall, attacker_failed, notes, horizon)
         # 4) watch BOTH sessions: same stall watchdog per side, pokes, safety cap
         stall = a.stall_min * 60.0
@@ -223,8 +257,8 @@ def main():
         trace_path = os.path.join(ROOT, "runs", f"{ep}.jsonl")
         while True:
             now = time.time()
-            st = httpx.get(base + "/bench/stats", timeout=30).json()
-            st_a = httpx.get(base + "/bench/attacker_status", timeout=30).json()
+            st = httpx.get(base + "/bench/stats", headers=hdr, timeout=30).json()
+            st_a = httpx.get(base + "/bench/attacker_status", headers=hdr, timeout=30).json()
             st_a_final = st_a
             s = st["sim"]
             t = s.get("t", 0)
@@ -239,12 +273,12 @@ def main():
                 terminal = st
                 try:
                     time.sleep(8)  # let both models finish in-flight summary turns
-                    st2 = httpx.get(base + "/bench/stats", timeout=20).json()
+                    st2 = httpx.get(base + "/bench/stats", headers=hdr, timeout=20).json()
                     s2 = st2.get("sim", {})
                     if (s2.get("t", -1) >= t and (s2.get("done") or s2.get("game_over"))
                             and st2.get("ep") == ep):
                         terminal = st2
-                    st_a_final = httpx.get(base + "/bench/attacker_status", timeout=20).json()
+                    st_a_final = httpx.get(base + "/bench/attacker_status", headers=hdr, timeout=20).json()
                 except Exception:
                     pass  # backend gone -> use captured state
                 notes.append("done" if s.get("done") else "game_over")
@@ -261,7 +295,7 @@ def main():
             if quiet_d > stall and s.get("t") is not None:
                 if not restart_d:
                     print(f"  t={t}: DEFENDER quiet {int(quiet_d)}s (> {a.stall_min} min) -> restarting (fresh session)")
-                    httpx.post(base + "/control", json={"cmd": "restart_agent", "args": {}}, timeout=60)
+                    httpx.post(base + "/control", json={"cmd": "restart_agent", "args": {}}, headers=hdr, timeout=60)
                     restart_d = True
                     lmo_d = now
                     time.sleep(30)
@@ -278,7 +312,7 @@ def main():
                     print(f"  t={t}: ATTACKER quiet {int(quiet_a)}s (> {a.stall_min} min) -> restarting (fresh session)")
                     httpx.post(base + "/bench/attacker",
                                json={"model": a.attacker_model,
-                                     "kickoff": attacker_resume(t, horizon)}, timeout=900)
+                                     "kickoff": attacker_resume(t, horizon)}, headers=hdr, timeout=900)
                     restart_a = True
                     attacker_start_wall = now
                     time.sleep(30)
@@ -291,7 +325,7 @@ def main():
             if (now - last_t_wall) > a.poke_idle_s and quiet_d < (stall * 0.5):
                 msg = (f"continue operating the grid: you are at t={t}/{horizon}. There is no time "
                        "pressure — take the next step (observe, decide, act). Keep going until done.")
-                httpx.post(base + "/control", json={"cmd": "instruction", "args": {"text": msg}}, timeout=30)
+                httpx.post(base + "/control", json={"cmd": "instruction", "args": {"text": msg}}, headers=hdr, timeout=30)
                 last_t_wall = now
                 print(f"  t={t}: no-step>{a.poke_idle_s}s (defender active) -> poked continue")
             if (st_a.get("active") and (now - last_attack_wall) > a.poke_idle_s
@@ -299,46 +333,33 @@ def main():
                 httpx.post(base + "/bench/attacker/steer",
                            json={"text": (f"continue attacking: the grid is at t={t}/{horizon}. "
                                           "`simctl observe`, then cut the most load-bearing line. "
-                                          "Do not stop.")}, timeout=30)
+                                          "Do not stop.")}, headers=hdr, timeout=30)
                 last_attack_wall = now
                 print(f"  t={t}: no-attack>{a.poke_idle_s}s (attacker active) -> poked continue")
             time.sleep(20)
     finally:
         # graceful shutdown (backend on_shutdown reaps both opencode sessions), then
         # hard-kill + per-port sandbox sweeps for both oc ports.
-        try:
-            bp.terminate()
-            try:
-                bp.wait(timeout=30)
-            except Exception:
-                bp.kill()
-        except Exception:
-            pass
-        try:
-            from bench import sandbox
-            sandbox.kill_sandbox_proc(None, oc_port=a.port + 200)
-            sandbox.kill_sandbox_proc(None, oc_port=a.port + 201)
-        except Exception as e:
-            print(f"  (sandbox sweep after shutdown: {e})")
-    return finish(a, outdir, base, bp, ep, terminal, st_a_final, t_start, attacker_start_wall,
+        teardown_backend(bp, net, a.port)
+    return finish(a, outdir, base, hdr, ep, terminal, st_a_final, t_start, attacker_start_wall,
                   attacker_failed, notes, horizon)
 
 
-def finish(a, outdir, base, bp, ep, terminal, st_a_final, t_start, attacker_start_wall,
+def finish(a, outdir, base, hdr, ep, terminal, st_a_final, t_start, attacker_start_wall,
            attacker_failed, notes, horizon):
     """Score the episode: defender EpisodeResult + attacker result + DN-under-same-attacks
     anchor, and write the five result files. Returns a process exit code."""
     if terminal is None:
         # no terminal state captured (early abort before the first poll): grab what we can
         try:
-            terminal = httpx.get(base + "/bench/stats", timeout=10).json()
+            terminal = httpx.get(base + "/bench/stats", headers=hdr, timeout=10).json()
         except Exception:
             terminal = {"sim": {"t": 0, "done": False, "game_over": False, "cum_reward": 0.0,
                                 "n_trips": 0}, "llm": {}, "ep": ep, "agent_active": False,
                         "n_agent_events": 0, "last_model_output_ts": None}
     wall_d = (time.time() - t_start) if t_start else 0.0
     wall_a = (time.time() - attacker_start_wall) if attacker_start_wall else 0.0
-    ns = SimpleNamespace(model=a.defender_model, chronic=a.chronic)
+    ns = SimpleNamespace(model=a.defender_model, chronic=a.chronic, isolated=getattr(a, "isolated", None))
     sim = terminal.get("sim", {})
     agent_failed = "agent_failed" in " ".join(notes)
     defender_res = build_result(ns, 0, horizon, terminal, wall_d, ep or "",
@@ -399,7 +420,6 @@ def finish(a, outdir, base, bp, ep, terminal, st_a_final, t_start, attacker_star
             "summary": (f"Blackout at t={ttb}" if go else f"No blackout (grid reached t={d_surv}/{horizon}) "
                         f"under {atk['n_calls']} attacks; "
                         f"LLM defender survived {d_surv} vs do-nothing {a_surv} under the SAME attacks.")},
-        },
         "notes": notes,
     }
     json.dump(report, open(os.path.join(outdir, "report.json"), "w"), indent=2)

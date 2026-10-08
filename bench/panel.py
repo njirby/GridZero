@@ -15,7 +15,10 @@ def load_panel(path=PANEL_PATH):
 
 
 def config_hash(model="qwen3.5-4b", horizon=None, panel=None, agent="build",
-                temperature=0.0, harness_version="0.1"):
+                temperature=0.0, harness_version="0.1", ablation=None, seed=None,
+                adversarial=None):
+    """`ablation`: the full ablation config dict (render/docs/observe_mode/doc_warning/...);
+    `adversarial`: None or {interval, duration, seed}. Both change the experiment."""
     panel = panel or load_panel()
     h = hashlib.sha256()
     blob = {
@@ -26,6 +29,7 @@ def config_hash(model="qwen3.5-4b", horizon=None, panel=None, agent="build",
         "chronics_standard": panel["standard_chronics"],
         "sampling": panel["sampling"],
         "harness_version": harness_version,
+        "ablation": ablation, "seed": seed, "adversarial": adversarial,
     }
     h.update(json.dumps(blob, sort_keys=True).encode())
     return h.hexdigest()[:12]

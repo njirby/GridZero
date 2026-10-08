@@ -27,8 +27,8 @@ the CLI (explicit flags win).
 | code | meaning |
 |------|---------|
 | 0    | ok (action applied, or read succeeded) |
-| 1    | action rejected by sim (illegal / ambiguous) — `--json` carries the reason |
-| 2    | sim error / not running / backend unreachable |
+| 1    | rejected: illegal/malformed action, `render is disabled`, invalid render filename, or `act`/`step` after the episode ended (`Episode is over (<cause>). Stop acting and write your summary.`) — `--json` carries the reason in `.error` |
+| 2    | sim not running (`sim down`) / backend unreachable / HTTP 5xx |
 | 3    | unknown command or bad arguments |
 
 On non-zero exit, the **human-readable** reason always prints to **stdout**
@@ -40,25 +40,27 @@ and the reason is in `.error`.
 ### `simctl status`
 Is the sim up?
 ```
-sim up · env=l2rpn_case14_sandbox · t=50/8064 · reward=63.1 (cum 3120.4) · done=no
+sim up · env=l2rpn_case14_sandbox · t=0/24 · reward=-10.0 (cum 0.0) · done=no
 ```
-`--json`: `{"ok":true,"data":{"up":true,"env":"...","t":50,"max_t":8064,"reward":63.1,"cum_reward":3120.4,"done":false}}`
+`--json`: `{"ok":true,"data":{"up":true,"env":"...","t":0,"max_t":24,"reward":-10.0,"cum_reward":0.0,"done":false}}`
 
 ### `simctl reset [--env NAME]`
 New episode. `NAME` defaults to the backend's configured env. **Operator-only:
-the model's session runs with `SIMCTL_NO_RESET=1`, where this exits 1 with a
-message (the episode cannot be reset from the model side).**
-```
-reset · env=l2rpn_case14_sandbox · t=0 · reward=64.99
-```
+`POST /sim/reset` needs the operator token whenever the backend has one, and
+the model's session has none (403); with `SIMCTL_NO_RESET=1` the CLI refuses
+locally (exit 1). The model can never reset.** Known CLI bug: on a 403 the
+command crashes with a Python traceback instead of printing the error.
+Not documented to the model.
 
 ### `simctl step`
 Advance the sim **exactly 1** timestep with **no operator action** (a no-op is
-an action). No `N` argument — `simctl step 5` exits 3 (no multi-step
-fast-forward; every step is an observed decision).
+an action). `simctl step N` with N != 1 exits 3 (no multi-step fast-forward;
+the backend also clamps `n>1` to 1 for any caller without the operator token).
 ```
-stepped 1 · t=51 · reward=63.4 · lines_down=1 · overloads=[]
+stepped 1 · t=1 · reward=63.4 · lines_down=0 · overloads=[]
 ```
+After the episode ended: `Episode is over (time_exceeded). Stop acting and
+write your summary.` (exit 1).
 
 ### `simctl act '<json>'`
 Apply a grid2op action **and** advance one timestep (grid2op semantics:
@@ -66,8 +68,12 @@ Apply a grid2op action **and** advance one timestep (grid2op semantics:
 the accepted keys). This is the primary "take an action" verb.
 ```
 $ simctl act '{"set_line_status":{"0_4_1":-1}}'
-applied set_line_status 0_4_1=down · t=52 · reward=61.2 · new_overloads=[2_3_5] · illegal=no
+applied set_line_status 0_4_1=down · t=1 · reward=63.41 · new_overloads=[1_4_4] · illegal=no
 ```
+Rejections (exit 1): `Illegal action: <reason>` — grid2op replaced the action
+with do-nothing, the step STILL advanced, reward 0; `Illegal — <reason>` — the
+action could not be built (bad shape / unknown element), time does NOT advance.
+Unknown action KEYS are silently ignored and still print `applied <key> …`.
 `--json` `data` carries the full step-outcome (C4 `sim.step_outcome` shape).
 
 ### `simctl observe [--detailed]`
@@ -75,20 +81,26 @@ Current grid state as compact text (default) or full GRID-STATE JSON
 (`--detailed` / `--json`). This is the model's "read the state" verb.
 Default (compact) — lead with the things that matter, flag hazards:
 ```
-t=52 reward=61.2 (cum 3074.8) done=no
-lines_down=1  max_rho=0.97 (2_3_5)  overloads=[2_3_5]
-top loads:  2_3_5=97.0%  0_4_1=88.0%  5_12_9=71.0%
-gens: 81.4 79.3 5.3 0.0 | loads: 5.4 12.6 14.4 ...
-since your last act (t=51 set_line_status 0_4_1=-1): 2_3_5 +9.0%, no trips
+t=2 reward=64.0 (cum 127.4) done=no
+lines_down=1  max_rho=1.01 (1_4_4)  overloads=[1_4_4]
+top loads:  1_4_4=101.2%  5_12_9=80.0%  5_10_7=65.7%
+gens: 73.9 72.7 35.6 0.0 0.0 71.0
+since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [1_4_4] (max_rho=1.01)
 ```
-The last line is **feedback on the effect of the model's own last action** —
-the single most important line for steering.
+`top loads` are the 3 hottest LINES; `gens` is MW in `env.name_gen` order. The
+last line is **feedback on the model's own last action**: `no trips` or
+`tripped: [<lines>]` (from C3 `last_disc_lines`), `overloads now: [...]` when
+any line is above 1.0, and `max_rho`. It is omitted before the first act.
 
-### `simctl render [--out PATH] [--width 800]`
-Write the grid map as a PNG to `PATH` (default `render/t<NNNN>.png` under the
-backend's workspace). Prints the absolute path so the model can `Read` it.
+### `simctl render [--out NAME] [--width 800]`
+Write the grid map as a PNG into the backend's per-port render directory
+(default name `t<NNNN>.png`). `--out` must be a **bare filename** (`t0052` or
+`t0052.png`); paths / `..` are refused (`invalid render filename: …`, exit 1).
+Prints the absolute path so the model can `Read` it. When the backend runs
+with `RENDER_DISABLED=1` it prints `render is disabled in this environment`
+(exit 1).
 ```
-wrote /home/nate/grid2op-harness/render/t0052.png (800x500)
+wrote /home/nate/Documents/GridZero/render/18751/t0000.png (800x500)
 ```
 The model then uses opencode's `Read` tool on that path to *see* the grid.
 This is the vision path — **on demand, the model's choice**, not auto-injected.

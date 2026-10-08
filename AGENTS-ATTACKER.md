@@ -27,7 +27,16 @@ Rules — read carefully:
 - `simctl observe` returns the same grid state the defender sees. You never
   see their actions or their reasoning — only the resulting grid state.
 - You CANNOT reset the episode — attack until blackout (`done=yes`) or the
-  run ends. There is no fast-forward; each `attack`/`observe` is one turn.
+  run ends (the horizon is the `max_t` in `simctl status`, e.g. `t=0/24`).
+  There is no fast-forward (only the operator can advance more than one step
+  at a time); each `attack` advances the sim exactly ONE step, and
+  `observe`/`status` are free reads. After `done=yes`, `attack` exits 1 with
+  `Episode is over (...)`: stop and write your summary.
+- `simctl attack` prints the step outcome as JSON (`t`, `reward`,
+  `lines_down`, `overloads`, `new_overloads`, `applied`); exit 1 and a reason
+  if rejected (`Illegal action: …`, e.g. cutting two lines in one attack, which
+  still advances the step; or `Illegal — …` for an unknown line name, which
+  does not).
 
 ## The attack loop
 
@@ -48,8 +57,8 @@ Rules — read carefully:
 
 - **Cut load-bearing lines first.** A line that feeds a substation with few
   alternatives is worth far more than a lightly loaded one.
-- **Ride cascades.** A line above 100% loading for 2 consecutive steps TRIPS
-  (auto-disconnects). Cut a line whose removal pushes neighbors over 100% and
+- **Ride cascades.** A line above 100% loading trips (auto-disconnects) on
+  its 3rd consecutive overloaded step, and stays open 10 steps. Cut a line whose removal pushes neighbors over 100% and
   let the protection system do your work.
 - **Don't over-cut.** If the grid is already near blackout (several lines
   down, heavy overloads), you have largely won — just keep it down, one cut

@@ -17,34 +17,38 @@ always shows you the grid AFTER the last step.
 simctl observe
 ```
 ```
-t=52 reward=61.2 (cum 3074.8) done=no
-lines_down=1  max_rho=0.97 (2_3_5)  overloads=[2_3_5]
-top loads:  2_3_5=97.0%  0_4_1=88.0%  5_12_9=71.0%
-gens: 81.4 79.3 5.3 0.0 | loads: 5.4 12.6 14.4 ...
-since your last act (t=51 set_line_status 0_4_1=-1): 2_3_5 +9.0%, no trips
+t=2 reward=64.0 (cum 127.4) done=no
+lines_down=1  max_rho=1.01 (1_4_4)  overloads=[1_4_4]
+top loads:  1_4_4=101.2%  5_12_9=80.0%  5_10_7=65.7%
+gens: 73.9 72.7 35.6 0.0 0.0 71.0
+since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [1_4_4] (max_rho=1.01)
 ```
 
-- `max_rho` — the most loaded line. 1.0 = at its thermal limit. **>1.0 for
-  two consecutive steps and it trips.**
-- `overloads` — lines currently above 1.0.
-- Last line — what your previous action did. This is your steering signal.
+- `max_rho` — the most loaded line. 1.0 = at its thermal limit. **A line above
+  1.0 trips on its 3rd consecutive overloaded step** (you get 2 acts to fix it).
+- `overloads` — lines currently above 1.0. `top loads` — the 3 hottest lines.
+- `gens` — MW of gen_1_0, gen_2_1, gen_5_2, gen_5_3, gen_7_4, gen_0_5.
+- Last line — what your previous action did: `no trips` or `tripped: [...]`,
+  plus the overloads that exist now. Absent before your first act (and at
+  t=0 `reward=-10.0` is a placeholder, not a real step).
 
 ```
 simctl act '{"set_line_status": {"0_4_1": -1}}'
 ```
 ```
-applied set_line_status 0_4_1=down · t=52 · reward=61.2 · new_overloads=[1_4_4] · illegal=no
+applied set_line_status 0_4_1=down · t=1 · reward=63.41 · new_overloads=[1_4_4] · illegal=no
 ```
 
 - `new_overloads` — lines that JUST crossed 1.0 because of your move.
-- `illegal=yes` — the move was rejected, the grid stepped as if you did
-  nothing, and the reason is printed. Fix the move, try again.
+- A rejected move prints `Illegal action: <reason>` (exit 1) instead. It was
+  NOT applied, but the clock still advanced one step and that step paid 0.
 
 ## Worked example: open a line, eat the overload, re-route it
 
-Start from a fresh episode (values from a real run; yours will be close).
+Start from a fresh episode (real run, chronic 0; other scenarios differ in
+the numbers, not the pattern).
 
-**Turn 1 — open line 0_4_1 (sub_0 → sub_4).** sub_4 loses one of its four
+**Turn 1 — open line 0_4_1 (sub_0 → sub_4).** sub_4 loses one of its
 feeders (it also has 1_4_4 from sub_1, 3_4_6 from sub_3, 4_5_17 to sub_5);
 part of the load has to come through sub_1:
 
@@ -52,46 +56,43 @@ part of the load has to come through sub_1:
 simctl act '{"set_line_status": {"0_4_1": -1}}'
 simctl observe
 ```
-You'll see `1_4_4` in `overloads` at ~128% (in a real t=0 run: rho 1.277).
-That's the load you shifted. Left alone, 1_4_4 trips in one more step and is
-out for ~10 steps. Don't leave it there.
+You'll see `1_4_4` in `overloads` at ~102% (rho 1.019 at t=1). That's the
+load you shifted. Left alone it trips on the third overloaded step (t=3) and
+is out for 10 steps. Don't leave it there.
 
-**Turn 2 — re-route.** Move 1_4_4's sub_1 end onto sub_1's backup busbar so
-sub_4 imports through 3_4_6 (sub_3 side) instead:
+**Turn 2 — re-route.** Move 1_4_4's sub_1 end onto sub_1's backup busbar:
 
 ```
 simctl act '{"change_bus": {"lines_or_id": ["1_4_4"]}}'
 simctl observe
 ```
-You'll see `1_4_4` drop back (its or end is now on busbar 2, off the main
-flow), `3_4_6` climb to ~56%, and **`4_5_17` climb to ~91%** — the re-route
-pushed load onto 4_5_17 (sub_4 → sub_5). 91% is hot; if it stays above 1.0
-for two steps it trips too.
+`overloads=[]` and `max_rho=0.79`: 1_4_4 is now off the main flow (its or end
+is on busbar 2) and sub_4 imports through its other feeders. Always check
+which sibling took the load; here nothing got hot, in other scenarios it can.
 
-**Turn 3 — settle.** 4_5_17 at ~0.91 is hot but under 1.0. Leave it for one
-or two steps and watch the `observe`; if it crosses 1.0, don't stack a third
-topology move on sub_4 (verified to cascade) — undo the maneuver: flip
-1_4_4's or end back, then re-close 0_4_1:
+**Turn 3 — undo.** A line you opened yourself has no cooldown, so undoing is
+instant. Flip the bus back and re-close 0_4_1:
 
 ```
-simctl act '{"change_bus": {"lines_or_id": ["1_4_4"]}}'   # flip back (same call toggles)
+simctl act '{"change_bus": {"lines_or_id": ["1_4_4"]}}'   # same call toggles back
 simctl act '{"set_line_status": {"0_4_1": 1}}'
 ```
-A line you opened yourself has no cooldown, so the undo is instant — in the
-clean two-step variant (open then close, no bus move) 1_4_4 relaxes back to
-~0.83 in one step.
+After the flip-back 1_4_4 is overloaded again (`new_overloads=[1_4_4]`)
+until 0_4_1 is back; one step later `lines_down=0`, `max_rho=0.80`.
 
-**The habit**: act → observe → check `new_overloads` and `max_rho` → fix the
+**The habit**: act -> observe -> check `new_overloads` and `max_rho` -> fix the
 thing you just heated up before you do anything else. One change per turn,
 watch the second-order effect.
 
 ## If the sim isn't up
 
 ```
-simctl status          # "sim down ..." or backend error
+simctl status          # "sim down ..." or backend error (exit 2)
 ```
 You CANNOT reset the episode — if the sim is down, retry `simctl status` a
 few times (the backend may be restarting); if it stays down, the run is over.
+After `done=yes` (`t` reached the `max_t` shown by `status`, or a blackout)
+`act` and `step` print `Episode is over (...)` and exit 1: stop and summarize.
 
 Next: `grid2op/action_space.md` (every action key), `grid2op/pitfalls.md`
 (what breaks silently).

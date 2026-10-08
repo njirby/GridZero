@@ -25,11 +25,11 @@ describe("GridMap", () => {
     expect(el!.getAttribute("class")).toContain("line-down");
   });
 
-  it("colors the overloaded line 1_4_4 (rho>1) red", () => {
+  it("colors the overloaded line 1_4_4 (rho>1) critical", () => {
     const { container } = render(<GridMap state={t50} />);
     const el = container.querySelector('line[data-name="1_4_4"]');
     expect(el).toBeTruthy();
-    expect(el!.getAttribute("data-band")).toBe("red");
+    expect(el!.getAttribute("data-band")).toBe("critical");
   });
 
   it("renders 14 substations", () => {

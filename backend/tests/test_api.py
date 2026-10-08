@@ -55,15 +55,15 @@ def test_meta(client):
 
 
 def test_attack_opponent(client):
-    # adversarial action: opens a line, tagged 'opponent'; the line flips and the
-    # state's last_action records source=opponent (the defender is blind to who).
+    # adversarial action: opens a line, tagged 'opponent'; the line flips but the
+    # state's last_action (the defender's "since your last act") never shows it.
     r = client.post("/sim/attack", json={"action": {"set_line_status": {"0_4_1": -1}}})
     d = r.json()
     assert d["ok"] is True and d["data"]["applied"] == {"set_line_status": {"0_4_1": "down"}}
     s = client.get("/sim/state").json()["data"]
     line = [l for l in s["lines"] if l["name"] == "0_4_1"][0]
     assert line["status"] == "down"
-    assert s["last_action"]["source"] == "opponent"
+    assert (s["last_action"] or {}).get("source") != "opponent"
 
 
 def test_token_guard_reset_control(client, monkeypatch):

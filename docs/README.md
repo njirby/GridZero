@@ -8,7 +8,7 @@ AGENTS.md                     operator prompt — read this first
 docs/
   quickstart.md               3-minute start: the loop + one worked example
   grid2op/
-    environment.md            episodes: reset/step/done/reward, t, scenarios
+    environment.md            episodes: step/done/horizon, info keys, scenarios
     action_space.md           COMPLETE action reference: every key, exact JSON
     observation.md            how to read state: C3 fields + advanced obs attrs
     scoring.md                reward semantics, what "good" looks like
@@ -18,7 +18,7 @@ recipes/
   disconnect_line.md          open a line safely, check new_overloads
   change_topology.md          set_bus / change_bus to re-route flow
   redispatch.md               shift generation
-  see_the_grid.md             render + Read the PNG
+  see_the_grid.md             optional render + Read the PNG
   full_loop.md                a complete observe→decide→act→verify turn
 ```
 

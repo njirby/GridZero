@@ -11,7 +11,7 @@ This is the Phase-2 acceptance test. It requires WS A (backend), WS B (simctl
 on PATH in the opencode env), and WS C (docs/AGENTS.md) to be present.
 
 Run:
-  cd /home/nate/grid2op-harness
+  cd /home/nate/Documents/GridZero
   ./.venv/bin/python tests/integration/run_episode.py [--budget 180] [--port 8731]
 
 Outputs:
@@ -51,12 +51,12 @@ def start_backend(port):
     return p, tok
 
 
-def collect_events(base, out, stop):
+def collect_events(base, out, stop, headers=None):
     n = {"sim_state": 0, "step_outcome": 0, "agent_delta": 0,
          "agent_reasoning": 0, "tool_call": 0, "tool_result": 0, "turn_end": 0,
          "agent_steps": 0, "legal_agent_acts": 0, "t_start": None, "t_end": None,
          "cum_reward_end": None}
-    with out, httpx.stream("GET", base + "/event", timeout=None) as resp:
+    with out, httpx.stream("GET", base + "/event", headers=headers, timeout=None) as resp:
         for line in resp.iter_lines():
             if stop():
                 break
@@ -132,10 +132,10 @@ def main():
         deadline = time.time() + a.budget
         stop = lambda: time.time() > deadline
         with open(evfile, "w") as out:
-            n = collect_events(base, out, stop)
+            n = collect_events(base, out, stop, hdr)
         # capture final state BEFORE the backend is torn down in `finally`
         try:
-            final_state = httpx.get(base + "/sim/state", timeout=10).json().get("data", {})
+            final_state = httpx.get(base + "/sim/state", headers=hdr, timeout=10).json().get("data", {})
         except Exception as e:
             print("final_state fetch failed:", e)
     finally:

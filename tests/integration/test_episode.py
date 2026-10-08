@@ -32,13 +32,18 @@ def test_v0_acceptance_gate(tmp_path):
     # short budget: enough for a couple of model turns
     RE_main = RE.main.__wrapped__ if hasattr(RE.main, "__wrapped__") else None
     evfile = str(tmp_path / "ev.jsonl")
-    httpx.post(BASE + "/sim/reset", json={}, timeout=60)
-    httpx.post(BASE + "/control", json={"cmd": "reset", "args": {}}, timeout=60)
+    # a token-gated backend needs the operator token (SIM_API_TOKEN in the env)
+    tok = os.environ.get("SIM_API_TOKEN", "")
+    hdr = {"Authorization": "Bearer " + tok} if tok else {}
+    r = httpx.post(BASE + "/sim/reset", json={}, headers=hdr, timeout=60)
+    if r.status_code in (401, 403):
+        pytest.skip("backend is token-gated; export SIM_API_TOKEN=<operator token> to run the live gate")
+    httpx.post(BASE + "/control", json={"cmd": "reset", "args": {}}, headers=hdr, timeout=60)
     time.sleep(2)
     deadline = time.time() + 90
     stop = lambda: time.time() > deadline
     with open(evfile, "w") as out:
-        n = RE.collect_events(BASE, out, stop)
+        n = RE.collect_events(BASE, out, stop, hdr)
     assert n["legal_agent_acts"] >= 1, f"no legal agent act: {n}"
     assert n["agent_reasoning"] >= 1, f"no reasoning: {n}"
     assert n["tool_result"] >= 1, f"no tool result: {n}"

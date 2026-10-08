@@ -10,8 +10,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    host: "0.0.0.0",
-    allowedHosts: true, // internal access via hostnames (developervm0010.nuclearn.internal, etc.)
+    // Loopback by default: the dev proxy forwards reset/attack/control. Set DEV_HOST=0.0.0.0 to expose it.
+    host: (typeof process !== "undefined" && process.env.DEV_HOST) || "127.0.0.1",
+    allowedHosts: typeof process !== "undefined" && !!process.env.DEV_HOST ? true : undefined,
     proxy: {
       "/event": { target: TARGET, changeOrigin: true },
       "/state": { target: TARGET, changeOrigin: true },

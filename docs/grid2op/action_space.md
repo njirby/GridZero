@@ -1,6 +1,6 @@
 # Action space — every key, exact JSON
 
-You act with `simctl act '<json>'`. The JSON is a grid2op 1.12.5 action
+You act with `simctl act '<json>'`. The JSON is a grid2op 1.12.4 action
 dict. All shapes below were verified against the installed library on
 `l2rpn_case14_sandbox`. **Acting also advances one timestep** (grid2op
 semantics: a step applies the action, then runs the grid forward 5 minutes).
@@ -15,7 +15,7 @@ subs `sub_0`.
 Values: `1` = force closed, `-1` = force open, `0` = no-op.
 ```
 simctl act '{"set_line_status": {"0_4_1": -1}}'     # open 0_4_1
-simctl act '{"set_line_status": {"1_4_4": 1}}'      # force-close 1_4_4 (works even mid-cooldown? NO — see cooldowns)
+simctl act '{"set_line_status": {"1_4_4": 1}}'      # force-close 1_4_4 (ILLEGAL while a tripped line is in cooldown)
 simctl act '{"set_line_status": {"0_1_0": 0}}'      # explicit no-op on 0_1_0
 ```
 Opening a line shifts its flow to parallel paths — check `new_overloads`.
@@ -24,14 +24,14 @@ Closing a line that TRIPPED is illegal until its cooldown runs out.
 
 ### `change_line_status` — toggle a line (up→down, down→up)
 **Takes a LIST of line names/ids, not a name→bool dict.** The dict form
-`{"0_1_0": true}` raises `AmbiguousAction` in 1.12.5 (the older grid2op docs
+`{"0_1_0": true}` raises `AmbiguousAction` in 1.12.4 (the older grid2op docs
 show the dict form — ignore them).
 ```
 simctl act '{"change_line_status": ["0_4_1"]}'      # toggle 0_4_1
 ```
-One line per act: the sandbox's legality rules flag most two-line toggles as
-illegal (e.g. `["0_4_1", "1_4_4"]` is rejected at t=0) — structural moves
-are one per turn anyway.
+One line per act: at most ONE line's status may change per act
+(`set_line_status` too). `["0_4_1", "1_4_4"]` prints `Illegal action: … More
+than 1 line status affected by the action` — the step advances, reward 0.
 Use this when you want "switch it" without deciding which way; use
 `set_line_status` when you want a guaranteed state.
 
@@ -66,9 +66,9 @@ simctl act '{"change_bus": {"loads_id": ["load_3_2"]}}'    # move a load to the 
 > 2 if it was connected to bus 1."
 
 Verified re-route (from `quickstart.md`): after opening 0_4_1,
-`change_bus lines_or_id ["1_4_4"]` drops 1_4_4's loading to ~0 and pushes
-3_4_6 to ~56% and 4_5_17 to ~91% — the load you moved landed somewhere else.
-Always re-observe after a bus change.
+`change_bus lines_or_id ["1_4_4"]` takes 1_4_4 off the main flow and (chronic
+0) max_rho falls to 0.79 — the load you moved landed on other lines, which
+may heat up in other scenarios. Always re-observe after a bus change.
 
 ### `redispatch` — shift a dispatchable generator by ΔMW
 Maps **gen name → ΔMW** (or a list of `[id, ΔMW]` pairs). Only the 3
@@ -81,10 +81,10 @@ simctl act '{"redispatch": {"gen_2_1": 10.0}}'    # add 10 MW to gen_2_1
 **CUMULATIVE and PERSISTENT.** The delta adds to the generator's running
 setpoint (grid2op keeps `target_dispatch`); it survives subsequent no-op
 steps until you counteract it. -5 then -5 = -10. To undo, send +5 (or +10).
-Keep |Δ| within the gen's current margin — see `observation.md`
-(`gen_margin_up`/`gen_margin_down`). Beyond the margin the action is flagged
-`is_ambiguous` and does nothing. At t=0 the margins are: gen_1_0 ±5,
-gen_2_1 ±10, gen_0_5 ±15.
+Keep |Δ| within the gen's per-step ramp: gen_1_0 ±5, gen_2_1 ±10, gen_0_5
+±15. Margins are not shown by `observe`/`--detailed`; a larger Δ (e.g. `-50`)
+is rejected as `Ambiguous action` — reward 0, nothing applied, step still
+advances. Keep your own running total.
 
 ### `curtail` — cap a renewable generator
 Maps **gen name → fraction 0..1** of its max output.
@@ -103,7 +103,7 @@ simctl act '{"set_line_status": {"0_4_1": -1}, "redispatch": {"gen_1_0": -5.0}}'
 ```
 Empty `{}` is the do-nothing action (equivalent to `simctl step`).
 
-## Keys that SILENTLY NO-OP on this env (grid2op 1.12.5)
+## Keys that SILENTLY NO-OP on this env (grid2op 1.12.4)
 
 The env's action space (`PlayableAction`) accepts only: `set_line_status`,
 `change_line_status`, `set_bus`, `change_bus`, `redispatch`, `set_storage`,
@@ -116,13 +116,15 @@ changed:
 - `detach_load` / `attach_load` → not enabled in this env
 - `set_storage_power` → not here (no storage anyway; `set_storage` raises
   `IllegalAction`)
-- **typos** — `set_line_statu` is silently dropped. If an act seems to do
+- **typos** — `set_line_statu` is silently dropped (the output still says
+  `applied set_line_statu …`). If an act seems to do
   nothing and isn't marked illegal/ambiguous, re-check your key spelling
   against this page.
 
-A nonexistent element NAME, by contrast, is loud: building the action raises
-`AmbiguousAction` ("No known line with name …"), the act is rejected
-(exit 1) and the reason prints.
+A nonexistent element NAME or a wrong value shape, by contrast, is loud:
+building the action raises `AmbiguousAction` ("No known line with name …").
+The act is rejected (exit 1, `Illegal — <reason>` on stdout) and **time does
+NOT advance**.
 
 ## The factory methods (for reference)
 
@@ -152,24 +154,25 @@ your interface — but the semantics above match them 1:1.
 
 | | happens when | what you see | grid effect |
 |---|---|---|---|
-| **legal** | normal | `illegal=no`, move applied | action + 1 step |
-| **illegal** | not allowed in this state (close a line mid-cooldown, redispatch a renewable) | `illegal=yes` + reason, exit 1 | 1 step as do-nothing, **reward 0** |
-| **ambiguous** | effect undeterminable (bus>2, name→bool where a list is required, redispatch past margin) | `ambiguous=yes` + reason, exit 1 | 1 step as do-nothing, **reward 0** |
+| **legal** | normal | `applied … illegal=no`, exit 0 | action + 1 step |
+| **illegal** | not allowed in this state (close a line mid-cooldown, change 2 lines at once) | `Illegal action: <reason>`, exit 1 | 1 step as do-nothing, **reward 0** |
+| **malformed** | can't be built (bus>2, name→bool where a list is required, unknown element name) | `Illegal — <reason>`, exit 1 | **no step**, time does not advance |
 
 From `Environment.step`'s docstring: "If the action is illegal or
 ambiguous, the step is performed, but the action is replaced with a 'do
-nothing' action." Time always moves. Read the reason, adjust, re-act.
+nothing' action." (An `Ambiguous action: <reason>` message, same effect as
+illegal, is possible too.) Read the reason, adjust, re-act.
 
 ## Cooldowns (verified numbers)
 
-- **Overload trip**: a line above `rho=1.0` for **2 consecutive steps**
-  disconnects (hard overflow at `rho≥2.0` is instant). After a trip,
-  `time_before_cooldown_line` ≈ **10 steps** — closing it before that is
-  illegal.
+- **Overload trip**: a line above `rho=1.0` trips on its **3rd consecutive
+  overloaded step** (2 allowed, verified; hard overflow at `rho≥2.0` is
+  instant). A tripped line is OPEN, `status: "down"`, `cooldown: 10`
+  counting down — closing it before 0 is illegal.
 - **Self-opened line**: no re-close cooldown. `set_line_status … 1` works
   immediately.
-- The `observe` output and the C3 JSON surface cooldown state per line
-  (`status: "cooldown"`, `cooldown: <steps left>`).
+- `observe --detailed` shows `cooldown: <steps left>` per line (and
+  `status: "cooldown"` for a connected line still in cooldown).
 
 ## Which keys shift load where (cheat sheet)
 

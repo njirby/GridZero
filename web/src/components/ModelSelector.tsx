@@ -13,19 +13,18 @@ export function ModelSelector() {
   const model = useStore((s) => s.model);
   const variant = useStore((s) => s.variant);
   const setModelLocal = useStore((s) => s.setModel);
-  const setCardsLocal = useStore((s) => s.setModelCards);
 
   useEffect(() => {
     let live = true;
     (async () => {
       const [mcards, cur] = await Promise.all([loadModels(), loadCurrentModel()]);
       if (!live) return;
-      if (mcards.length) { setCards(mcards); setCardsLocal(mcards); }
+      if (mcards.length) { setCards(mcards); }
       if (cur) { setModelLocal(cur.model, cur.variant); }
       setLoaded(true);
     })();
     return () => { live = false; };
-  }, [setModelLocal, setCardsLocal]);
+  }, [setModelLocal]);
 
   const selected = cards.find((c) => c.id === model);
   const variants = selected?.variants?.length ? selected.variants : ["default"];

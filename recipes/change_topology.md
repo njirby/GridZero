@@ -8,8 +8,8 @@ but carries (nearly) nothing.
 
 ## `change_bus` — flip an element to the other busbar
 
-Values are a **LIST of names** (not a name→true dict — that raises
-`AmbiguousAction` in 1.12.5):
+Values are a **LIST of names** (not a name→true dict — that is rejected as
+`Illegal — … AmbiguousAction`, and time does not advance):
 
 ```
 simctl act '{"change_bus": {"lines_or_id": ["1_4_4"]}}'
@@ -23,30 +23,44 @@ Values are **name → bus number** dicts:
 
 ```
 simctl act '{"set_bus": {"lines_ex_id": {"3_4_6": 1}}}'
-simctl act '{"set_bus": {"lines_or_id": {"0_4_1": 2}}}'
+simctl act '{"set_bus": {"lines_or_id": {"1_4_4": 2}}}'
 ```
 Use `set_bus` when you know which side you want; `change_bus` when "flip it"
-is enough. Only `1` or `2` are legal (bus `3` → rejected, `AmbiguousAction`).
+is enough. Only `1` or `2` are legal (bus `3` → rejected, nothing happens,
+no step).
 
-## Worked re-route (verified at t=0)
+**One substation per act.** Two bus changes at different subs in one act
+(e.g. `change_bus` on 1_4_4 and 5_12_9) print `Illegal action: … More than 1
+substation affected` — the step advances and pays 0.
 
-State: `0_4_1` open, `1_4_4` overloaded at rho 1.28 (one step from tripping),
-sub_4 importing through sub_1.
+## Worked re-route (real run, chronic 0)
+
+State at t=1: `0_4_1` open, `1_4_4` overloaded at 101.9% (hot for one step,
+trips at t=3 if nothing changes), sub_4 importing through sub_1.
 
 ```
 simctl act '{"change_bus": {"lines_or_id": ["1_4_4"]}}'
 simctl observe
 ```
-Result: `1_4_4`'s or end sits on sub_1's busbar 2, off the main flow →
-`1_4_4` drops to **rho 0.0** (still "up", carrying nothing), sub_4 now
-imports via `3_4_6` (**0.56**) — and `4_5_17` (sub_4→sub_5) climbs to
-**0.91**. The MW you moved went somewhere: 4_5_17 is your new watch item.
+```
+t=2 reward=63.9 (cum 127.3) done=no
+lines_down=1  max_rho=0.79 (5_12_9)  overloads=[]
+top loads:  5_12_9=79.1%  5_10_7=63.7%  0_1_0=58.0%
+gens: 73.9 72.7 35.6 0.0 0.0 73.1
+since your last act (t=1 change_bus lines_or_id=['1_4_4']): no trips (max_rho=0.79)
+```
+`1_4_4`'s or end sits on sub_1's busbar 2, off the main flow, so it drops out
+of the top loads and the overload is gone. The MW you moved went somewhere:
+`0_1_0` is now the line to watch (58%). In other scenarios the sibling that
+takes the load can go hot — check `top loads` every time.
 
-4_5_17 at ~0.91 is now your watch item. Redispatch won't cool it (verified:
-pulling gen_2_1 or gen_0_5 leaves it at ~0.91 — it carries lower-ring
-transit). If it stays under 1.0 for the next few steps, hold and monitor.
-If it crosses 1.0, undo the maneuver (see rules below) — do NOT add a third
-topology change.
+Undo with the same call (`change_bus` toggles back); the line is overloaded
+again until `0_4_1` is closed:
+
+```
+simctl act '{"change_bus": {"lines_or_id": ["1_4_4"]}}'     # new_overloads=[1_4_4]
+simctl act '{"set_line_status": {"0_4_1": 1}}'              # back to lines_down=0
+```
 
 ## Rules of thumb
 
@@ -54,11 +68,7 @@ topology change.
   it doesn't cut the line. The line reads `status: "up"`, `rho ≈ 0`.
 - Re-routes are second-order: every bus move heats some sibling line. Re-
   observe and watch `new_overloads` before the next move.
-- **Don't stack bus changes on the same substation.** In the scenario above,
-  the follow-up "split 4_5_17's ex end" move looks tempting — it is not.
-  Verified: isolating 4_5_17's sub_5 end orphans the lower ring's main
-  import and overloads FOUR lines at once (5_10_7, 8_9_10, 8_13_11,
-  3_8_16). If 4_5_17 crosses 1.0 after your re-route, UNDO the maneuver:
-  flip 1_4_4's or end back (`change_bus` again), then re-close 0_4_1.
-  One structural idea per turn.
-- To undo: the same `change_bus` call flips it back.
+- **Don't stack bus changes on the same substation.** If a re-route pushes a
+  sibling over 1.0, UNDO the maneuver (flip back, re-close the line you
+  opened) rather than adding a third topology change. One structural idea
+  per turn.

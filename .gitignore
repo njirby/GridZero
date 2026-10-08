@@ -19,8 +19,16 @@ render/
 # rl runtime data
 rl/opencode-data/
 
+# lego-rl generated artifacts (regenerable via lego/make_tasks.py + create_task_index.py)
+lego/tasks/
+lego/index/
+lego/infer_results/
+lego/harbor_trials/
+lego/ckpt/
+
 # node
 web/node_modules/
+*.tsbuildinfo
 web/dist/
 
 # secrets
@@ -30,3 +38,4 @@ auth.json
 
 # os
 .DS_Store
+lego/logs/

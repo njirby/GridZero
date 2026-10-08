@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import type {
+  OpponentStep,
   HarnessEvent, GridState, GridMeta, AgentDelta, ToolCall, ToolResult, TurnEnd,
-  SessionStatus, UserAction, OpponentAction, SystemEvt, EpisodeSummary, StepOutcome,
-  Turn, TickMark, SeriesPoint, OperatorRow, SystemRow, Attack, ConnState, ControlMode, ActionLogEntry,
+  SessionStatus, OpponentAction, EpisodeSummary, StepOutcome,
+  Turn, TickMark, SeriesPoint, Attack, ConnState, ControlMode, ActionLogEntry,
 } from "./types";
 
 export interface State {
@@ -19,14 +20,12 @@ export interface State {
   rafScheduled: boolean;
   ticks: TickMark[];
   series: SeriesPoint[];
-  operators: OperatorRow[];
-  systems: SystemRow[];
   attacks: Attack[];
   actionLog: ActionLogEntry[];
   summary: EpisodeSummary | null;
+  error: string | null;
   model: string;
   variant: string;
-  modelCards: { id: string; name: string; variants: string[] }[];
 }
 
 export function initial(): State {
@@ -35,10 +34,14 @@ export function initial(): State {
     mode: "agent", running: true, sessionStatus: null,
     lastSeq: -1, needResync: false,
     turns: [], pending: [], rafScheduled: false,
-    ticks: [], series: [], operators: [], systems: [], attacks: [], actionLog: [], summary: null,
-    model: "AA-Dense-Blackwell", variant: "default", modelCards: [],
+    ticks: [], series: [], attacks: [], actionLog: [], summary: null, error: null,
+    model: "", variant: "default"
   };
 }
+
+// Bounds for an 8064-step episode so the UI state does not grow without limit.
+const MAX_POINTS = 2000;
+const MAX_TURNS = 300;
 
 function newTurn(id: string): Turn {
   return { id, status: "active", reasoning: "", text: "", tools: [] };
@@ -47,7 +50,7 @@ function newTurn(id: string): Turn {
 function upsertTurn(turns: Turn[], id: string): Turn[] {
   const i = turns.findIndex((t) => t.id === id);
   if (i >= 0) return turns;
-  return [...turns, newTurn(id)];
+  return [...turns, newTurn(id)].slice(-MAX_TURNS);
 }
 
 // Target line names of an attack action (set_line_status keys / change_line_status entries).
@@ -63,11 +66,11 @@ function attackLines(action: Record<string, unknown>): string[] {
 
 // Pure reducer: apply one C4 event to state (agent.delta is buffered, not merged).
 export function applyEvent(s: State, ev: HarnessEvent): State {
-  if (ev.type !== "ping" && ev.seq > s.lastSeq) {
-    if (s.lastSeq >= 0 && ev.seq > s.lastSeq + 1) {
-      return { ...s, lastSeq: ev.seq, needResync: true };
-    }
-    s = { ...s, lastSeq: ev.seq };
+  if (ev.type !== "ping") {
+    if (ev.seq <= s.lastSeq) return s; // replayed after a reconnect: already applied
+    // A gap is flagged for a /state resync, but the event that revealed it is still applied.
+    const gap = s.lastSeq >= 0 && ev.seq > s.lastSeq + 1;
+    s = { ...s, lastSeq: ev.seq, needResync: s.needResync || gap };
   }
   switch (ev.type) {
     case "sim.state": {
@@ -76,12 +79,15 @@ export function applyEvent(s: State, ev: HarnessEvent): State {
       if (!series.length || series[series.length - 1].t !== d.t) {
         series = [...series, { t: d.t, cum: d.cum_reward, maxRho: d.max_rho, nDown: d.n_down }];
       }
-      return { ...s, sim: d, series };
+      return { ...s, sim: d, series: series.slice(-MAX_POINTS) };
     }
     case "sim.step_outcome": {
       const d = ev.data as StepOutcome;
       const detail = d.action;
-      const actionSummary = detail?.summary || (detail?.tool
+      const rawSummary = detail?.summary;
+      const hasSummary = typeof rawSummary === "string" ? rawSummary !== ""
+        : !!rawSummary && Object.keys(rawSummary).length > 0;
+      const actionSummary = (hasSummary ? rawSummary : null) || (detail?.tool
         ? `${detail.tool}${detail.args && Object.keys(detail.args).length ? ` ${JSON.stringify(detail.args)}` : ""}`
         : detail?.args ? JSON.stringify(detail.args) : "");
       const actionLog = detail ? [...s.actionLog, {
@@ -103,7 +109,7 @@ export function applyEvent(s: State, ev: HarnessEvent): State {
         const effect = { t: d.t, disc_lines: d.disc_lines, new_overloads: d.new_overloads };
         attacks = attacks.map((a, i) => i === attacks.length - 1 ? { ...a, effect } : a);
       }
-      return { ...s, ticks: [...s.ticks, tick], turns, attacks, actionLog };
+      return { ...s, ticks: [...s.ticks, tick].slice(-MAX_POINTS), turns, attacks, actionLog };
     }
     case "agent.delta":
       return { ...s, pending: [...s.pending, ev.data as AgentDelta], rafScheduled: true };
@@ -111,7 +117,8 @@ export function applyEvent(s: State, ev: HarnessEvent): State {
       const d = ev.data as ToolCall;
       const turns = upsertTurn(s.turns, d.turn);
       const card = { partId: d.part_id, tool: d.tool, input: d.input, status: "pending" as const };
-      return { ...s, turns: turns.map((t) => (t.id === d.turn ? { ...t, tools: [...t.tools, card] } : t)) };
+      return { ...s, turns: turns.map((t) => (t.id === d.turn && !t.tools.some((c) => c.partId === d.part_id)
+        ? { ...t, tools: [...t.tools, card] } : t)) };
     }
     case "agent.tool_result": {
       const d = ev.data as ToolResult;
@@ -134,10 +141,6 @@ export function applyEvent(s: State, ev: HarnessEvent): State {
       const d = ev.data as SessionStatus;
       return { ...s, sessionStatus: d.status };
     }
-    case "user.action": {
-      const d = ev.data as UserAction;
-      return { ...s, operators: [...s.operators, { id: d.id, cmd: d.cmd, args: d.args, ts: ev.ts }] };
-    }
     case "opponent.action": {
       const d = ev.data as OpponentAction;
       const lines = attackLines(d.action);
@@ -147,9 +150,14 @@ export function applyEvent(s: State, ev: HarnessEvent): State {
       }));
       return { ...s, attacks: [...s.attacks, ...fresh] };
     }
-    case "system": {
-      const d = ev.data as SystemEvt;
-      return { ...s, systems: [...s.systems, { level: d.level, msg: d.msg, ts: ev.ts }] };
+    case "opponent.step": {
+      const d = ev.data as OpponentStep;
+      const lines = attackLines(d.action ?? {});
+      const fresh: Attack[] = (lines.length ? lines : d.line ? [d.line] : []).map((line) => ({
+        id: undefined, line, args: d.action ?? {}, ts: ev.ts, seq: ev.seq,
+      }));
+      const tick: TickMark = { t: d.t, source: "opponent", bad: false, overloaded: false };
+      return { ...s, attacks: [...s.attacks, ...fresh], ticks: [...s.ticks, tick].slice(-MAX_POINTS) };
     }
     case "episode.summary":
       return { ...s, summary: ev.data as EpisodeSummary };
@@ -176,12 +184,12 @@ export function flushDeltas(s: State): State {
 interface Store extends State {
   setConn: (c: ConnState) => void;
   setMeta: (m: GridMeta) => void;
+  setError: (e: string | null) => void;
   setMode: (m: ControlMode, running?: boolean) => void;
-  setModelCards: (cards: { id: string; name: string; variants: string[] }[]) => void;
   setModel: (model: string, variant?: string) => void;
   ingest: (ev: HarnessEvent) => void; // store-level: apply + schedule rAF
   flush: () => void;
-  resync: (sim: GridState, lastSeq: number) => void;
+  resync: (sim: GridState | null, mode?: ControlMode, running?: boolean) => void;
   reset: () => void;
 }
 
@@ -199,8 +207,8 @@ export const useStore = create<Store>((set, get) => ({
   ...initial(),
   setConn: (c) => set({ conn: c }),
   setMeta: (m) => set({ meta: m }),
+  setError: (e) => set({ error: e }),
   setMode: (m, running) => set((s) => ({ mode: m, running: running ?? s.running })),
-  setModelCards: (cards) => set({ modelCards: cards }),
   setModel: (model, variant) => set({ model, variant: variant ?? "default" }),
   ingest: (ev) => {
     set((s) => applyEvent(s, ev));
@@ -209,6 +217,9 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
   flush: () => set((s) => flushDeltas(s)),
-  resync: (sim, lastSeq) => set({ sim, lastSeq, needResync: false }),
+  // lastSeq is deliberately kept: adopting /state's last_seq could skip events still in flight.
+  resync: (sim, mode, running) => set((s) => ({
+    sim: sim ?? s.sim, mode: mode ?? s.mode, running: running ?? s.running, needResync: false,
+  })),
   reset: () => set({ ...initial() }),
 }));

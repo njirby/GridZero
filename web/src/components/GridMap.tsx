@@ -1,14 +1,15 @@
 import { useEffect, useRef } from "react";
 import type { GridState, GridMeta, GridTarget } from "../types";
 
-export function band(rho: number): "green" | "amber" | "red" {
+export function band(rho: number): "green" | "amber" | "red" | "critical" {
+  if (rho >= 1.0) return "critical"; // overloaded: trips after 2 steps
   if (rho >= 0.9) return "red";
   if (rho >= 0.7) return "amber";
   return "green";
 }
 
 const BAND_COLOR: Record<string, string> = {
-  green: "#22c55e", amber: "#f59e0b", red: "#ef4444",
+  green: "#22c55e", amber: "#f59e0b", red: "#ef4444", critical: "#ff2bd6",
 };
 
 export function GridMap({ state, meta, attackMode = false, selectedTarget = null, onSelect }: {
@@ -51,7 +52,7 @@ export function GridMap({ state, meta, attackMode = false, selectedTarget = null
           const o = pos.get(l.or), e = pos.get(l.ex);
           if (!o || !e) return null;
           const b = band(l.rho);
-          const down = l.status !== "up";
+          const down = l.status === "down" || l.status === "maintenance"; // cooldown is still connected
           const cls = `line line-${b} ${down ? "line-" + l.status : ""}`;
           return (
             <line
@@ -120,7 +121,8 @@ export function GridMap({ state, meta, attackMode = false, selectedTarget = null
       <div className="legend">
         <span><i style={{ background: BAND_COLOR.green }} /> &lt;70%</span>
         <span><i style={{ background: BAND_COLOR.amber }} /> 70–90%</span>
-        <span><i style={{ background: BAND_COLOR.red }} /> ≥90%</span>
+        <span><i style={{ background: BAND_COLOR.red }} /> 90–100%</span>
+        <span><i style={{ background: BAND_COLOR.critical }} /> ≥100% overload</span>
         <span><i className="dash" /> down</span>
         <span><b className="legend-sub">12</b> substation</span>
         <span><b className="legend-load">L</b> load</span>

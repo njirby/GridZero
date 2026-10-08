@@ -137,6 +137,8 @@ Also emitted for `instruction`, `pause`, `resume`, `single_step`, `take_over`,
   sends a fresh `sim.state` + `session.status` so the browser resyncs; the
   browser may also `GET /event?after_seq=M` is NOT needed — the ring handles it.
 - `GET /state` (REST) returns the current STATE snapshot as JSON (poll fallback).
+- **Auth:** when the backend has `SIM_API_TOKEN` set, `GET /event` (and `/api/event`) and `GET /state` require the operator token (`Authorization: Bearer …` or `?token=`) — 403 otherwise. They carry the full state and the agent trace, which the model must not read. The model-visible read is `GET /sim/state`.
+- `STATE.sim.done` / `cause` (`time_exceeded` | `game_over`) and `last_disc_lines` come from C3; `sim.step_outcome` includes `disc_lines`, `new_overloads`, `illegal`, `ambiguous`.
 
 ## REST (non-SSE) endpoints on the backend
 

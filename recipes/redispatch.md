@@ -13,52 +13,51 @@ between the three dispatchable units: `gen_1_0` (sub_1), `gen_2_1` (sub_2),
 simctl act '{"redispatch": {"gen_1_0": -5.0}}'
 ```
 ```
-applied redispatch gen_1_0=-5.0 · t=7 · reward=64.1 · new_overloads=[] · illegal=no
+applied redispatch gen_1_0=-5.0 · t=1 · reward=62.28 · new_overloads=[] · illegal=no
 ```
+In `observe`, the `gens:` line (MW in order gen_1_0, gen_2_1, gen_5_2,
+gen_5_3, gen_7_4, gen_0_5) went from `73.2 71.7 36.4 0.0 0.0 69.4` at t=0 to
+`68.3 74.6 36.6 0.0 0.0 74.5` at t=1: gen_1_0 dropped 5 MW and the other
+dispatchable units picked up the balance.
 
 ## It is CUMULATIVE — the #1 redispatch mistake
 
 The delta adds to the gen's running setpoint (`target_dispatch`) and
-**persists** on every later step until you counteract it. Verified sequence:
-`-5`, `-5`, `+10` → net `-10`, still `-10` after a do-nothing step.
+**persists** on every later step until you counteract it:
 
 ```
 # take 5 off gen_1_0, then 5 more  → gen_1_0 is now -10 from base
 simctl act '{"redispatch": {"gen_1_0": -5.0}}'
 simctl act '{"redispatch": {"gen_1_0": -5.0}}'
-# later: undo it — +10 is legal ONLY after the -5/-5 above (margin then
-# allows +10 up); at t=0 with nothing applied, +10 exceeds the ±5 margin
-# and the act is ambiguous/no-op. JSON has no "+10" — plain 10.0.
-simctl act '{"redispatch": {"gen_1_0": 10.0}}'
+# later: undo it with the opposite sign, again ≤5 per step (plain 5.0, JSON has no "+5")
+simctl act '{"redispatch": {"gen_1_0": 5.0}}'
+simctl act '{"redispatch": {"gen_1_0": 5.0}}'
 ```
+Keep your own running total per gen and undo it when the maneuver is done.
 
-## Stay inside the margin or the act does nothing
+## Stay inside the per-step ramp
 
-Each gen has headroom this step — `gen_margin_up` / `gen_margin_down` in
-`observe --detailed`. At t=0: gen_1_0 **±5**, gen_2_1 **±10**, gen_0_5
-**±15**, renewables **0**. A Δ beyond the margin is flagged
-`is_ambiguous` → dropped → reward 0. (And redispatching a renewable, e.g.
-`gen_5_2`, is unambiguously out of range — margin 0.)
-
+Each gen can only change by its ramp per step: gen_1_0 **5 MW**, gen_2_1
+**10**, gen_0_5 **15**, renewables **0**. The backend does NOT show margins
+(no `gen_margin_*` in `observe` or `--detailed`). A bigger Δ is rejected:
 ```
-# SAFE:  within gen_1_0's ±5 margin at t=0
-simctl act '{"redispatch": {"gen_1_0": -5.0}}'
-# RISKY: -50 blows the margin → ambiguous, no-op, reward 0
-simctl act '{"redispatch": {"gen_1_0": -50.0}}'
+$ simctl act '{"redispatch": {"gen_1_0": -50.0}}'
+Ambiguous action: Grid2OpException AmbiguousAction InvalidRedispatching "Some redispatching amount are bellow the maximum ramp down"
 ```
+(exit 1, reward 0 for that step, nothing applied — and the step still advances).
+Repeated moves within the ramp are fine: -5 five times in a row is accepted.
 
 ## Worked relief (verified — and its limit)
 
-`1_4_4` (sub_1→sub_4) hot at 1.28 because sub_1 exports through it. Pulling
-the full -5 off gen_1_0 eases it — only from 1.277 to 1.264. That is NOT
-enough to stop a trip; redispatch alone won't save a 28%-over line. Use it
-for lines in the 0.85–0.95 band, or as one half of a combination with a
-topology change (`change_topology.md`), never as the whole fix for an
-overloaded line.
+`1_4_4` (sub_1→sub_4) at 101.9% after opening `0_4_1`. Pulling the full -5
+off gen_1_0 eases it — only to 100.4%, still over 1.0. Redispatch alone
+won't save a hot line in the 100%+ range. Use it for lines in the 0.85–0.95
+band, or as one half of a combination with a topology change
+(`change_topology.md`).
 
 ```
 simctl act '{"redispatch": {"gen_1_0": -5.0}}'
-simctl observe        # 1_4_4 rho eases ~1pt; watch sub_1's other feeders
+simctl observe        # 1_4_4 rho eases ~1-2 points
 ```
 
 ## Curtailment (the renewable version)
@@ -67,7 +66,10 @@ simctl observe        # 1_4_4 rho eases ~1pt; watch sub_1's other feeders
 mindset:
 
 ```
-simctl act '{"curtail": {"gen_5_2": 0.5}}'     # wind gen_5_2 to 50%
+simctl act '{"curtail": {"gen_5_2": 0.5}}'     # gen_5_2 capped at 50%
+```
+```
+applied curtail gen_5_2=0.5 · t=3 · reward=64.14 · new_overloads=[] · illegal=no
 ```
 Note the key is **`curtail`**, not `curtailment` (the latter is silently
 ignored on this env — see `../docs/grid2op/pitfalls.md` #5).

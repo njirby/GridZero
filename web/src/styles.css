@@ -176,3 +176,12 @@ button.on { color: var(--accent); border-color: #397c91; background: #112a35; }
   .left { height: 390px; min-height: 320px; }.viewtoggle { padding: 8px 10px 8px 52px; }.viewtoggle::before { font-size: 9px; }.legend { left: 8px; bottom: 8px; gap: 6px 9px; max-width: calc(100% - 16px); font-size: 9px; }.feed { padding-inline: 11px; }
   .bottom { display: block; }.timeline { height: 170px; }
 }
+
+/* sources emitted by the backend while paused / under manual control */
+.action-entry.source-paused { border-left-color: var(--amber); }.action-entry.source-manual { border-left-color: #bc8cff; }
+.party-paused { color: var(--amber); background: #292314; }.party-manual { color: #d2b7ff; background: #251c35; }
+.tick-paused { fill: var(--amber); }.tick-manual { fill: #bc8cff; }
+/* overloaded (rho >= 1.0): will trip after 2 steps */
+.line-critical { filter: drop-shadow(0 0 3px #ff2bd6); }
+.error-banner { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 50; max-width: 90vw; padding: 8px 12px; border-radius: 8px; background: #321c22; border: 1px solid var(--red); color: #ffb4b4; font-size: 12px; }
+.error-banner button { margin-left: 10px; }

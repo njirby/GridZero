@@ -10,7 +10,7 @@ trap cleanup EXIT
 
 echo "[serve-all] backend on :$PORT (log: runs/backend-$PORT.log)"
 mkdir -p runs
-./venv/bin/uvicorn backend.app.main:app --host 127.0.0.1 --port "$PORT" \
+./.venv/bin/uvicorn backend.app.main:app --host 127.0.0.1 --port "$PORT" \
   > "runs/backend-$PORT.log" 2>&1 &
 
 # wait for backend

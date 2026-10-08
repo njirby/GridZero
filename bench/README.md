@@ -12,7 +12,7 @@ Full design + rationale in **`../PLAN-BENCH.md`**.
 ## Quick start
 
 ```bash
-cd /home/nate/grid2op-harness
+cd /home/nate/Documents/GridZero
 
 make bench-validate     # Phase 0 gate: prove the metric on free baselines (no LLM spend)
 make bench-baselines    # run the free baseline ladder over the standard panel
@@ -52,6 +52,11 @@ make bench-report       # aggregate everything into a leaderboard (MD + HTML + J
 ```
 - Each episode = own backend (port) + own opencode session (port+200) → isolated,
   so episodes parallelize cleanly (see `run_pilot.py`).
+- Each episode runs in its own network namespace (`bench/netns.py`); the sandbox can
+  reach only the vLLM forwarder port on the gateway IP. If netns setup fails the
+  episode FAILS; `--allow-no-netns` overrides it and the result records
+  `isolated=false`. While an episode runs, `runs/backend-bench-<port>.json` holds
+  its netns address + operator token for `scripts/bench_watch.py`.
 - Output: `runs/llm-<chronic>-<ts>/results.json` (EpisodeResult list) + `config.json`
   (with `config_hash`) + the append-only trace at `runs/<ep>.jsonl`.
 
@@ -68,7 +73,7 @@ make bench-report       # aggregate everything into a leaderboard (MD + HTML + J
 ## Reproducibility
 
 - `config_hash` (model id + env + panel version + horizon + sampling + harness
-  version) is recorded on every run → results comparable + auditable across time.
+  version + ablation config + seed + adversarial params) is recorded on every run → results comparable + auditable across time.
 - `reset(options={"time serie id": k, "max step": H})` + `reset(seed=s)` pin the
   chronic, horizon, and RNG (verified on grid2op 1.12.5).
 - Panel chronic ids are **hidden from the model** (docs/AGENTS.md never mention

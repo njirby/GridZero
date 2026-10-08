@@ -41,7 +41,7 @@ export function AttackPanel({ attackMode = false, setAttackMode = () => {}, targ
         } else combined[key] = value;
       }
     }
-    await attack(combined);
+    if (!(await attack(combined))) return; // keep the draft; the error banner explains
     setDraft([]);
     setAttackMode(false);
   };
@@ -78,7 +78,7 @@ export function AttackPanel({ attackMode = false, setAttackMode = () => {}, targ
             <div className="selected-target"><span className={`target-kind target-${target?.kind}`}>{target?.kind}</span><strong>{targetDescription}</strong></div>
             {target?.kind === "line" && selected && "or" in selected && <div className="target-actions">
               <span className="target-reading">{Math.round(selected.rho * 100)}% loaded · {selected.status}</span>
-              <button className="danger" disabled={selected.status !== "up"} onClick={() => stage(`line:${selected.name}`, `Trip ${selected.name}`, { set_line_status: { [selected.name]: -1 } })}>Stage trip</button>
+              <button className="danger" disabled={selected.status !== "up" && selected.status !== "cooldown"} onClick={() => stage(`line:${selected.name}`, `Trip ${selected.name}`, { set_line_status: { [selected.name]: -1 } })}>Stage trip</button>
               <button disabled={selected.status !== "down"} onClick={() => stage(`line:${selected.name}`, `Restore ${selected.name}`, { set_line_status: { [selected.name]: 1 } })}>Stage restore</button>
             </div>}
             {target?.kind === "gen" && selected && "sub" in selected && <div className="target-actions">

@@ -86,8 +86,8 @@ def kickoff_prompt(chronic, horizon, cfg=None, adversarial=False):
         if adversarial else ""
     )
     return (
-        f"BENCHMARK EPISODE — operate this power grid to completion. You are running chronic "
-        f"#{chronic}, horizon {horizon} steps (check progress with `simctl status`; it shows t/H). "
+        f"BENCHMARK EPISODE — operate this power grid to completion. Horizon: {horizon} steps "
+        f"(check progress with `simctl status`; it shows t/H). "
         f"Your task: keep the grid stable (no protection trips / cascades) and MAXIMIZE cumulative "
         f"reward. The reward explicitly pays you for using `redispatch` to cut line losses, so "
         f"actively redispatch generation to relieve the most loaded lines, not just to avoid trips. "
@@ -116,10 +116,14 @@ def wait_up(base, path, timeout=240):
     return False
 
 
-def start_backend(port, acfg=None, model="qwen3.5-4b", net=None, model_url=None):
+def start_backend(port, acfg=None, model="qwen3.5-4b", net=None, model_url=None,
+                  allow_no_netns=False):
     """Launch the episode backend. `net` (EpisodeNet) may be pre-created (the RL
     driver needs its gateway IP before the backend starts, to point opencode at
-    the RL rollout endpoint). `model_url` overrides the agent's model endpoint
+    the RL rollout endpoint). If netns setup fails the episode FAILS (RuntimeError)
+    unless `allow_no_netns` (bench --allow-no-netns); OPENCODE_NETNS=0 also opts
+    out. Returns (proc, operator_token, net); net is None iff NOT isolated.
+    `model_url` overrides the agent's model endpoint
     (RL: the per-episode proxy; bench: the netns vLLM forwarder)."""
     acfg = acfg or {}
     log = open(os.path.join(ROOT, "runs", f"backend-bench-{port}.log"), "ab")
@@ -140,10 +144,13 @@ def start_backend(port, acfg=None, model="qwen3.5-4b", net=None, model_url=None)
             net = EpisodeNet(port, log_dir=os.path.join(ROOT, "runs"))
             net.setup()
         except Exception as e:
-            print(f"  (netns setup failed: {e} — running WITHOUT network isolation)")
             if net:
                 net.teardown()
             net = None
+            if not allow_no_netns:
+                raise RuntimeError(f"netns setup failed ({e}); refusing to run without network "
+                                   "isolation (pass --allow-no-netns to override)") from e
+            print(f"  (netns setup failed: {e} — running WITHOUT network isolation)")
     if model_url:
         env["VLLM_FORWARD_URL"] = model_url      # RL: per-episode proxy
     elif net:
@@ -164,35 +171,20 @@ def start_backend(port, acfg=None, model="qwen3.5-4b", net=None, model_url=None)
     if net:
         argv = net.ns(argv)
     p = subprocess.Popen(argv, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, env=env)
+    # state file for watchers (scripts/bench_watch.py): the backend's reachable
+    # address (netns IP when isolated) + operator token. 0600, removed at teardown.
+    try:
+        fd = os.open(state_path(port), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, "w") as f:
+            json.dump({"base": net.backend_base() if net else f"http://127.0.0.1:{port}",
+                       "token": tok, "isolated": net is not None}, f)
+    except OSError as e:
+        print(f"  (could not write backend state file: {e})")
     return p, tok, net
 
 
-_DOCLESS = None
-def make_docless_ws():
-    """A workspace with everything EXCEPT docs/, AGENTS.md, recipes/ — for the
-    no_docs ablation (the model must discover the API itself). Symlinks the rest."""
-    global _DOCLESS
-    if _DOCLESS and os.path.isdir(_DOCLESS):
-        return _DOCLESS
-    ws = os.path.join(ROOT, "runs", "docless-ws")
-    os.makedirs(ws, exist_ok=True)
-    # Hide ALL grid2op/harness knowledge: the model must discover the API from
-    # `simctl --help` + C3 state + error messages alone. Keep only the tools.
-    HIDDEN = ("docs", "AGENTS.md", "recipes", "contracts", "PLAN.md", "PLAN-BENCH.md",
-              "README.md", "bench", "runs", "node_modules", ".venv", "web")
-    for entry in os.listdir(ROOT):
-        if entry in HIDDEN:
-            continue
-        src = os.path.join(ROOT, entry)
-        dst = os.path.join(ws, entry)
-        if os.path.exists(dst):
-            continue
-        try:
-            os.symlink(src, dst)
-        except Exception:
-            pass
-    _DOCLESS = ws
-    return ws
+def state_path(port):
+    return os.path.join(ROOT, "runs", f"backend-bench-{port}.json")
 
 
 def main():
@@ -217,6 +209,8 @@ def main():
     ap.add_argument("--attack-interval", type=int, default=96, help="attack every N sim-steps (72h=864; 96=1day)")
     ap.add_argument("--attack-duration", type=int, default=24, help="each attack lasts N sim-steps (24=2h)")
     ap.add_argument("--attack-seed", type=int, default=None, help="seed for the attack schedule (default: --seed)")
+    ap.add_argument("--allow-no-netns", action="store_true",
+                    help="continue WITHOUT network isolation if netns setup fails (result is flagged isolated=false)")
     a = ap.parse_args()
     panel = load_panel()
     horizon = a.horizon or panel["horizons"]["pilot"]
@@ -245,8 +239,11 @@ def main():
            "attack_duration": a.attack_duration if a.adversarial else None,
            "n_attacks": len(a.attacks) if a.adversarial else 0,
            "dn_attack_anchor": a.dn_anchor,
-           "config_hash": config_hash(model=a.model, horizon=horizon, panel=panel),
-           "outdir": outdir}
+           "config_hash": config_hash(
+               model=a.model, horizon=horizon, panel=panel, ablation=a.cfg, seed=a.seed,
+               adversarial=({"interval": a.attack_interval, "duration": a.attack_duration,
+                             "seed": a.attack_seed} if a.adversarial else None)),
+           "allow_no_netns": a.allow_no_netns, "outdir": outdir}
     json.dump(cfg, open(os.path.join(outdir, "config.json"), "w"), indent=2)
     if a.adversarial:
         json.dump({"dn_attack_anchor": a.dn_anchor,
@@ -296,7 +293,7 @@ def run_one(base, a, i, outdir, horizon, tok=""):
     # wait for the agent to come alive (opencode may be booting); if it never does,
     # FAIL FAST as agent_failed instead of poking a dead agent for hours.
     while time.time() - t_start < liveness and not saw_agent_active:
-        st = httpx.get(base + "/bench/stats", timeout=30).json()
+        st = httpx.get(base + "/bench/stats", headers=_hdr(tok), timeout=30).json()
         saw_agent_active = st.get("agent_active", False)
         max_agent_events = max(max_agent_events, st.get("n_agent_events", 0))
         if st["sim"].get("done") or st["sim"].get("game_over"):
@@ -304,13 +301,13 @@ def run_one(base, a, i, outdir, horizon, tok=""):
         time.sleep(15)
     if not saw_agent_active and max_agent_events == 0:
         print(f"  chronic {a.chronic}: AGENT FAILED to start within {a.liveness_min} min -> agent_failed (aborting)")
-        stats = httpx.get(base + "/bench/stats", timeout=30).json()
+        stats = httpx.get(base + "/bench/stats", headers=_hdr(tok), timeout=30).json()
         return build_result(a, i, horizon, stats, time.time() - t_start, ep,
                             notes="agent_failed(no agent activity)", agent_failed=True)
     restarted = False
     while True:
         now = time.time()
-        st = httpx.get(base + "/bench/stats", timeout=30).json()
+        st = httpx.get(base + "/bench/stats", headers=_hdr(tok), timeout=30).json()
         s = st["sim"]
         saw_agent_active = saw_agent_active or st.get("agent_active", False)
         max_agent_events = max(max_agent_events, st.get("n_agent_events", 0))
@@ -332,7 +329,7 @@ def run_one(base, a, i, outdir, horizon, tok=""):
             terminal = st
             try:
                 time.sleep(8)  # let the model finish any in-flight summary turn
-                st2 = httpx.get(base + "/bench/stats", timeout=20).json()
+                st2 = httpx.get(base + "/bench/stats", headers=_hdr(tok), timeout=20).json()
                 s2 = st2.get("sim", {})
                 if (s2.get("t", -1) >= t and (s2.get("done") or s2.get("game_over"))
                         and st2.get("ep") == ep):
@@ -385,7 +382,8 @@ def build_result(a, i, horizon, stats, wall, ep, notes="", agent_failed=False):
         n_down_final=sim.get("n_down_final", 0), game_over=bool(sim.get("game_over")),
         tokens_in=llm.get("tokens_in"), tokens_out=llm.get("tokens_out"),
         reasoning_tokens=llm.get("reasoning_tokens"), cost_usd=llm.get("cost_usd"),
-        wall_clock_s=round(wall, 1), ep=ep, notes=notes, agent_failed=bool(agent_failed))
+        wall_clock_s=round(wall, 1), ep=ep, notes=notes, agent_failed=bool(agent_failed),
+        isolated=getattr(a, "isolated", None))
     # enrich with behavior from the append-only trace (acts/observes/renders, etc.)
     try:
         from bench.analyze_trace import analyze_trace
@@ -412,7 +410,9 @@ def run_episode(port, a, outdir, horizon, net=None, model_url=None):
     RL rollout driver (rl/gridzero_agent.py), which calls this per episode on
     its own port so episodes run in parallel; it pre-creates `net` (to know the
     gateway IP) and passes `model_url` (the per-episode RL proxy)."""
-    bp, tok, net = start_backend(port, a.cfg, model=a.model, net=net, model_url=model_url)
+    bp, tok, net = start_backend(port, a.cfg, model=a.model, net=net, model_url=model_url,
+                                 allow_no_netns=getattr(a, "allow_no_netns", False))
+    a.isolated = net is not None
     base = net.backend_base() if net else f"http://127.0.0.1:{port}"
     try:
         if not wait_up(base, "/sim/status"):
@@ -428,6 +428,10 @@ def run_episode(port, a, outdir, horizon, net=None, model_url=None):
             bp.wait(timeout=30)
         except Exception:
             bp.kill()
+        try:
+            os.remove(state_path(port))
+        except OSError:
+            pass
         try:
             from bench import sandbox
             sandbox.kill_sandbox_proc(None, oc_port=port + 200)

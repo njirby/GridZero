@@ -11,9 +11,11 @@ pair connects it to the host:
   - host side  : 10.200.<sub>.1  (gateway for the netns; sub = port % 250)
   - netns side : 10.200.<sub>.2  (the backend listens on 0.0.0.0:port here)
 The ONLY external service the agent needs is vLLM: a tiny host-side TCP
-forwarder on the gateway IP proxies <gw>:8002 -> 127.0.0.1:8002 (no NAT, no
-iptables state). Everything else (sibling backends, 8001, 8731, the internet)
-is unreachable.
+forwarder on the gateway IP proxies <gw>:8002 -> 127.0.0.1:8002 (no NAT).
+Host INPUT admits ONLY tcp <gw>:<vllm_port> from the episode veth and
+DROPs everything else arriving on it, so every other host service on the
+gateway IP (8001 raw vLLM, 8731, sibling backends, ...) and the internet are
+unreachable.
 
 Inside the netns, localhost still works for the two in-netns services
 (backend at 127.0.0.1:port, opencode at 127.0.0.1:oc_port), so simctl /
@@ -89,6 +91,20 @@ class EpisodeNet:
                 if m:
                     subprocess.run(["sudo", "-n", "kill", "-9", m.group(1)], capture_output=True)
 
+    def _fw_rules(self):
+        """(accept, drop) iptables rule specs this episode adds to INPUT."""
+        accept = ["-i", self.h_veth, "-s", self.inside, "-d", self.gw, "-p", "tcp",
+                  "--dport", str(self.vllm_port), "-j", "ACCEPT"]
+        drop = ["-i", self.h_veth, "-j", "DROP"]
+        return accept, drop
+
+    def _del_fw_rules(self):
+        """Delete exactly the rules setup() adds (every copy, so stale ones go too)."""
+        for rule in self._fw_rules():
+            while subprocess.run(["sudo", "-n", "iptables", "-D", "INPUT"] + rule,
+                                 capture_output=True).returncode == 0:
+                pass
+
     # ---- lifecycle ----
     def setup(self):
         # best-effort cleanup of a stale netns/pair from a crashed run
@@ -109,10 +125,15 @@ class EpisodeNet:
         self._run(["ip", "addr", "add", f"{self.inside}/24", "dev", self.s_veth])
         self._run(["ip", "link", "set", self.s_veth, "up"])
         self._run(["ip", "route", "add", "default", "via", self.gw])
-        # host INPUT policy is DROP: let the episode subnet in on the host veth
-        # (only the forwarder on the gw IP listens there; everything else 404s)
-        subprocess.run(["sudo", "-n", "iptables", "-A", "INPUT", "-i", self.h_veth,
-                        "-s", "10.200.0.0/16", "-j", "ACCEPT"], check=True, capture_output=True)
+        # host INPUT: admit ONLY the vLLM forwarder port on the gw IP from this
+        # veth, then DROP everything else arriving on it (the sandbox shares the
+        # gateway IP with every host service listening on 0.0.0.0).
+        self._del_fw_rules()  # stale rules from a crashed run
+        accept, drop = self._fw_rules()
+        subprocess.run(["sudo", "-n", "iptables", "-I", "INPUT", "1"] + drop,
+                       check=True, capture_output=True)
+        subprocess.run(["sudo", "-n", "iptables", "-I", "INPUT", "1"] + accept,
+                       check=True, capture_output=True)
         # the only external service the agent gets: vLLM via the gateway IP
         self._kill_listener(f"{self.gw}:{self.vllm_port}")
         if self.log_dir:
@@ -144,8 +165,7 @@ class EpisodeNet:
         # del the netns first (drops the veth peer inside it), then the host veth
         subprocess.run(["sudo", "-n", "ip", "netns", "del", self.name], capture_output=True)
         subprocess.run(["sudo", "-n", "ip", "link", "del", self.h_veth], capture_output=True)
-        subprocess.run(["sudo", "-n", "iptables", "-D", "INPUT", "-i", self.h_veth,
-                        "-s", "10.200.0.0/16", "-j", "ACCEPT"], capture_output=True)
+        self._del_fw_rules()
         self._kill_listener(f"{self.gw}:{self.vllm_port}")  # orphaned-forwarder sweep
         if self._log:
             try:

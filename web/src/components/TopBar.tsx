@@ -22,12 +22,12 @@ export function TopBar({ sim, mode, sessionStatus, conn }: {
       <ModelSelector />
       <div className="tb-controls">
         {mode === "agent"
-          ? <button onClick={() => { controls.pause(); setMode("paused"); }}>Pause</button>
-          : <button onClick={() => { controls.resume(); setMode("agent"); }}>Resume</button>}
+          ? <button onClick={() => { setMode("paused", controls.pause); }}>Pause</button>
+          : <button onClick={() => { setMode("agent", controls.resume); }}>Resume</button>}
         <button onClick={() => controls.singleStep()}>Step +1</button>
         {mode === "manual"
-          ? <button onClick={() => { controls.release(); setMode("agent"); }}>Release</button>
-          : <button onClick={() => { controls.takeOver(); setMode("manual"); }}>Take over</button>}
+          ? <button onClick={() => { setMode("agent", controls.release); }}>Release</button>
+          : <button onClick={() => { setMode("manual", controls.takeOver); }}>Take over</button>}
         <button className="danger" onClick={() => controls.reset()}>Reset</button>
       </div>
     </div>

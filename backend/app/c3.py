@@ -60,7 +60,8 @@ def build_meta(env) -> dict:
             "delta_min": 5.0, "subs": subs, "lines": lines, "gens": gens}
 
 
-def to_c3(env, obs, reward, cum_reward, last_action=None, png="") -> dict:
+def to_c3(env, obs, reward, cum_reward, last_action=None, png="", done=None, cause=None,
+           disc_lines=None) -> dict:
     """Build a full GRID-STATE (C3) from a live obs.
 
     NOTE: only reads static env attrs (name_*, grid_layout, *_to_subid) + obs
@@ -122,10 +123,11 @@ def to_c3(env, obs, reward, cum_reward, last_action=None, png="") -> dict:
         "schema_version": SCHEMA_VERSION, "env": _env_name(env),
         "t": int(obs.current_step), "max_t": int(obs.max_step),
         "reward": round(_f(reward), 4), "cum_reward": round(_f(cum_reward), 4),
-        "done": bool(obs.current_step >= obs.max_step), "cause": None,
+        "done": bool(obs.current_step >= obs.max_step) if done is None else bool(done),
+        "cause": cause,
         "delta_min": _f(obs.delta_time, 5.0), "sim_clock": str(obs.get_time_stamp()),
         "n_line": int(env.n_line), "n_sub": int(env.n_sub), "n_gen": int(env.n_gen),
         "max_rho": round(max_rho, 4), "n_down": n_down, "n_overflow": n_overflow,
         "lines": lines, "subs": subs, "gens": gens, "alarms": [],
-        "last_action": last_action, "png": png,
+        "last_action": last_action, "last_disc_lines": list(disc_lines or []), "png": png,
     }

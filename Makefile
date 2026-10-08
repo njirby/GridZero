@@ -57,7 +57,7 @@ bench-pilot:
 bench-pilot-1:
 	cd $(ROOT) && $(PY) bench/run_llm.py --chronic 0 --horizon 96 --port 8820
 bench-report:
-	cd $(ROOT) && $(PY) bench/report.py --baselines $(wildcard runs/bench-*/baselines.jsonl) --llm $(wildcard runs/llm-*/results.json) --out runs/leaderboard
+	cd $(ROOT) && $(PY) bench/report.py $(addprefix --baselines ,$(wildcard runs/bench-*/baselines.jsonl)) $(addprefix --llm ,$(wildcard runs/llm-*/results.json)) --out runs/leaderboard
 
 clean:
 	rm -rf runs/eval-* runs/llm-* runs/bench-* runs/backend-*.log web/dist web/node_modules/.vite
