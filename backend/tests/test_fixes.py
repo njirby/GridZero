@@ -35,7 +35,7 @@ def test_step_outcome_lines_down_overloads(sess):
 def test_illegal_reason_in_error(sess):
     out, verb, err = sess.act({"set_line_status": {"0_4_1": -1, "1_3_3": -1}})
     assert out["illegal"] is True
-    assert "More than 1 line status" in err and err.startswith("Illegal action")
+    assert "at most 1 line status change per action" in err and err.startswith("Illegal action")
 
 
 # ---- 3/4: done, cause, post-done rejection, no "reset" hint

@@ -26,6 +26,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(HERE, "..", "..")))
 from backend.app import c3_changes  # noqa: E402
 
 HIDE_HORIZON = os.environ.get("SIM_HIDE_HORIZON", "") == "1"
+HISTORY_FIELDS = {"line": ("rho", "p_or", "status"), "gen": ("p", "target_dispatch", "actual_dispatch"),
+                  "sub": ("p",)}
 
 
 def _agent_view(d):
@@ -97,6 +99,25 @@ class MockSim:
             s = self.state()
             self.view = c3_changes.new_view(s)
             return s
+
+    def history(self, kind, name, last):
+        """Readings of one element for the last `last` steps, taken from the
+        nearest fixture at each t (the mock has no real dynamics)."""
+        fields = HISTORY_FIELDS.get(kind)
+        if fields is None:
+            raise KeyError(f"unknown kind {kind!r} (valid: {', '.join(HISTORY_FIELDS)})")
+        with self.lock:
+            names = [e["name"] for e in S_T0[kind + "s"]]
+            idx = (names.index(name) if name in names else names.index(f"sub_{name}")
+                   if kind == "sub" and f"sub_{name}" in names else None)
+            if idx is None:
+                raise KeyError(f"unknown {kind} {name!r}")
+            last = max(1, min(int(last), 288))
+            rows = []
+            for t in range(max(0, self.t - last + 1), self.t + 1):
+                e = _fill_optional(json.loads(json.dumps(self.nearest(t)[1])))[kind + "s"][idx]
+                rows.append({"t": t, **{f: e[f] for f in fields}})
+            return {"kind": kind, "name": names[idx], "fields": list(fields), "rows": rows, "max_last": 288}
 
     def changes(self, rho_eps, mw_eps):
         with self.lock:
@@ -196,6 +217,12 @@ class Handler(BaseHTTPRequestHandler):
         elif p == "/sim/state":
             full = q.get("view", [""])[0] == "full"
             self._json(envelope(True, _agent_view(SIM.view_full() if full else SIM.state())))
+        elif p == "/sim/history":
+            try:
+                d = SIM.history(q.get("kind", [""])[0], q.get("name", [""])[0], q.get("last", ["12"])[0])
+            except KeyError as e:
+                return self._json(envelope(False, None, error=e.args[0]))
+            self._json(envelope(True, d))
         elif p == "/sim/changes":
             try:
                 rho_eps = float(q.get("rho_eps", [os.environ.get("SIM_CHANGES_RHO_EPS") or c3_changes.DEFAULT_RHO_EPS])[0])

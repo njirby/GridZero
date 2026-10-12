@@ -11,7 +11,11 @@ Exit codes: 0 ok · 1 sim-rejected (illegal/ambiguous) · 2 backend unreachable/
 See contracts/C1-simctl.md for the full reference.
 """
 import argparse
+import difflib
+import fnmatch
 import json
+import re
+import signal
 import os
 import sys
 import urllib.parse
@@ -101,18 +105,9 @@ def _t(d):
     return f"{d.get('t')}/{d['max_t']}" if d.get("max_t") is not None else f"{d.get('t')}"
 
 
-def _kv(e, skip=()):
-    out = []
-    for k, v in e.items():
-        if k in skip:
-            continue
-        out.append(f"{k}={v if isinstance(v, str) else json.dumps(v)}")
-    return " ".join(out)
-
-
 def changes_text(d):
-    """Render a /sim/changes payload: one header line, then one line per changed
-    entity (all its fields; sub map coords x/y omitted)."""
+    """Render a /sim/changes payload: one header line, the last-act line, then
+    the changed entities in the `grid` row format (every field: `simctl get`)."""
     since = "start (full state, no previous view)" if d.get("full") else f"t={d.get('changes_since_t')}"
     th = d.get("thresholds", {})
     L = [f"changes since {since} -> t={_t(d)} · reward={d.get('reward', 0):.1f} "
@@ -122,14 +117,16 @@ def changes_text(d):
          f" · changed: lines {d.get('lines_changed', 0)}/{d.get('n_line')} subs {d.get('subs_changed', 0)}/{d.get('n_sub')}"
          f" gens {d.get('gens_changed', 0)}/{d.get('n_gen')} · thresholds rho={th.get('rho_eps')} mw={th.get('mw_eps')}"
          + (f" · overflow_allowed={d['overflow_allowed']}" if d.get("overflow_allowed") is not None else "")]
-    for kind, skip in (("lines", ()), ("subs", ("x", "y")), ("gens", ())):
-        for e in d.get(kind, []):
-            L.append(f"{kind[:-1]} {e.get('name')} " + _kv(e, ("name",) + skip))
     la = d.get("last_action")
     if la:
         tripped = d.get("last_disc_lines") or []
         L.append(f"since your last act (t={la.get('t')} {la.get('summary')}): "
                  + (f"tripped: [{', '.join(tripped)}]" if tripped else "no trips"))
+    for kind, key in KINDS.items():  # same rows/flags as `simctl grid`
+        ents = d.get(key, [])
+        if ents:
+            L.append(f"{key.upper()} changed ({len(ents)}/{d.get('n_' + kind)}) — {SECTION_HEAD[kind]}")
+            L += _rows(kind, ents, d.get("overflow_allowed"))
     return "\n".join(L)
 
 
@@ -213,10 +210,277 @@ def cmd_observe(a):
         return emit({**b, "_human": f"error: {b.get('error') or 'no state'}"}, a, 2)
     if a.json:
         return emit(b, a, 0)  # full envelope, data = C3
-    if a.detailed:
-        print(json.dumps(s, indent=2))
+    if a.detailed:  # same view as `simctl grid`
+        print(grid_text(s))
         sys.exit(0)
     return emit({**b, "data": s, "_human": compact_observe(s)}, a, 0)
+
+
+# ===================== query interface: grid / get / list / history =====================
+KINDS = {"line": "lines", "sub": "subs", "gen": "gens"}
+
+
+def _state(a, full=False):
+    b = get(a, "/sim/state" + ("?view=full" if full else ""), a.base_url, a.token)
+    s = b.get("data") or {}
+    if not b.get("ok") or not s:
+        emit({**b, "_human": f"error: {b.get('error') or 'no state'}"}, a, 2)
+    return b, s
+
+
+def _v(v):
+    """A field value as printed by get/list: strings raw, everything else JSON."""
+    return v if isinstance(v, str) else json.dumps(v)
+
+
+def _line_flags(l, allowed):
+    f = []
+    if l["status"] != "up":
+        f.append(l["status"])
+    if l.get("cooldown", 0) > 0:
+        f.append(f"cooldown={l['cooldown']}")
+    m = l.get("maint", -1)
+    if m == 0 and l["status"] != "maintenance":
+        f.append("maint=now")
+    elif m > 0:
+        f.append(f"maint in {m}")
+    bus_default = -1 if l["status"] == "down" else 1
+    for end in ("or_bus", "ex_bus"):
+        if end in l and l[end] != bus_default:
+            f.append(f"{end}={l[end]}")
+    ts = l.get("timestep_overflow", 0)
+    if ts > 0:
+        f.append(f"overflow {ts}/{allowed}" if allowed is not None else f"overflow {ts}")
+    elif l.get("overflow"):
+        f.append("overflow")
+    return f
+
+
+def _gen_flags(g):
+    f = []
+    if g.get("connected") is False:
+        f.append("disconnected")
+    if g.get("target_dispatch") or g.get("actual_dispatch"):
+        f.append(f"dispatch target={g.get('target_dispatch', 0):g} actual={g.get('actual_dispatch', 0):g}")
+    return f
+
+
+def _rows(kind, ents, allowed, extra=()):
+    """Compact rows (grid/list): defaults omitted, flags only when non-default.
+    `extra` fields are appended as field=value (list --sort/--where fields)."""
+    w = max((len(e["name"]) for e in ents), default=4)
+    out = []
+    for e in ents:
+        if kind == "line":
+            cells = [f"{e['name']:<{w}}", f"{e['rho']:6.3f}", f"{e['p_or']:8.1f}"] + _line_flags(e, allowed)
+        elif kind == "sub":
+            cells = [f"{e['name']:<{w}}", f"{e['type']:<5}", f"{e['p']:8.1f}"]
+        else:
+            mark = ("R" if e.get("redispatchable") else "-") + ("W" if e.get("renewable") else "-")
+            cells = [f"{e['name']:<{w}}", f"{e['sub']:<7}", f"{e['p']:7.1f}", mark] + _gen_flags(e)
+        cells += [f"{k}={_v(e.get(k))}" for k in extra]
+        out.append("  " + " ".join(cells).rstrip())
+    return out
+
+
+# fields a compact row already conveys (value, flag, or the stated default);
+# list appends any other --sort/--where field as field=value
+ROW_FIELDS = {
+    "line": {"name", "rho", "p_or", "status", "overflow", "cooldown", "maint", "or_bus", "ex_bus",
+             "timestep_overflow"},
+    "sub": {"name", "type", "p"},
+    "gen": {"name", "sub", "p", "redispatchable", "renewable", "connected", "target_dispatch",
+            "actual_dispatch"},
+}
+
+SECTION_HEAD = {
+    "line": "name rho p_or(MW) [flags]; flags only when not default: status (down/cooldown/maintenance), "
+            "cooldown=N, maint=now|in N, or_bus=/ex_bus= (default 1; -1 when down), overflow k/allowed",
+    "sub": "name type net_p(MW, gen positive)",
+    "gen": "name sub p(MW) R=redispatchable W=renewable [flags: disconnected, dispatch target= actual= (MW, when non-zero)]",
+}
+
+
+def grid_text(s):
+    allowed = s.get("overflow_allowed")
+    done = "yes" + (f" ({s['cause']})" if s.get("cause") else "") if s.get("done") else "no"
+    L = [f"t={_t(s)} reward={s.get('reward', 0):.1f} (cum {s.get('cum_reward', 0):.1f}) done={done} · "
+         f"max_rho={s.get('max_rho', 0):.3f} n_down={s.get('n_down', 0)} n_overflow={s.get('n_overflow', 0)} "
+         f"overflow_allowed={allowed} · sim_clock={s.get('sim_clock')}"]
+    la = s.get("last_action")
+    if la:
+        tripped = s.get("last_disc_lines") or []
+        L.append(f"since your last act (t={la.get('t')} {la.get('summary')}): "
+                 + (f"tripped: [{', '.join(tripped)}]" if tripped else "no trips"))
+    for kind, key in KINDS.items():
+        ents = s.get(key, [])
+        L.append(f"{key.upper()} ({len(ents)}) — {SECTION_HEAD[kind]}")
+        L += _rows(kind, ents, allowed)
+    L.append("(every field of one element: simctl get <line|sub|gen>.<name>; all fields as JSON: simctl --json grid)")
+    return "\n".join(L)
+
+
+def cmd_grid(a):
+    b, s = _state(a, full=True)  # the whole state: also the --changes baseline
+    if a.json:
+        return emit(b, a, 0)
+    print(grid_text(s))
+    sys.exit(0)
+
+
+def _parse_target(spec, allow_state=False):
+    kind, _, name = spec.partition(".")
+    kind = kind.rstrip("s") if kind.endswith("s") and kind.rstrip("s") in KINDS else kind
+    if allow_state and kind == "state" and not name:
+        return "state", ""
+    if kind not in KINDS or not name:
+        die(f"error: bad arguments — expected <kind>.<name> with kind one of "
+            f"{', '.join(KINDS)}{', or `state`' if allow_state else ''} (e.g. line.4_10_162, sub.sub_4, sub.4, gen.gen_7_2); got {spec!r}", 3)
+    return kind, name
+
+
+def _resolve(s, kind, name):
+    ents = s.get(KINDS[kind], [])
+    names = [e["name"] for e in ents]
+    if any(ch in name for ch in "*?["):
+        hit = [e for e in ents if fnmatch.fnmatchcase(e["name"], name)]
+    elif name in names:
+        hit = [ents[names.index(name)]]
+    elif kind == "sub" and f"sub_{name}" in names:
+        hit = [ents[names.index(f"sub_{name}")]]
+    elif name.isdigit() and int(name) < len(ents):
+        hit = [ents[int(name)]]
+    else:
+        hit = []
+    if not hit:
+        close = difflib.get_close_matches(name, names, n=5, cutoff=0.5)
+        die(f"error: unknown {kind} {name!r}" + (f"; closest: {', '.join(close)}" if close else "")
+            + f" (`simctl list {KINDS[kind]}` lists all {len(names)})", 3)
+    return hit
+
+
+def _attached(s, sub):
+    lines = []
+    for l in s.get("lines", []):
+        for end, sk, bk in (("or", "or", "or_bus"), ("ex", "ex", "ex_bus")):
+            if l[sk] == sub["name"]:
+                lines.append({"line": l["name"], "end": end, "bus": l.get(bk), "status": l["status"],
+                              "rho": l["rho"], "p_or": l["p_or"]})
+    gens = [{"gen": g["name"], "p": g["p"], "connected": g.get("connected")}
+            for g in s.get("gens", []) if g["sub"] == sub["name"]]
+    return {"lines": lines, "gens": gens}
+
+
+def cmd_get(a):
+    kind, name = _parse_target(a.target, allow_state=True)
+    b, s = _state(a)
+    if kind == "state":
+        obj = {k: v for k, v in s.items() if k not in KINDS.values()}
+        if a.json:
+            return emit({**b, "data": {"kind": "state", "objects": [obj]}}, a, 0)
+        print("\n".join(["state"] + [f"  {k}: {_v(v)}" for k, v in obj.items()]))
+        sys.exit(0)
+    hits = _resolve(s, kind, name)
+    att = {h["name"]: _attached(s, h) for h in hits} if kind == "sub" else {}
+    if a.json:
+        return emit({**b, "data": {"kind": kind, "objects": hits, "attached": att}}, a, 0)
+    L = []
+    for h in hits:
+        L.append(f"{kind} {h['name']}")
+        L += [f"  {k}: {_v(v)}" for k, v in h.items()]
+        if kind == "sub":
+            at = att[h["name"]]
+            L.append(f"  attached lines ({len(at['lines'])}):")
+            L += [f"    {x['line']} {x['end']} end, bus={x['bus']}, status={x['status']}, rho={x['rho']}, p_or={x['p_or']}"
+                  for x in at["lines"]]
+            L.append(f"  attached gens ({len(at['gens'])}):")
+            L += [f"    {x['gen']} p={x['p']} connected={_v(x['connected'])}" for x in at["gens"]]
+    print("\n".join(L))
+    sys.exit(0)
+
+
+_WHERE = re.compile(r"^([A-Za-z_]+)\s*(!=|>=|<=|=|>|<)\s*(.*)$")
+
+
+def _match(v, op, raw):
+    if isinstance(v, bool):
+        want = raw.strip().lower()
+        if want not in ("true", "false"):
+            die(f"error: bad arguments — boolean field compared to {raw!r} (use true/false)", 3)
+        res = v == (want == "true")
+        return res if op == "=" else not res if op == "!=" else die("error: bad arguments — use = or != for booleans", 3)
+    if isinstance(v, (int, float)) and not isinstance(v, bool):
+        try:
+            x = float(raw)
+        except ValueError:
+            die(f"error: bad arguments — numeric field compared to {raw!r}", 3)
+        return {"=": v == x, "!=": v != x, ">": v > x, "<": v < x, ">=": v >= x, "<=": v <= x}[op]
+    sv = "" if v is None else str(v)
+    if op in ("=", "!="):
+        res = fnmatch.fnmatchcase(sv, raw)
+        return res if op == "=" else not res
+    return {">": sv > raw, "<": sv < raw, ">=": sv >= raw, "<=": sv <= raw}[op]
+
+
+def cmd_list(a):
+    kind = a.kind.rstrip("s")
+    if kind not in KINDS:
+        die(f"error: bad arguments — list lines|subs|gens, got {a.kind!r}", 3)
+    b, s = _state(a)
+    ents = s.get(KINDS[kind], [])
+    fields = list(ents[0]) if ents else []
+    extra = []
+    conds = []
+    for w in a.where or []:
+        m = _WHERE.match(w)
+        if not m:
+            die(f"error: bad arguments — --where expects FIELD=VALUE (or !=, >, <, >=, <=), got {w!r}", 3)
+        conds.append(m.groups())
+    for f in [c[0] for c in conds] + ([a.sort] if a.sort else []):
+        if f not in fields:
+            die(f"error: bad arguments — unknown {kind} field {f!r}; fields: {', '.join(fields)}", 3)
+        if f not in extra:
+            extra.append(f)
+    sel = [e for e in ents if all(_match(e.get(f), op, raw) for f, op, raw in conds)]
+    if a.sort:
+        sel.sort(key=lambda e: (e.get(a.sort) is None, e.get(a.sort)), reverse=not a.asc)
+    n_match = len(sel)
+    if a.top:
+        sel = sel[:a.top]
+    if a.json:
+        return emit({**b, "data": {"kind": kind, "n_match": n_match, "n_total": len(ents), "objects": sel}}, a, 0)
+    desc = []
+    if conds:
+        desc.append("where " + " and ".join(f"{f}{op}{raw}" for f, op, raw in conds))
+    if a.sort:
+        desc.append(f"sorted by {a.sort} {'ascending' if a.asc else 'descending'}")
+    if a.top:
+        desc.append(f"top {a.top}")
+    shown = [x for x in extra if x not in ROW_FIELDS[kind]]
+    L = [f"{len(sel)} of {n_match} matching {KINDS[kind]} (of {len(ents)})" + (f" · {', '.join(desc)}" if desc else "")
+         + f" — {SECTION_HEAD[kind]}"]
+    L += _rows(kind, sel, s.get("overflow_allowed"), shown)
+    print("\n".join(L))
+    sys.exit(0)
+
+
+def cmd_history(a):
+    kind, name = _parse_target(a.target)
+    q = urllib.parse.urlencode({"kind": kind, "name": name, "last": a.last})
+    b = get(a, "/sim/history?" + q, a.base_url, a.token)
+    d = b.get("data") or {}
+    if not b.get("ok"):
+        return emit({**b, "_human": f"error: {b.get('error')}"}, a, 3)
+    if a.json:
+        return emit(b, a, 0)
+    cols = ["t"] + d["fields"]
+    rows = [[str(r[c]) if not isinstance(r[c], float) else f"{r[c]:g}" for c in cols] for r in d["rows"]]
+    w = [max([len(c)] + [len(r[i]) for r in rows]) for i, c in enumerate(cols)]
+    L = [f"{kind} {d['name']} — last {len(rows)} step(s) (history keeps up to {d['max_last']})",
+         "  " + "  ".join(c.rjust(w[i]) for i, c in enumerate(cols))]
+    L += ["  " + "  ".join(v.rjust(w[i]) for i, v in enumerate(r)) for r in rows]
+    print("\n".join(L))
+    sys.exit(0)
 
 
 def cmd_render(a):
@@ -276,6 +540,8 @@ def cmd_attack(a):
 
 
 def main():
+    if hasattr(signal, "SIGPIPE"):  # `simctl grid | head` exits quietly
+        signal.signal(signal.SIGPIPE, signal.SIG_DFL)
     argv = sys.argv[1:]
     # Pre-scan global flags so they work in ANY position (before or after the
     # subcommand): `simctl --json observe` and `simctl observe --json` both work.
@@ -318,6 +584,19 @@ def main():
                     help="only entities changed since your last --detailed/--changes view")
     po.add_argument("--rho-eps", type=float, help="--changes: line rho threshold (backend default, normally 0.01)")
     po.add_argument("--mw-eps", type=float, help="--changes: gen/sub MW threshold (backend default, normally 1.0)")
+    sub.add_parser("grid")
+    pg = sub.add_parser("get")
+    pg.add_argument("target", help="<line|sub|gen>.<name> (name may be an id or a glob), or `state`")
+    pl = sub.add_parser("list")
+    pl.add_argument("kind", help="lines | subs | gens")
+    pl.add_argument("--sort", help="field to sort by (descending; add --asc for ascending)")
+    pl.add_argument("--asc", action="store_true")
+    pl.add_argument("--top", type=int)
+    pl.add_argument("--where", action="append",
+                    help="FIELD=VALUE (also !=, >, <, >=, <=; strings accept globs); repeat to AND")
+    ph = sub.add_parser("history")
+    ph.add_argument("target", help="<line|sub|gen>.<name>")
+    ph.add_argument("--last", type=int, default=12)
     prd = sub.add_parser("render")
     prd.add_argument("--out")
     prd.add_argument("--width", type=int)
@@ -334,10 +613,11 @@ def main():
     a.base_url = g_base
     a.token = g_token
     if not a.cmd:
-        die("usage: simctl [--json] [--base-url URL] [--token TOKEN] <status|reset|step|act|observe|render|docs|attack>", 3)
+        die("usage: simctl [--json] [--base-url URL] [--token TOKEN] <status|reset|step|act|observe|grid|get|list|history|render|docs|attack>", 3)
     dispatch = {
         "status": cmd_status, "reset": cmd_reset, "step": cmd_step, "act": cmd_act,
-        "observe": cmd_observe, "render": cmd_render, "docs": cmd_docs, "attack": cmd_attack,
+        "observe": cmd_observe, "render": cmd_render, "grid": cmd_grid, "get": cmd_get,
+        "list": cmd_list, "history": cmd_history, "docs": cmd_docs, "attack": cmd_attack,
     }
     dispatch[a.cmd](a)
 

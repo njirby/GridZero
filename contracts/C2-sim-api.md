@@ -51,8 +51,9 @@ Returns the full **GRID-STATE (C3)** object in `data`.
 ```json
 {"ok":true,"data":{ ...C3... }}
 ```
-Query `view=full` (sent by `simctl observe --detailed` and `observe --json`,
-i.e. whenever the whole C3 is shown to the model) additionally records this
+Query `view=full` (sent by `simctl grid` / `observe --detailed` and their
+`--json`, and by `observe --json`, i.e. whenever the whole state is shown to
+the model) additionally records this
 C3 as the caller's baseline for `/sim/changes`. Without it the call has no
 side effect (the compact `simctl observe` and the UI don't move the baseline).
 
@@ -117,9 +118,22 @@ routes `GET /event` (`/api/event`) and `GET /state`. `POST /sim/step` with
 `n>1` without the operator token is clamped to 1, and a `source` field in
 `POST /sim/act` is honored only with the operator token (otherwise the act is
 attributed to the agent). Open routes: `/sim/status`, `/sim/state` (the C3 the
-model sees), `/sim/changes`, `/sim/act`, `/sim/step` (n=1), `/sim/render`. Without a
+model sees), `/sim/changes`, `/sim/history`, `/sim/act`, `/sim/step` (n=1), `/sim/render`. Without a
 configured token (interactive dev mode) everything is open. `reward` at t=0 is
 the reset value (-10.0, a placeholder); `cum_reward` excludes it.
+
+### `GET /sim/history?kind=line|gen|sub&name=<name>&last=12`
+Per-step readings of one element (`simctl history`), from a rolling buffer the
+backend keeps (one compact float32 record per sim step, capped at 288 steps =
+one simulated day, ~0.8 MB on idf_2023; cleared by a reset). `name` may also
+be the element id, and for subs the bare number (`4` = `sub_4`). Fields:
+line `rho, p_or, status`; gen `p, target_dispatch, actual_dispatch`; sub `p`.
+```json
+{"ok":true,"data":{"kind":"line","name":"113_114_78","fields":["rho","p_or","status"],
+ "rows":[{"t":10,"rho":0.8436,"p_or":-55.37,"status":"up"},{"t":11,"rho":0.7749,"p_or":-50.635,"status":"up"}],
+ "max_last":288},"error":null,"verbose":{}}
+```
+Unknown kind/name → `ok:false`, `error:"unknown line 'zzz'; closest: …"`.
 
 ### `POST /sim/reset`
 Body: `{"env": "l2rpn_case14_sandbox"}` (env optional). Starts a new episode.
@@ -158,13 +172,40 @@ ignored. (See `docs/grid2op/action_space.md`.)
  "verbose":{"is_illegal":false,"is_ambiguous":false,"opponent_attack_line":null,
  "predicted_disc_lines":[]}}
 ```
-Rejections (`ok:false`, exit 1 in `simctl`):
-- grid2op illegal/ambiguous: `error:"Illegal action: <reason>"` (or
-  `Ambiguous action: …`); the step DID advance with the action replaced by
-  do-nothing (reward 0); `data.illegal:true`.
-- action could not be built (bad shape, unknown element):
-  `error:"Illegal — <reason>"`; time does NOT advance, `data` carries the
+Rejections (`ok:false`, exit 1 in `simctl`). The `error` is a factual
+explanation built by `backend/app/explain.py` from the action and the
+PRE-step state (element, what was requested, the violated limit and its
+value), and always ends by saying whether time advanced:
+- `Invalid action: <why>. Not applied; time did NOT advance (t=N).` — the
+  action could not be built (bad shape, unknown element name with closest
+  matches, value out of range: curtail outside 0..1, bus not in -1/1/2,
+  non-numeric value, storage on a grid without storage). `data` carries the
   unchanged `t`/`reward`.
+- `Illegal action: <why>. Not applied: the step advanced to t=N with
+  do-nothing instead (reward R).` or `Ambiguous action: …` — grid2op rejected
+  it during the step: line/substation cooldown (remaining steps), more than
+  MAX_LINE_STATUS_CHANGED / MAX_SUB_CHANGED per action (per area on
+  idf_2023), redispatch on a non-redispatchable gen, beyond the gen's
+  ramp-up/down per step, cumulative target beyond pmax − pmin, a turned-off
+  gen, curtail on a non-renewable gen, storage power beyond its max
+  charge/discharge. Also raised for grid2op's `IllegalRedispatching` (target
+  beyond pmax − pmin), which grid2op reports without the illegal/ambiguous
+  flags. Unmapped grid2op failures fall back to `<ExceptionClass>: <grid2op
+  text>`. The C3 `last_action.summary` of a rejected act ends with
+  ` (rejected, not applied)`.
+
+Examples (real, idf_2023 / case14):
+```
+Ambiguous action: redispatch gen_7_2 -60 MW exceeds its ramp-down limit 3.5 MW/step (current target_dispatch -3.5 MW). Not applied: the step advanced to t=7 with do-nothing instead (reward 0).
+Ambiguous action: gen_3_0 is not redispatchable (redispatchable gens: `simctl list gens --where redispatchable=true`). Not applied: the step advanced to t=10 with do-nothing instead (reward 0).
+Illegal action: line 4_10_162 cannot be changed for 6 more steps (cooldown: 3 steps after an action on it, 12 after a trip). Not applied: the step advanced to t=11 with do-nothing instead (reward 0).
+Illegal action: substation sub_0 cannot be changed for 3 more steps (cooldown: 3 steps after a topology change). Not applied: the step advanced to t=2 with do-nothing instead (reward 0).
+Illegal action: at most 1 line status change per action in each area (got 2: 21_22_93, 26_31_106). Not applied: the step advanced to t=6 with do-nothing instead (reward 0).
+Illegal action: redispatch gen_0_5 +15 MW would make its target_dispatch 105 MW, above pmax - pmin = 100 MW (pmax 100, pmin 0). Not applied: the step advanced to t=7 with do-nothing instead (reward 0).
+Ambiguous action: set_storage storage_22_0 50 MW exceeds its max charging power 12 MW (positive = charge). Not applied: the step advanced to t=6 with do-nothing instead (reward 0).
+Invalid action: unknown generator 'gen_7_3'; closest names: gen_79_43, gen_9_3, gen_7_2 (`simctl list gens` lists them). Not applied; time did NOT advance (t=2).
+Invalid action: curtail value for gen_5_2 must be between 0.0 and 1.0 (fraction of pmax), got 1.5. Not applied; time did NOT advance (t=5).
+```
 
 `verbose.opponent_attack_line` is the list of line NAMES a built-in opponent
 is attacking on this step (e.g. `["99_105_62"]` on `l2rpn_idf_2023`), `null`

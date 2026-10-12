@@ -32,6 +32,11 @@ def hidden():  # horizon 3, hidden from the agent
     _stop(proc)
 
 
+def _row(text, name):
+    """The grid-format row of `name` in a --changes text output."""
+    return next(ln for ln in text.splitlines() if ln.startswith("  ") and ln.split()[0] == name)
+
+
 def _op_step(base, n):
     """Operator fast-forward (n<=50 per call) — the model can't do this."""
     req = urllib.request.Request(base + "/sim/step", data=json.dumps({"n": n}).encode(), method="POST",
@@ -49,7 +54,8 @@ def test_changes_cli_flow(case14):
     head, *rows = r.stdout.strip().splitlines()
     assert head.startswith("changes since start (full state, no previous view)")
     assert "lines 20/20" in head and "thresholds rho=0.01 mw=1.0" in head
-    assert sum(1 for x in rows if x.startswith("line ")) == 20
+    assert "LINES changed (20/20)" in r.stdout
+    assert sum(1 for x in rows if x.startswith("  ") and "_" in x.split()[0] and not x.split()[0].startswith(("sub_", "gen_"))) == 20
     assert simctl(case14, "step").returncode == 0
     r = simctl(case14, "observe", "--changes")
     head = r.stdout.splitlines()[0]
@@ -86,12 +92,15 @@ def test_idf_env_sizes_and_attack(idf):
     assert "env=l2rpn_idf_2023" in simctl(idf, "status").stdout
     compact = simctl(idf, "observe")
     assert compact.returncode == 0 and "max_rho=" in compact.stdout
-    det = simctl(idf, "observe", "--detailed")
-    s = json.loads(det.stdout)
+    det = simctl(idf, "observe", "--detailed")          # the compact grid tables
+    assert det.stdout == simctl(idf, "grid").stdout
+    assert len(det.stdout.splitlines()) < 2000 and len(det.stdout) < 50_000
+    s = json.loads(simctl(idf, "--json", "observe").stdout)["data"]
     assert s["env"] == "l2rpn_idf_2023" and len(s["lines"]) == 186 and len(s["subs"]) == 118
     # line name <or>_<ex>_<id> matches the or/ex endpoints -> adjacency is readable
     assert all(l["name"].split("_")[:2] == [l["or"][4:], l["ex"][4:]] for l in s["lines"])
-    sizes = {"detailed": len(det.stdout), "observe(compact)": len(compact.stdout)}
+    sizes = {"old --detailed (indent=2 JSON)": len(json.dumps(s, indent=2)), "detailed": len(det.stdout),
+             "observe(compact)": len(compact.stdout)}
 
     def changes(tag):
         h = simctl(idf, "observe", "--changes")
@@ -108,7 +117,7 @@ def test_idf_env_sizes_and_attack(idf):
         simctl(idf, "step")
     trip = changes("t=4 trips")
     for n in ("21_22_93", "26_31_106", "4_10_162"):
-        assert f"line {n} " in trip and "status=down" in trip.split(f"line {n} ")[1].splitlines()[0]
+        assert "down" in _row(trip, n).split()
     # built-in opponent: GeometricOpponentMultiArea cuts 99_105_62 at t=99 on this seed
     _op_step(idf, 50)
     _op_step(idf, 98 - 54)
@@ -117,7 +126,7 @@ def test_idf_env_sizes_and_attack(idf):
     st = json.loads(simctl(idf, "--json", "step").stdout)
     assert st["verbose"]["opponent_attack_line"] == ["99_105_62"]
     atk = changes("t=99 opponent attack")
-    assert "line 99_105_62 " in atk and "status=down" in atk.split("line 99_105_62 ")[1].splitlines()[0]
+    assert "down" in _row(atk, "99_105_62").split()
     # JSON sizes (--json is compact JSON; a separate token'd viewer keeps the model's baseline)
     j_full = simctl(idf, "--json", "observe", "--changes", token="sizer")
     simctl(idf, "step")
@@ -127,20 +136,21 @@ def test_idf_env_sizes_and_attack(idf):
     print("\nidf_2023 sizes (chars, ~tokens=chars/3):")
     for k, v in sizes.items():
         print(f"  {k:32s} {v:6d} chars  ~{v // 3:5d} tok")
-    assert sizes["changes calm step (human)"] < sizes["detailed"] / 2
+    assert sizes["changes calm step (human)"] < sizes["old --detailed (indent=2 JSON)"] / 2
 
 
 def test_horizon_shown_by_default(case14):
     assert "t=" in simctl(case14, "status").stdout and "/8064" in simctl(case14, "status").stdout
-    assert "max_t" in json.loads(simctl(case14, "observe", "--detailed").stdout)
+    assert "max_t" in json.loads(simctl(case14, "--json", "observe", "--detailed").stdout)["data"]
 
 
 def test_hidden_horizon(hidden):
     st = simctl(hidden, "status").stdout
     assert "t=0 ·" in st and "/3" not in st
     assert "max_t" not in json.loads(simctl(hidden, "--json", "status").stdout)["data"]
-    assert "max_t" not in json.loads(simctl(hidden, "observe", "--detailed").stdout)
+    assert "max_t" not in json.loads(simctl(hidden, "--json", "observe", "--detailed").stdout)["data"]
     assert "max_t" not in json.loads(simctl(hidden, "--json", "observe").stdout)["data"]
+    assert "/3" not in simctl(hidden, "grid").stdout.splitlines()[0]
     ch = simctl(hidden, "observe", "--changes").stdout
     assert "-> t=0 ·" in ch and "/3" not in ch
     assert "max_t" not in json.loads(simctl(hidden, "--json", "observe", "--changes").stdout)["data"]
@@ -149,7 +159,7 @@ def test_hidden_horizon(hidden):
         assert "max_t" not in out
     st = simctl(hidden, "status").stdout
     assert "done=yes" in st and "t=3 ·" in st
-    s = json.loads(simctl(hidden, "observe", "--detailed").stdout)
+    s = json.loads(simctl(hidden, "--json", "observe", "--detailed").stdout)["data"]
     assert s["done"] is True and s["cause"] == "time_exceeded" and "max_t" not in s
     r = simctl(hidden, "step")
     assert r.returncode == 1 and "Episode is over (time_exceeded)" in r.stdout

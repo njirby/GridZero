@@ -86,7 +86,7 @@ def test_step_prints_real_values(real):
 def test_illegal_reason_reaches_model(real):
     r = simctl(real, "act", '{"set_line_status": {"1_3_3": -1, "2_3_5": -1}}')
     assert r.returncode == 1
-    assert "More than 1 line status" in r.stdout
+    assert "at most 1 line status change per action" in r.stdout
 
 
 def test_attacker_hidden_from_observe(real):

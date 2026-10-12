@@ -229,6 +229,16 @@ async def sim_changes(request: Request, rho_eps: float | None = None, mw_eps: fl
     return envelope(bool(d), _agent_view(d), error=None if d else "no state")
 
 
+@app.get("/sim/history")
+async def sim_history(kind: str = "", name: str = "", last: int = 12):
+    """Rolling per-step readings of one element (simctl history kind.name)."""
+    try:
+        d = await asyncio.to_thread(ST.sim.history, kind, name, last)
+    except KeyError as e:
+        return envelope(False, None, error=e.args[0])
+    return envelope(True, d)
+
+
 @app.post("/sim/reset")
 async def sim_reset(request: Request, body: dict = {}):
     if not _authorized(request, _op_token()):

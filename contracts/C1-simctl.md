@@ -70,16 +70,26 @@ the accepted keys). This is the primary "take an action" verb.
 $ simctl act '{"set_line_status":{"0_4_1":-1}}'
 applied set_line_status 0_4_1=down · t=1 · reward=63.41 · new_overloads=[1_4_4] · illegal=no
 ```
-Rejections (exit 1): `Illegal action: <reason>` — grid2op replaced the action
-with do-nothing, the step STILL advanced, reward 0; `Illegal — <reason>` — the
-action could not be built (bad shape / unknown element), time does NOT advance.
+Rejections (exit 1) are factual explanations that end by saying whether time
+advanced (full list and examples in C2 `POST /sim/act`):
+`Illegal action: <why>. Not applied: the step advanced to t=N with do-nothing
+instead (reward 0).` (or `Ambiguous action: …`) — grid2op rejected it during
+the step; `Invalid action: <why>. Not applied; time did NOT advance (t=N).` —
+the action could not be built (bad shape, unknown element, out-of-range value).
+```
+$ simctl act '{"redispatch":{"gen_7_2":-60}}'
+Ambiguous action: redispatch gen_7_2 -60 MW exceeds its ramp-down limit 3.5 MW/step (current target_dispatch -3.5 MW). Not applied: the step advanced to t=7 with do-nothing instead (reward 0).
+$ simctl act '{"set_line_status":{"x_y":1}}'
+Invalid action: unknown line 'x_y' (`simctl list lines` lists them). Not applied; time did NOT advance (t=11).
+```
 Unknown action KEYS are silently ignored and still print `applied <key> …`.
 `--json` `data` carries the full step-outcome (C4 `sim.step_outcome` shape).
 
 ### `simctl observe [--detailed]`
-Current grid state as compact text (default) or full GRID-STATE JSON
-(`--detailed` / `--json`; either one also becomes the baseline for
-`--changes`). This is the model's "read the state" verb.
+Current grid state as a short summary (default). `--detailed` prints exactly
+`simctl grid` (below); `--json` prints the full GRID-STATE (C3) envelope. Both
+`--detailed` and `--json` also become the baseline for `--changes`. This is
+the model's "read the state" verb.
 Default (compact) — lead with the things that matter, flag hazards:
 ```
 t=2 reward=64.0 (cum 127.4) done=no
@@ -94,31 +104,134 @@ last line is **feedback on the model's own last action**: `no trips` or
 any line is above 1.0, and `max_rho`. It is omitted before the first act.
 
 ### `simctl observe --changes [--rho-eps 0.01] [--mw-eps 1.0]`
-Only what changed since your last `observe --detailed` (or `--json`) or
-`observe --changes` (`GET /sim/changes`; rules and JSON shape in C2). The
-first call, or the first after a reset, is a full dump and says so. Text
-output: one header line, then one line per changed entity with all its fields
-(sub map coords `x`/`y` omitted), then the `since your last act` line when
-there is one. `--json` gives the GRID-CHANGES object. The thresholds only
-apply with `--changes` (exit 3 otherwise, and for `--detailed --changes`).
+Only what changed since your last `observe --detailed` / `grid` (or their
+`--json`) or `observe --changes` (`GET /sim/changes`; rules and JSON shape in
+C2). The first call, or the first after a reset, is a full dump and says so.
+Text output: one header line, the `since your last act` line when there is
+one, then the changed elements in the **same row format and section headers
+as `simctl grid`** (only sections with changes; every field of an element:
+`simctl get`). `--json` gives the GRID-CHANGES object with complete elements.
+The thresholds only apply with `--changes` (exit 3 otherwise, and for
+`--detailed --changes`). idf_2023 calm step: ~4.5 KB (~1.5k tokens).
 ```
 $ simctl observe --changes
-changes since t=1 -> t=2/8064 · reward=64.0 (cum 127.4) · done=no · max_rho=1.012 · n_down=1 · n_overflow=1 · changed: lines 5/20 subs 2/14 gens 2/6 · thresholds rho=0.01 mw=1.0 · overflow_allowed=2
-line 0_1_0 id=0 or=sub_0 ex=sub_1 rho=0.5636 p_or=70.985 p_ex=-69.979 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
-line 1_4_4 id=4 or=sub_1 ex=sub_4 rho=1.0125 p_or=43.605 p_ex=-42.583 status=up overflow=true cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=2
-line 5_10_7 id=7 or=sub_5 ex=sub_10 rho=0.6566 p_or=13.434 p_ex=-13.222 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
-line 8_9_10 id=10 or=sub_8 ex=sub_9 rho=0.0542 p_or=-0.821 p_ex=0.821 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
-line 4_5_17 id=17 or=sub_4 ex=sub_5 rho=0.476 p_or=18.767 p_ex=-18.767 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
-sub sub_0 id=0 type=gen p=70.985
-sub sub_5 id=5 type=both p=23.4
-gen gen_2_1 id=1 sub=sub_2 p=72.7 renewable=false redispatchable=true connected=true target_dispatch=0.0 actual_dispatch=0.0
-gen gen_0_5 id=5 sub=sub_0 p=70.985 renewable=false redispatchable=true connected=true target_dispatch=0.0 actual_dispatch=0.0
-since your last act (t=0 set_line_status 0_4_1=down): no trips
+changes since t=6 -> t=7/2017 · reward=211.6 (cum 1453.6) · done=no · max_rho=0.957 · n_down=3 · n_overflow=0 · changed: lines 53/186 subs 24/118 gens 27/62 · thresholds rho=0.01 mw=1.0 · overflow_allowed=3
+since your last act (t=6 redispatch gen_7_2=-3.5): no trips
+LINES changed (53/186) — name rho p_or(MW) [flags]; flags only when not default: status (down/cooldown/maintenance), cooldown=N, maint=now|in N, or_bus=/ex_bus= (default 1; -1 when down), overflow k/allowed
+  69_70_3     0.306    -35.4
+  23_71_4     0.325     55.8
+  68_76_12    0.549    113.7
+  …
+SUBS changed (24/118) — name type net_p(MW, gen positive)
+  sub_3   both      88.1
+  sub_7   both     351.3
+  …
+GENS changed (27/62) — name sub p(MW) R=redispatchable W=renewable [flags: disconnected, dispatch target= actual= (MW, when non-zero)]
+  gen_3_0    sub_3      58.3 -W
+  gen_7_2    sub_7     356.0 R- dispatch target=-3.5 actual=-3.4
+  …
 ```
 
 With `SIM_HIDE_HORIZON=1` on the backend, `status` prints `t=<n>` and the
 `--changes` header `-> t=<n>` (no `/max_t`), and no JSON output carries
 `max_t`; `done=yes` and the `cause` still report the end.
+
+## Query interface (idf_2023-sized grids)
+
+The full C3 is ~90 KB of pretty JSON on idf_2023; these commands read the
+same `GET /sim/state` and present it compactly (client-side, stateless).
+Every C3 value is reachable through `get` (text) and `--json` (tested on
+case14 and idf_2023). Kinds: `line`, `sub`, `gen` (C3 has no loads/storage
+entities). Unknown kind/name/field → exit 3 with the valid choices / closest
+names.
+
+### `simctl grid`
+The whole state as tables: a header line, the `since your last act` line,
+then LINES / SUBS / GENS with one row per element and the column header (and
+the defaults) once per section. Dropped as derivable/static: `id`, line
+`or`/`ex` (in the name) and `p_ex`, sub `x`/`y`. Flags appear only when a
+value is not its default. Also the `--changes` baseline (`view=full`).
+`--json` → the full C3 envelope. idf_2023: ~11.5 KB, 372 lines.
+```
+$ simctl grid
+t=11 reward=0.0 (cum 1455.6) done=no · max_rho=0.775 n_down=4 n_overflow=0 overflow_allowed=3 · sim_clock=2035-01-01 00:55:00
+since your last act (t=10 set_line_status 4_10_162=up (rejected, not applied)): no trips
+LINES (186) — name rho p_or(MW) [flags]; flags only when not default: status (down/cooldown/maintenance), cooldown=N, maint=now|in N, or_bus=/ex_bus= (default 1; -1 when down), overflow k/allowed
+  0_1_0       0.000      0.0 down
+  0_2_1       0.500    -50.8
+  …
+  21_22_93    0.000      0.0 down cooldown=5
+  …
+SUBS (118) — name type net_p(MW, gen positive)
+  sub_0   load     -50.8
+  …
+GENS (62) — name sub p(MW) R=redispatchable W=renewable [flags: disconnected, dispatch target= actual= (MW, when non-zero)]
+  gen_3_0    sub_3      46.7 -W
+  gen_7_2    sub_7     355.4 R- dispatch target=-3.5 actual=-3.5
+  …
+(every field of one element: simctl get <line|sub|gen>.<name>; all fields as JSON: simctl --json grid)
+```
+
+### `simctl get <kind>.<name>` · `simctl get state`
+Every field of one element (exact C3 values). `<name>` may be the name, the
+id, for subs the bare number (`sub.4`), or a glob (`line.4_10_*`, `gen.*`).
+A sub also lists everything attached: each line with which end and which
+busbar, and each gen. `get state` prints every top-level C3 field.
+`--json` → `{"kind", "objects": [...], "attached": {sub: {"lines", "gens"}}}`.
+```
+$ simctl get sub.sub_7
+sub sub_7
+  id: 7
+  name: sub_7
+  x: -969.0
+  y: 131.0
+  type: both
+  p: 350.9
+  attached lines (3):
+    7_29_100 or end, bus=1, status=up, rho=0.2692, p_or=131.684
+    7_8_129 or end, bus=1, status=up, rho=0.4103, p_or=-66.797
+    7_4_173 or end, bus=1, status=up, rho=0.3426, p_or=286.013
+  attached gens (1):
+    gen_7_2 p=355.4 connected=true
+$ simctl get gen.gen_7_3
+error: unknown gen 'gen_7_3'; closest: gen_79_43, gen_9_3, gen_7_2, gen_99_53, gen_79_44 (`simctl list gens` lists all 62)
+```
+
+### `simctl list lines|subs|gens [--sort FIELD [--asc]] [--top N] [--where EXPR]...`
+Rows in the `grid` format. `--sort` any C3 field of that kind (descending;
+`--asc` for ascending). `--where FIELD=VALUE` on any field; also `!=`, `>`,
+`<`, `>=`, `<=`; booleans `true`/`false`; strings accept globs; repeat
+`--where` to AND (quote expressions with `<`/`>` in the shell). A sort/where
+field the row doesn't already show is appended as `field=value`. `--json` →
+`{"kind", "n_match", "n_total", "objects": [...]}` (full objects).
+```
+$ simctl list lines --sort rho --top 5
+5 of 186 matching lines (of 186) · sorted by rho descending, top 5 — name rho p_or(MW) [flags]; …
+  113_114_78  0.775    -50.6
+  48_50_136   0.677     32.1
+  48_49_135   0.676     25.8
+  27_28_99    0.664     45.3
+  49_56_147   0.659     17.3
+$ simctl list gens --where redispatchable=true --sort p --top 3
+3 of 20 matching gens (of 62) · where redispatchable=true, sorted by p descending, top 3 — name sub p(MW) R=redispatchable W=renewable [flags: …]
+  gen_25_13 sub_25    359.0 R- dispatch target=0 actual=0.087
+  gen_64_35 sub_64    359.0 R- dispatch target=0 actual=0.087
+  gen_7_2   sub_7     355.4 R- dispatch target=-3.5 actual=-3.5
+```
+
+### `simctl history <kind>.<name> [--last N]`
+Per-step readings over the last N recorded steps (default 12, max 288) from
+the backend's rolling buffer (`GET /sim/history`): line `rho p_or status`,
+gen `p target_dispatch actual_dispatch`, sub `p`. Reset clears it.
+```
+$ simctl history line.113_114_78 --last 4
+line 113_114_78 — last 4 step(s) (history keeps up to 288)
+   t     rho     p_or  status
+   8  0.9238  -60.669      up
+   9  0.8903  -58.501      up
+  10  0.8436   -55.37      up
+  11  0.7749  -50.635      up
+```
 
 ### `simctl render [--out NAME] [--width 800]`
 Write the grid map as a PNG into the backend's per-port render directory

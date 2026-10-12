@@ -108,9 +108,19 @@ def facts(env_name, n_steps=12):
           f"({p.NB_TIMESTEP_OVERFLOW_ALLOWED} acts to fix it); rho > {p.HARD_OVERFLOW_THRESHOLD:g} trips at once",
           f"- a tripped line can be reconnected after **{p.NB_TIMESTEP_RECONNECTION}** steps",
           f"- cooldown after acting: line **{p.NB_TIMESTEP_COOLDOWN_LINE}** steps, substation **{p.NB_TIMESTEP_COOLDOWN_SUB}** steps",
-          f"- per action: at most **{p.MAX_LINE_STATUS_CHANGED}** line status change(s) and **{p.MAX_SUB_CHANGED}** substation(s) changed",
+          f"- per action: at most **{p.MAX_LINE_STATUS_CHANGED}** line status change(s) and **{p.MAX_SUB_CHANGED}** substation(s) changed"
+          + (" **in each area** (areas below)" if hasattr(env._game_rules.legal_action, "substations_id_by_area") else ""),
           f"- action keys this env accepts: {', '.join(f'`{k}`' for k in sorted(env.action_space.actionClass.authorized_keys))}",
           ""]
+
+    rules = env._game_rules.legal_action
+    if hasattr(rules, "substations_id_by_area"):
+        L += ["### Rule areas", "",
+              "The per-action limits above apply separately in each area:", ""]
+        for k, subs in rules.substations_id_by_area.items():
+            ids = sorted(int(i) for i in subs)
+            L.append(f"- area {k} ({len(ids)} substations): " + ", ".join(f"sub_{i}" for i in ids))
+        L.append("")
 
     # ---- generators ----
     redisp = [i for i in range(env.n_gen) if env.gen_redispatchable[i]]

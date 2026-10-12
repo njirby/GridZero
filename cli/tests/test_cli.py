@@ -172,3 +172,11 @@ def test_mock_observe_changes(mock):
     s = json.loads(run_simctl("observe", base=mock, as_json=True).stdout)["data"]
     assert {"or_bus", "ex_bus", "timestep_overflow"} <= set(s["lines"][0])
     assert {"connected", "target_dispatch", "actual_dispatch"} <= set(s["gens"][0])
+
+
+def test_mock_history(mock):
+    run_simctl("step", base=mock)
+    d = json.loads(run_simctl("history", "line.0_4_1", "--last", "2", base=mock, as_json=True).stdout)["data"]
+    assert d["fields"] == ["rho", "p_or", "status"] and 1 <= len(d["rows"]) <= 2
+    r = run_simctl("history", "line.nope", base=mock)
+    assert r.returncode == 3 and "unknown line" in r.stdout

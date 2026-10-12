@@ -12,10 +12,19 @@ t=0 reset reward is excluded).
 from __future__ import annotations
 import os, re, threading
 import copy
+import difflib
+from collections import deque
 import numpy as np
 
 from .c3 import to_c3, build_meta
-from . import c3_changes
+from . import c3_changes, explain
+
+# per-element rolling history for `simctl history`: one compact record per sim
+# step (float32 arrays, ~3 KB/step on idf_2023), capped at one simulated day
+HISTORY_MAX = 288
+_STATUS = ("up", "down", "cooldown", "maintenance")
+HISTORY_FIELDS = {"line": ("rho", "p_or", "status"), "gen": ("p", "target_dispatch", "actual_dispatch"),
+                  "sub": ("p",)}
 
 
 class SimSession:
@@ -49,6 +58,7 @@ class SimSession:
         self._pending_opponent = []   # fired-attack events for the backend to emit
         # `observe --changes` baselines: viewer key -> last-served view (c3_changes)
         self._views = {}
+        self._hist = deque(maxlen=HISTORY_MAX)
 
     # ---- env lifecycle ----
     def _ensure_env(self):
@@ -110,6 +120,48 @@ class SimSession:
             out, self._views[viewer] = c3_changes.changes(c3, self._views.get(viewer), rho_eps, mw_eps)
             return out
 
+    def _record(self, c3):
+        f32 = lambda xs: np.asarray(xs, dtype=np.float32)
+        L, G, S = c3["lines"], c3["gens"], c3["subs"]
+        self._hist.append({
+            "t": c3["t"],
+            "line": {"rho": f32([l["rho"] for l in L]), "p_or": f32([l["p_or"] for l in L]),
+                     "status": np.asarray([_STATUS.index(l["status"]) for l in L], dtype=np.int8)},
+            "gen": {"p": f32([g["p"] for g in G]), "target_dispatch": f32([g["target_dispatch"] for g in G]),
+                    "actual_dispatch": f32([g["actual_dispatch"] for g in G])},
+            "sub": {"p": f32([x["p"] for x in S])},
+        })
+
+    def history(self, kind, name, last=12) -> dict:
+        """Per-step readings of one element over the last `last` recorded steps.
+        Raises KeyError(message) for an unknown kind/name."""
+        with self._lock:
+            c3 = self._last_c3 or {}
+            if kind not in HISTORY_FIELDS:
+                raise KeyError(f"unknown kind {kind!r} (valid: {', '.join(HISTORY_FIELDS)})")
+            ents = c3.get(kind + "s", [])
+            names = [e["name"] for e in ents]
+            idx = None
+            if name in names:
+                idx = names.index(name)
+            elif str(name).isdigit() and int(name) < len(ents):
+                idx = int(name)
+            elif kind == "sub" and f"sub_{name}" in names:
+                idx = names.index(f"sub_{name}")
+            if idx is None:
+                close = difflib.get_close_matches(str(name), names, n=3, cutoff=0.5)
+                raise KeyError(f"unknown {kind} {name!r}" + (f"; closest: {', '.join(close)}" if close else ""))
+            last = max(1, min(int(last), HISTORY_MAX))
+            rows = []
+            for rec in list(self._hist)[-last:]:
+                row = {"t": rec["t"]}
+                for f in HISTORY_FIELDS[kind]:
+                    v = rec[kind][f][idx]
+                    row[f] = _STATUS[int(v)] if f == "status" else round(float(v), 4)
+                rows.append(row)
+            return {"kind": kind, "name": names[idx], "fields": list(HISTORY_FIELDS[kind]),
+                    "rows": rows, "max_last": HISTORY_MAX}
+
     def _png(self):
         la = self._last_action
         return la.get("png", "") if la else ""
@@ -148,6 +200,8 @@ class SimSession:
             self._pending_opponent = []
             self._views = {}  # new episode: the next --changes is a full dump
             self._last_c3 = self._build_c3(obs, None, "")
+            self._hist.clear()
+            self._record(self._last_c3)
             return self._last_c3
 
     def _cause(self):
@@ -191,6 +245,7 @@ class SimSession:
         self._finished = self._game_over or t >= self._horizon
         # refresh the cached C3 while the env is still accessible
         self._last_c3 = self._build_c3(obs, self._last_action, f"t{t:04d}.png")
+        self._record(self._last_c3)
         # adversarial: fire any scheduled attacks that crossed a step boundary
         self._fire_attacks()
 
@@ -254,6 +309,7 @@ class SimSession:
             self._game_over = True
         self._finished = self._game_over or t >= self._horizon
         self._last_c3 = self._build_c3(obs, self._last_action, f"t{t:04d}.png")
+        self._record(self._last_c3)
         # caller (backend) emits the opponent.step event; we return the t for that
         return t
 
@@ -313,10 +369,16 @@ class SimSession:
                 return out, verb, self._over_msg()
             self._ensure_env()
             A = self._env.action_space
+            bad = explain.prevalidate(self._env, action_dict)
             try:
+                if bad:
+                    raise ValueError(bad)
                 act = A(action_dict)
             except Exception as e:
                 cur = self.latest_state()
+                if not bad:  # grid2op's own reason, without its exception-class prefix
+                    bad = str(e).split('The error was:', 1)[-1].strip().strip('"').replace(
+                        "Grid2OpException AmbiguousAction ", "").strip('"') or str(e)
                 outcome = {"t": cur.get("t", 0), "reward": cur.get("reward", 0.0),
                            "cum_reward": cur.get("cum_reward", 0.0), "done": self._finished,
                            "lines_down": int(cur.get("n_down", 0)),
@@ -324,7 +386,8 @@ class SimSession:
                            "disc_lines": [], "new_overloads": [],
                            "illegal": True, "ambiguous": False, "applied": {}}
                 verbose = {"is_illegal": True, "is_ambiguous": True, "predicted_disc_lines": []}
-                return outcome, verbose, f"Illegal — {e}"
+                return outcome, verbose, (f"Invalid action: {bad}. "
+                                          + explain.not_built_suffix(cur.get("t", 0)))
             # dry-run to predict trips (only meaningful for agent actions; skip for opponent)
             predicted = []
             if source != "opponent":
@@ -335,7 +398,8 @@ class SimSession:
                     predicted = self._disc_names(d_info)
                 except Exception:
                     pass
-            prev_rho = np.asarray(self._obs.rho, dtype=float)
+            prev_obs = self._obs
+            prev_rho = np.asarray(prev_obs.rho, dtype=float)
             applied = describe_applied(action_dict)
             if source != "opponent":
                 # the defender's "since your last act" feedback must only reflect its
@@ -347,10 +411,13 @@ class SimSession:
             out, verb = self._outcome_after(prev_rho, source=source, applied=applied)
             verb["predicted_disc_lines"] = predicted
             err = None
-            if info.get("is_illegal") or info.get("is_ambiguous"):
-                kind = "Illegal action" if info.get("is_illegal") else "Ambiguous action"
-                reasons = "; ".join(str(e) for e in (info.get("exception") or []))
-                err = f"{kind}: {reasons}" if reasons else kind
+            rejected = explain.explain_step(self._env, prev_obs, action_dict, info)
+            if rejected:
+                kind, why = rejected
+                err = f"{kind}: {why}. " + explain.stepped_suffix(int(obs.current_step), float(reward))
+                if source != "opponent" and self._last_action is not None:
+                    # the "since your last act" line must not read as if it took effect
+                    self._last_action["summary"] += " (rejected, not applied)"
             return out, verb, err
 
     def _outcome_after(self, prev_rho, source, applied) -> tuple:
