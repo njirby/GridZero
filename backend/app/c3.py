@@ -76,6 +76,9 @@ def to_c3(env, obs, reward, cum_reward, last_action=None, png="", done=None, cau
     maint = np.asarray(obs.time_next_maintenance, dtype=int)
     p_or = np.asarray(obs.p_or, dtype=float)
     p_ex = np.asarray(obs.p_ex, dtype=float)
+    or_bus = np.asarray(obs.line_or_bus, dtype=int)
+    ex_bus = np.asarray(obs.line_ex_bus, dtype=int)
+    ts_over = np.asarray(obs.timestep_overflow, dtype=int)
 
     lines = []
     for i in range(env.n_line):
@@ -95,6 +98,8 @@ def to_c3(env, obs, reward, cum_reward, last_action=None, png="", done=None, cau
             "p_or": round(_f(p_or[i]), 3), "p_ex": round(_f(p_ex[i]), 3),
             "status": st, "overflow": bool(_f(rho[i]) > 1.0),
             "cooldown": int(cooldown[i]), "maint": int(maint[i]),
+            "or_bus": int(or_bus[i]), "ex_bus": int(ex_bus[i]),
+            "timestep_overflow": int(ts_over[i]),
         })
 
     gen_p = np.asarray(obs.gen_p, dtype=float)
@@ -108,13 +113,19 @@ def to_c3(env, obs, reward, cum_reward, last_action=None, png="", done=None, cau
         subs.append({"id": i, "name": name, "x": _f(x), "y": _f(y),
                      "type": types[i], "p": round(_f(gp - lp), 3)})
 
+    gen_bus = np.asarray(obs.gen_bus, dtype=int)
+    target = np.asarray(obs.target_dispatch, dtype=float)
+    actual = np.asarray(obs.actual_dispatch, dtype=float)
     gens = []
     for i in range(env.n_gen):
         gens.append({"id": i, "name": str(env.name_gen[i]),
                      "sub": str(env.name_sub[int(env.gen_to_subid[i])]),
                      "p": round(_f(gen_p[i]), 3),
                      "renewable": bool(obs.gen_renewable[i]) if hasattr(obs, "gen_renewable") else False,
-                     "redispatchable": bool(env.gen_redispatchable[i]) if hasattr(env, "gen_redispatchable") else True})
+                     "redispatchable": bool(env.gen_redispatchable[i]) if hasattr(env, "gen_redispatchable") else True,
+                     "connected": bool(gen_bus[i] > 0),
+                     "target_dispatch": round(_f(target[i]), 3),
+                     "actual_dispatch": round(_f(actual[i]), 3)})
 
     n_down = int(sum(1 for l in lines if l["status"] == "down"))
     n_overflow = int(sum(1 for l in lines if l["overflow"]))
@@ -128,6 +139,7 @@ def to_c3(env, obs, reward, cum_reward, last_action=None, png="", done=None, cau
         "delta_min": _f(obs.delta_time, 5.0), "sim_clock": str(obs.get_time_stamp()),
         "n_line": int(env.n_line), "n_sub": int(env.n_sub), "n_gen": int(env.n_gen),
         "max_rho": round(max_rho, 4), "n_down": n_down, "n_overflow": n_overflow,
+        "overflow_allowed": int(env.parameters.NB_TIMESTEP_OVERFLOW_ALLOWED),
         "lines": lines, "subs": subs, "gens": gens, "alarms": [],
         "last_action": last_action, "last_disc_lines": list(disc_lines or []), "png": png,
     }

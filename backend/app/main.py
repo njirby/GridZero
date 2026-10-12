@@ -12,6 +12,7 @@ from sse_starlette.sse import EventSourceResponse
 from pydantic import BaseModel
 
 from .sim_session import SimSession
+from . import c3_changes
 from .event_bus import EventBus
 from .opencode_driver import OpenCodeDriver, AttackerSession
 
@@ -26,6 +27,21 @@ OC_PORT = int(os.environ.get("OPENCODE_PORT", str(SIM_PORT + 200)))
 # workspace) and whether `simctl render` is disabled (no-vision ablation).
 OC_CWD = os.environ.get("OPENCODE_CWD", ROOT)
 RENDER_DISABLED = os.environ.get("RENDER_DISABLED", "") == "1"
+# Which grid2op env the backend runs (unset -> the original case14 sandbox).
+SIM_ENV = os.environ.get("SIM_ENV") or "l2rpn_case14_sandbox"
+# Hidden-horizon mode: agent-facing routes never reveal the episode length
+# (max_t); done/cause still report the end. Operator/bench routes keep it.
+HIDE_HORIZON = os.environ.get("SIM_HIDE_HORIZON", "") == "1"
+
+# Default --changes thresholds (a request's rho_eps/mw_eps still override them).
+CHANGES_RHO_EPS = float(os.environ.get("SIM_CHANGES_RHO_EPS") or c3_changes.DEFAULT_RHO_EPS)
+CHANGES_MW_EPS = float(os.environ.get("SIM_CHANGES_MW_EPS") or c3_changes.DEFAULT_MW_EPS)
+
+
+def _agent_view(d):
+    if HIDE_HORIZON and isinstance(d, dict) and "max_t" in d:
+        return {k: v for k, v in d.items() if k != "max_t"}
+    return d
 
 app = FastAPI(title="grid2op-harness backend")
 
@@ -144,7 +160,7 @@ async def _drain_opponent():
 async def _startup():
     os.makedirs(RUNS, exist_ok=True)
     ST.bus = EventBus(runs_dir=RUNS, ep_id=_ep_id())
-    ST.sim = SimSession(root=ROOT, render_dir=_RENDER_DIR)
+    ST.sim = SimSession(env_name=SIM_ENV, root=ROOT, render_dir=_RENDER_DIR)
     ST.oc = OpenCodeDriver(ST.bus, OC_CWD, sim_port=SIM_PORT, oc_port=OC_PORT,
                            atk_token=ATK_TOKEN)
     ST.meta = await asyncio.to_thread(ST.sim.metadata)
@@ -187,12 +203,30 @@ async def _shutdown():
 @app.get("/sim/status")
 async def sim_status():
     d = await asyncio.to_thread(ST.sim.status)
-    return envelope(True, d)
+    return envelope(True, _agent_view(d))
 
 
 @app.get("/sim/state")
-async def sim_state():
-    return envelope(True, await asyncio.to_thread(ST.sim.latest_state))
+async def sim_state(request: Request, view: str = ""):
+    # view=full: the caller shows the whole C3 to the model (simctl observe
+    # --detailed/--json), so it becomes that viewer's baseline for /sim/changes
+    if view == "full":
+        return envelope(True, _agent_view(await asyncio.to_thread(ST.sim.view_full, _req_token(request))))
+    return envelope(True, _agent_view(await asyncio.to_thread(ST.sim.latest_state)))
+
+
+@app.get("/sim/changes")
+async def sim_changes(request: Request, rho_eps: float | None = None, mw_eps: float | None = None):
+    """C3 restricted to the entities that changed since the last full or changes
+    view served to this viewer (keyed by its token, so a defender and an attacker
+    sharing the sim keep separate baselines). First call -> full dump."""
+    rho_eps = CHANGES_RHO_EPS if rho_eps is None else rho_eps
+    mw_eps = CHANGES_MW_EPS if mw_eps is None else mw_eps
+    if not (rho_eps >= 0 and mw_eps >= 0):
+        return JSONResponse({"ok": False, "data": None, "error": "rho_eps/mw_eps must be >= 0",
+                             "verbose": {}}, status_code=400)
+    d = await asyncio.to_thread(ST.sim.changes, _req_token(request), rho_eps, mw_eps)
+    return envelope(bool(d), _agent_view(d), error=None if d else "no state")
 
 
 @app.post("/sim/reset")
@@ -495,7 +529,7 @@ async def control(request: Request, body: Control):
         t = s.get("t", 0)
         resume = (args.get("text") or
                   f"OPERATOR NOTE: your previous run stalled (no progress). You are resuming the SAME "
-                  f"grid episode at t={t}/{s.get('max_t')}. State is intact. Continue operating: "
+                  f"grid episode at t={t}" + ("" if HIDE_HORIZON else f"/{s.get('max_t')}") + ". State is intact. Continue operating: "
                   f"`simctl observe`, then keep stepping/acting until done=yes. There is no time limit.")
         ok = await ST.oc.restart(resume)
         ST.bus.emit("system", {"level": "info" if ok else "error", "msg": f"restart_agent -> {ok}"})

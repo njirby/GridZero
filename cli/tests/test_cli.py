@@ -161,3 +161,14 @@ def test_step_no_fastforward(mock):
     r = run_simctl("step", "5", base=mock)
     assert r.returncode == 3
     assert "exactly 1" in r.stdout
+
+
+def test_mock_observe_changes(mock):
+    run_simctl("observe", "--detailed", base=mock)
+    r = run_simctl("observe", "--changes", base=mock)
+    assert r.returncode == 0 and r.stdout.startswith("changes since t=")
+    d = json.loads(run_simctl("observe", "--changes", base=mock, as_json=True).stdout)["data"]
+    assert d["full"] is False and d["lines"] == [] and "overflow_allowed" in d
+    s = json.loads(run_simctl("observe", base=mock, as_json=True).stdout)["data"]
+    assert {"or_bus", "ex_bus", "timestep_overflow"} <= set(s["lines"][0])
+    assert {"connected", "target_dispatch", "actual_dispatch"} <= set(s["gens"][0])

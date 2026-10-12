@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "grid2op-harness/contracts/C3-grid-changes.schema.json",
+  "title": "GRID-CHANGES",
+  "description": "GET /sim/changes (simctl observe --changes): a GRID-STATE (C3) whose lines/subs/gens arrays hold ONLY the entities that changed since the last full (GET /sim/state?view=full) or changes view served to the same viewer, plus change-bookkeeping header fields. All C3 header fields are present and current. Each listed entity is complete (every C3 field). Change rules: see contracts/C2-sim-api.md#get-simchanges.",
+  "type": "object",
+  "required": ["schema_version","env","t","reward","cum_reward","done","n_line","n_sub","n_gen","lines","subs","gens","max_rho","n_down","n_overflow",
+               "full","changes_since_t","thresholds","lines_changed","subs_changed","gens_changed"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": 1},
+    "env": {"type": "string"},
+    "t": {"type": "integer", "minimum": 0},
+    "max_t": {"type": "integer", "minimum": 1, "description": "omitted with SIM_HIDE_HORIZON=1."},
+    "reward": {"type": "number"},
+    "cum_reward": {"type": "number"},
+    "done": {"type": "boolean"},
+    "cause": {"type": ["string","null"]},
+    "delta_min": {"type": "number"},
+    "sim_clock": {"type": "string"},
+    "n_line": {"type": "integer"},
+    "n_sub": {"type": "integer"},
+    "n_gen": {"type": "integer"},
+    "max_rho": {"type": "number"},
+    "n_down": {"type": "integer"},
+    "n_overflow": {"type": "integer"},
+    "overflow_allowed": {"type": "integer"},
+    "alarms": {"type": "array", "items": {"type": "string"}},
+    "last_action": {"type": ["object","null"]},
+    "last_disc_lines": {"type": "array", "items": {"type": "string"}},
+    "png": {"type": "string"},
+    "full": {"type": "boolean", "description": "true = no previous view for this viewer (first call, or first since a reset): every entity is listed."},
+    "changes_since_t": {"type": ["integer","null"], "description": "t of the previous full/changes view this diff is against; null when full."},
+    "thresholds": {
+      "type": "object", "required": ["rho_eps","mw_eps"], "additionalProperties": false,
+      "properties": {
+        "rho_eps": {"type": "number", "minimum": 0, "description": "line rho threshold (default 0.01)."},
+        "mw_eps": {"type": "number", "minimum": 0, "description": "gen p / sub p threshold in MW (default 1.0)."}
+      }
+    },
+    "lines_changed": {"type": "integer", "minimum": 0, "description": "len(lines); out of n_line."},
+    "subs_changed": {"type": "integer", "minimum": 0, "description": "len(subs); out of n_sub."},
+    "gens_changed": {"type": "integer", "minimum": 0, "description": "len(gens); out of n_gen."},
+    "lines": {"type": "array", "items": {"$ref": "C3-grid-state.schema.json#/$defs/line"}},
+    "subs": {"type": "array", "items": {"$ref": "C3-grid-state.schema.json#/$defs/sub"}},
+    "gens": {"type": "array", "items": {"$ref": "C3-grid-state.schema.json#/$defs/gen"}}
+  }
+}

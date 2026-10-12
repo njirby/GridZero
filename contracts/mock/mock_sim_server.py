@@ -15,11 +15,41 @@ Run:
   python3 contracts/mock/mock_sim_server.py --port 8731
   # then:  SIM_API_URL=http://127.0.0.1:8731 simctl status
 """
-import argparse, json, os, time, threading
+import argparse, json, os, sys, time, threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import parse_qs, urlparse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 EX = os.path.join(HERE, "..", "examples")
+# the --changes rules are pure stdlib: reuse the backend's module, not a copy
+sys.path.insert(0, os.path.abspath(os.path.join(HERE, "..", "..")))
+from backend.app import c3_changes  # noqa: E402
+
+HIDE_HORIZON = os.environ.get("SIM_HIDE_HORIZON", "") == "1"
+
+
+def _agent_view(d):
+    if HIDE_HORIZON and isinstance(d, dict) and "max_t" in d:
+        return {k: v for k, v in d.items() if k != "max_t"}
+    return d
+
+
+def _fill_optional(s):
+    """The example fixtures predate the optional C3 fields (buses, overflow
+    counter, dispatch); derive them from what the fixture does record."""
+    s.setdefault("overflow_allowed", 2)
+    moved = ((s.get("last_action") or {}).get("args") or {}).get("change_bus") or {}
+    moved_or, moved_ex = set(moved.get("lines_or_id") or []), set(moved.get("lines_ex_id") or [])
+    for l in s["lines"]:
+        up = l["status"] != "down"
+        l.setdefault("or_bus", (2 if l["name"] in moved_or else 1) if up else -1)
+        l.setdefault("ex_bus", (2 if l["name"] in moved_ex else 1) if up else -1)
+        l.setdefault("timestep_overflow", 1 if l.get("overflow") else 0)
+    for g in s.get("gens", []):
+        g.setdefault("connected", True)
+        g.setdefault("target_dispatch", 0.0)
+        g.setdefault("actual_dispatch", 0.0)
+    return s
 
 def load(fn):
     with open(os.path.join(EX, fn)) as f:
@@ -38,6 +68,7 @@ class MockSim:
         self.t = 0
         self.lock = threading.RLock()
         self.seq = 469
+        self.view = None  # --changes baseline (single viewer)
         self.last_reward = S_T0["reward"]
 
     def next_seq(self):
@@ -53,12 +84,24 @@ class MockSim:
             s = json.loads(json.dumps(s))  # deep copy
             s["t"] = self.t
             s["png"] = f"render/t{self.t:04d}.png"
-            return s
+            return _fill_optional(s)
 
     def reset(self):
         with self.lock:
             self.t = 0
+            self.view = None
             return self.state()
+
+    def view_full(self):
+        with self.lock:
+            s = self.state()
+            self.view = c3_changes.new_view(s)
+            return s
+
+    def changes(self, rho_eps, mw_eps):
+        with self.lock:
+            out, self.view = c3_changes.changes(self.state(), self.view, rho_eps, mw_eps)
+            return out
 
     def step(self, n):
         with self.lock:
@@ -89,6 +132,8 @@ class MockSim:
                     if key == "set_line_status":
                         ln["status"] = "up" if val == 1 else "down" if val == -1 else ln["status"]
                         ln["rho"] = 0.0 if ln["status"] == "down" else ln["rho"]
+                        if ln["status"] == "down":
+                            ln["or_bus"] = ln["ex_bus"] = -1
                         applied[key] = {line_name: "up" if val == 1 else "down"}
                     elif key == "change_line_status":
                         ln["status"] = "up" if ln["status"] == "down" else "down"
@@ -142,13 +187,23 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         p = self.path.split("?")[0]
+        q = parse_qs(urlparse(self.path).query)
         if p == "/sim/status":
             s = SIM.state()
-            self._json(envelope(True, {"up": True, "env": s["env"], "t": s["t"],
+            self._json(envelope(True, _agent_view({"up": True, "env": s["env"], "t": s["t"],
                                        "max_t": s["max_t"], "reward": s["reward"],
-                                       "cum_reward": s["cum_reward"], "done": s["done"]}))
+                                       "cum_reward": s["cum_reward"], "done": s["done"]})))
         elif p == "/sim/state":
-            self._json(envelope(True, SIM.state()))
+            full = q.get("view", [""])[0] == "full"
+            self._json(envelope(True, _agent_view(SIM.view_full() if full else SIM.state())))
+        elif p == "/sim/changes":
+            try:
+                rho_eps = float(q.get("rho_eps", [os.environ.get("SIM_CHANGES_RHO_EPS") or c3_changes.DEFAULT_RHO_EPS])[0])
+                mw_eps = float(q.get("mw_eps", [os.environ.get("SIM_CHANGES_MW_EPS") or c3_changes.DEFAULT_MW_EPS])[0])
+                assert rho_eps >= 0 and mw_eps >= 0
+            except (ValueError, AssertionError):
+                return self._json(envelope(False, None, error="rho_eps/mw_eps must be >= 0"), 400)
+            self._json(envelope(True, _agent_view(SIM.changes(rho_eps, mw_eps))))
         elif p == "/state":
             s = SIM.state()
             self._json({"sim": s, "mode": "agent", "running": True, "last_seq": SIM.seq})

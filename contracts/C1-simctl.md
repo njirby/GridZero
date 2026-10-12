@@ -78,7 +78,8 @@ Unknown action KEYS are silently ignored and still print `applied <key> …`.
 
 ### `simctl observe [--detailed]`
 Current grid state as compact text (default) or full GRID-STATE JSON
-(`--detailed` / `--json`). This is the model's "read the state" verb.
+(`--detailed` / `--json`; either one also becomes the baseline for
+`--changes`). This is the model's "read the state" verb.
 Default (compact) — lead with the things that matter, flag hazards:
 ```
 t=2 reward=64.0 (cum 127.4) done=no
@@ -91,6 +92,33 @@ since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [
 last line is **feedback on the model's own last action**: `no trips` or
 `tripped: [<lines>]` (from C3 `last_disc_lines`), `overloads now: [...]` when
 any line is above 1.0, and `max_rho`. It is omitted before the first act.
+
+### `simctl observe --changes [--rho-eps 0.01] [--mw-eps 1.0]`
+Only what changed since your last `observe --detailed` (or `--json`) or
+`observe --changes` (`GET /sim/changes`; rules and JSON shape in C2). The
+first call, or the first after a reset, is a full dump and says so. Text
+output: one header line, then one line per changed entity with all its fields
+(sub map coords `x`/`y` omitted), then the `since your last act` line when
+there is one. `--json` gives the GRID-CHANGES object. The thresholds only
+apply with `--changes` (exit 3 otherwise, and for `--detailed --changes`).
+```
+$ simctl observe --changes
+changes since t=1 -> t=2/8064 · reward=64.0 (cum 127.4) · done=no · max_rho=1.012 · n_down=1 · n_overflow=1 · changed: lines 5/20 subs 2/14 gens 2/6 · thresholds rho=0.01 mw=1.0 · overflow_allowed=2
+line 0_1_0 id=0 or=sub_0 ex=sub_1 rho=0.5636 p_or=70.985 p_ex=-69.979 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
+line 1_4_4 id=4 or=sub_1 ex=sub_4 rho=1.0125 p_or=43.605 p_ex=-42.583 status=up overflow=true cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=2
+line 5_10_7 id=7 or=sub_5 ex=sub_10 rho=0.6566 p_or=13.434 p_ex=-13.222 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
+line 8_9_10 id=10 or=sub_8 ex=sub_9 rho=0.0542 p_or=-0.821 p_ex=0.821 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
+line 4_5_17 id=17 or=sub_4 ex=sub_5 rho=0.476 p_or=18.767 p_ex=-18.767 status=up overflow=false cooldown=0 maint=-1 or_bus=1 ex_bus=1 timestep_overflow=0
+sub sub_0 id=0 type=gen p=70.985
+sub sub_5 id=5 type=both p=23.4
+gen gen_2_1 id=1 sub=sub_2 p=72.7 renewable=false redispatchable=true connected=true target_dispatch=0.0 actual_dispatch=0.0
+gen gen_0_5 id=5 sub=sub_0 p=70.985 renewable=false redispatchable=true connected=true target_dispatch=0.0 actual_dispatch=0.0
+since your last act (t=0 set_line_status 0_4_1=down): no trips
+```
+
+With `SIM_HIDE_HORIZON=1` on the backend, `status` prints `t=<n>` and the
+`--changes` header `-> t=<n>` (no `/max_t`), and no JSON output carries
+`max_t`; `done=yes` and the `cause` still report the end.
 
 ### `simctl render [--out NAME] [--width 800]`
 Write the grid map as a PNG into the backend's per-port render directory

@@ -14,6 +14,7 @@ import argparse
 import json
 import os
 import sys
+import urllib.parse
 import urllib.request
 import urllib.error
 
@@ -95,12 +96,49 @@ def compact_observe(s):
     return "\n".join(L)
 
 
+def _t(d):
+    # "t/max_t", or just "t" when the backend hides the horizon (no max_t)
+    return f"{d.get('t')}/{d['max_t']}" if d.get("max_t") is not None else f"{d.get('t')}"
+
+
+def _kv(e, skip=()):
+    out = []
+    for k, v in e.items():
+        if k in skip:
+            continue
+        out.append(f"{k}={v if isinstance(v, str) else json.dumps(v)}")
+    return " ".join(out)
+
+
+def changes_text(d):
+    """Render a /sim/changes payload: one header line, then one line per changed
+    entity (all its fields; sub map coords x/y omitted)."""
+    since = "start (full state, no previous view)" if d.get("full") else f"t={d.get('changes_since_t')}"
+    th = d.get("thresholds", {})
+    L = [f"changes since {since} -> t={_t(d)} · reward={d.get('reward', 0):.1f} "
+         f"(cum {d.get('cum_reward', 0):.1f}) · done={'yes' if d.get('done') else 'no'}"
+         + (f" ({d.get('cause')})" if d.get("cause") else "")
+         + f" · max_rho={d.get('max_rho', 0):.3f} · n_down={d.get('n_down', 0)} · n_overflow={d.get('n_overflow', 0)}"
+         f" · changed: lines {d.get('lines_changed', 0)}/{d.get('n_line')} subs {d.get('subs_changed', 0)}/{d.get('n_sub')}"
+         f" gens {d.get('gens_changed', 0)}/{d.get('n_gen')} · thresholds rho={th.get('rho_eps')} mw={th.get('mw_eps')}"
+         + (f" · overflow_allowed={d['overflow_allowed']}" if d.get("overflow_allowed") is not None else "")]
+    for kind, skip in (("lines", ()), ("subs", ("x", "y")), ("gens", ())):
+        for e in d.get(kind, []):
+            L.append(f"{kind[:-1]} {e.get('name')} " + _kv(e, ("name",) + skip))
+    la = d.get("last_action")
+    if la:
+        tripped = d.get("last_disc_lines") or []
+        L.append(f"since your last act (t={la.get('t')} {la.get('summary')}): "
+                 + (f"tripped: [{', '.join(tripped)}]" if tripped else "no trips"))
+    return "\n".join(L)
+
+
 def cmd_status(a):
     b = get(a, "/sim/status", a.base_url, a.token)
     d = b.get("data", {})
     if not b.get("ok"):
         return emit({**b, "_human": f"sim down: {b.get('error')}"}, a, 2)
-    hum = (f"sim up · env={d.get('env')} · t={d.get('t')}/{d.get('max_t')} · "
+    hum = (f"sim up · env={d.get('env')} · t={_t(d)} · "
            f"reward={d.get('reward', 0):.1f} (cum {d.get('cum_reward', 0):.1f}) · "
            f"done={'yes' if d.get('done') else 'no'}")
     return emit({**b, "_human": hum}, a, 0)
@@ -113,7 +151,7 @@ def cmd_reset(a):
     body = {"env": a.env} if a.env else {}
     b = post(a, "/sim/reset", a.base_url, a.token, body)
     d = b.get("data") or {}  # data is null on a 403 (no operator token)
-    hum = f"reset · env={d.get('env', 'l2rpn_case14_sandbox')} · t=0 · reward={d.get('reward', 0):.2f}"
+    hum = f"reset · env={d.get('env', '?')} · t=0 · reward={d.get('reward', 0):.2f}"
     code = 0 if b.get("ok") else 1
     return emit({**b, "_human": b.get("error") or hum}, a, code)
 
@@ -154,7 +192,22 @@ def cmd_act(a):
 
 
 def cmd_observe(a):
-    b = get(a, "/sim/state", a.base_url, a.token)
+    if a.changes:
+        if a.detailed:
+            die("error: bad arguments — use either --detailed or --changes", 3)
+        q = urllib.parse.urlencode({k: v for k, v in (("rho_eps", a.rho_eps), ("mw_eps", a.mw_eps))
+                                    if v is not None})
+        b = get(a, "/sim/changes" + ("?" + q if q else ""), a.base_url, a.token)
+        d = b.get("data") or {}
+        if not b.get("ok") or not d:
+            return emit({**b, "_human": f"error: {b.get('error') or 'no state'}"}, a, 3 if "eps" in (b.get("error") or "") else 2)
+        # --json prints the envelope as-is (no _human copy: this view exists to be small)
+        return emit(b if a.json else {**b, "_human": changes_text(d)}, a, 0)
+    if a.rho_eps is not None or a.mw_eps is not None:
+        die("error: bad arguments — --rho-eps/--mw-eps only apply with --changes", 3)
+    # a full C3 shown to the model becomes its --changes baseline (view=full)
+    full = a.json or a.detailed
+    b = get(a, "/sim/state" + ("?view=full" if full else ""), a.base_url, a.token)
     s = b.get("data", {})
     if not b.get("ok") or not s:
         return emit({**b, "_human": f"error: {b.get('error') or 'no state'}"}, a, 2)
@@ -261,6 +314,10 @@ def main():
     pa.add_argument("json_arg", help="grid2op action dict as JSON")
     po = sub.add_parser("observe")
     po.add_argument("--detailed", action="store_true")
+    po.add_argument("--changes", action="store_true",
+                    help="only entities changed since your last --detailed/--changes view")
+    po.add_argument("--rho-eps", type=float, help="--changes: line rho threshold (backend default, normally 0.01)")
+    po.add_argument("--mw-eps", type=float, help="--changes: gen/sub MW threshold (backend default, normally 1.0)")
     prd = sub.add_parser("render")
     prd.add_argument("--out")
     prd.add_argument("--width", type=int)

@@ -34,10 +34,78 @@ not the status) **except** `400` for a non-object `action`, `403`
  "reward":-10.0,"cum_reward":0.0,"done":false},"error":null,"verbose":{}}
 ```
 
+The grid comes from the backend's `SIM_ENV` env var (default
+`l2rpn_case14_sandbox`; e.g. `SIM_ENV=l2rpn_idf_2023`), reported as `env` in
+`/sim/status` and C3. `SIM_CHRONIC` / `SIM_HORIZON` / `SIM_SEED` pin the
+startup episode.
+
+**Hidden horizon** (`SIM_HIDE_HORIZON=1`, default off): the agent-facing
+routes `/sim/status`, `/sim/state` and `/sim/changes` omit `max_t` (it is
+optional in the C3 schema), and the `restart_agent` resume prompt drops it.
+Step/act outcomes never carried it. `done` and `cause` still report the end
+(`Episode is over (time_exceeded)` after the last step). Operator routes
+(`/state`, `/event`, `/sim/reset`, `/bench/*`) keep it.
+
 ### `GET /sim/state`
 Returns the full **GRID-STATE (C3)** object in `data`.
 ```json
 {"ok":true,"data":{ ...C3... }}
+```
+Query `view=full` (sent by `simctl observe --detailed` and `observe --json`,
+i.e. whenever the whole C3 is shown to the model) additionally records this
+C3 as the caller's baseline for `/sim/changes`. Without it the call has no
+side effect (the compact `simctl observe` and the UI don't move the baseline).
+
+### `GET /sim/changes`
+`simctl observe --changes`. Query: `rho_eps` (default `0.01`), `mw_eps`
+(default `1.0`); negative → `400`. The backend env vars `SIM_CHANGES_RHO_EPS`
+/ `SIM_CHANGES_MW_EPS` replace those defaults (a query param still wins). Returns a **GRID-CHANGES** object
+(`contracts/C3-grid-changes.schema.json`): the C3 header fields, all current,
+with `lines`/`subs`/`gens` holding ONLY the entities that changed since the
+last `view=full` or `/sim/changes` view served to the same viewer, plus:
+
+| field | meaning |
+|---|---|
+| `full` | `true` = this viewer had no baseline (first call, or first since a reset): every entity is listed |
+| `changes_since_t` | `t` of the view this diff is against (`null` when `full`) |
+| `lines_changed` / `subs_changed` / `gens_changed` | how many listed (out of `n_line` / `n_sub` / `n_gen`) |
+| `thresholds` | `{"rho_eps":…, "mw_eps":…}` actually used |
+
+The baseline lives in the backend, per viewer (keyed by the caller's bearer
+token, so a defender and an attacker on the same sim don't share one; `""`
+when no token), and is cleared by a reset. `simctl` stays stateless.
+
+**Change rules** (mechanical). An entity is listed IN FULL (every C3 field)
+when any of its fields changed vs the version of that entity the viewer was
+last shown:
+
+| entity | field | reported when |
+|---|---|---|
+| line | `status`, `overflow`, `or`, `ex`, `or_bus`, `ex_bus`, `timestep_overflow` | any difference (always, regardless of thresholds) |
+| line | `cooldown` | it starts or ends (`0` ↔ `>0`) or restarts (value went up); plain countdown ticks are not changes |
+| line | `maint` | its state changes: none (`-1`) / scheduled (`>0`) / now (`0`); countdown ticks are not changes |
+| line | `rho` | \|Δ\| ≥ `rho_eps` (0.01 = 1 percentage point) |
+| line | `p_or`, `p_ex` | never on their own (rho is the normalized measure of the same flow); carried along |
+| gen | `p`, `target_dispatch`, `actual_dispatch` | \|Δ\| ≥ `mw_eps` MW |
+| gen | `connected` | any difference |
+| sub | `p` (net injection) | \|Δ\| ≥ `mw_eps` MW |
+| gen / sub | static fields (`name`, `sub`, `renewable`, `redispatchable`, `type`, `x`, `y`) | any difference |
+
+Only the entities that were listed move the viewer's baseline, so slow drift
+is measured against what the viewer last saw and is reported once it
+accumulates past the threshold — the viewer's picture of every value is never
+off by more than its threshold. C3 has no attack flag: a line cut by an
+opponent or a protection trip shows up as its `status` change.
+```json
+{"ok":true,"data":{"schema_version":1,"env":"l2rpn_case14_sandbox","t":2,"max_t":8064,
+ "reward":64.0,"cum_reward":127.4,"done":false,"cause":null,"max_rho":1.012,"n_down":1,
+ "n_overflow":1,"overflow_allowed":2,"n_line":20,"n_sub":14,"n_gen":6,"...":"other C3 header fields",
+ "full":false,"changes_since_t":1,"thresholds":{"rho_eps":0.01,"mw_eps":1.0},
+ "lines_changed":5,"subs_changed":2,"gens_changed":2,
+ "lines":[{"id":0,"name":"0_1_0","or":"sub_0","ex":"sub_1","rho":0.5636,"p_or":70.985,
+           "p_ex":-69.979,"status":"up","overflow":false,"cooldown":0,"maint":-1,
+           "or_bus":1,"ex_bus":1,"timestep_overflow":0}, "..."],
+ "subs":["..."],"gens":["..."]},"error":null,"verbose":{}}
 ```
 
 **Auth (anti reward-hacking):** when the backend is started with
@@ -49,7 +117,7 @@ routes `GET /event` (`/api/event`) and `GET /state`. `POST /sim/step` with
 `n>1` without the operator token is clamped to 1, and a `source` field in
 `POST /sim/act` is honored only with the operator token (otherwise the act is
 attributed to the agent). Open routes: `/sim/status`, `/sim/state` (the C3 the
-model sees), `/sim/act`, `/sim/step` (n=1), `/sim/render`. Without a
+model sees), `/sim/changes`, `/sim/act`, `/sim/step` (n=1), `/sim/render`. Without a
 configured token (interactive dev mode) everything is open. `reward` at t=0 is
 the reset value (-10.0, a placeholder); `cum_reward` excludes it.
 
@@ -97,6 +165,11 @@ Rejections (`ok:false`, exit 1 in `simctl`):
 - action could not be built (bad shape, unknown element):
   `error:"Illegal — <reason>"`; time does NOT advance, `data` carries the
   unchanged `t`/`reward`.
+
+`verbose.opponent_attack_line` is the list of line NAMES a built-in opponent
+is attacking on this step (e.g. `["99_105_62"]` on `l2rpn_idf_2023`), `null`
+when no attack is active or the env has no opponent (case14). The model's
+`simctl act`/`step` text output does not print it.
 
 `disc_lines` lists lines tripped on the step. Known backend bug: it is derived
 by using grid2op's `info["disc_lines"]` (cascade-level values per line) as

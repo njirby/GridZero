@@ -15,6 +15,7 @@ import copy
 import numpy as np
 
 from .c3 import to_c3, build_meta
+from . import c3_changes
 
 
 class SimSession:
@@ -46,6 +47,8 @@ class SimSession:
         self._atk_ended = set()
         self._in_attack = False
         self._pending_opponent = []   # fired-attack events for the backend to emit
+        # `observe --changes` baselines: viewer key -> last-served view (c3_changes)
+        self._views = {}
 
     # ---- env lifecycle ----
     def _ensure_env(self):
@@ -88,6 +91,25 @@ class SimSession:
         with self._lock:
             return self._last_c3 or {}
 
+    def view_full(self, viewer="") -> dict:
+        """latest_state() for a FULL view (observe --detailed/--json): also records
+        it as this viewer's baseline for the next changes() call."""
+        with self._lock:
+            c3 = self._last_c3 or {}
+            if c3:
+                self._views[viewer] = c3_changes.new_view(c3)
+            return c3
+
+    def changes(self, viewer="", rho_eps=c3_changes.DEFAULT_RHO_EPS,
+                mw_eps=c3_changes.DEFAULT_MW_EPS) -> dict:
+        """C3 restricted to entities changed since this viewer's last full/changes view."""
+        with self._lock:
+            c3 = self._last_c3 or {}
+            if not c3:
+                return {}
+            out, self._views[viewer] = c3_changes.changes(c3, self._views.get(viewer), rho_eps, mw_eps)
+            return out
+
     def _png(self):
         la = self._last_action
         return la.get("png", "") if la else ""
@@ -124,6 +146,7 @@ class SimSession:
             self._atk_started = set()
             self._atk_ended = set()
             self._pending_opponent = []
+            self._views = {}  # new episode: the next --changes is a full dump
             self._last_c3 = self._build_c3(obs, None, "")
             return self._last_c3
 
@@ -349,7 +372,12 @@ class SimSession:
         verbose = {"is_illegal": outcome["illegal"], "is_ambiguous": outcome["ambiguous"],
                    "opponent_attack_line": None}
         if self._last_info:
-            verbose["opponent_attack_line"] = self._last_info.get("opponent_attack_line")
+            # grid2op gives a per-line bool mask (envs with an opponent) or None;
+            # report the attacked line NAMES instead of an n_line-long mask
+            oal = self._last_info.get("opponent_attack_line")
+            if oal is not None:
+                oal = [str(env.name_line[i]) for i in np.flatnonzero(np.asarray(oal, dtype=bool))]
+            verbose["opponent_attack_line"] = oal
         return outcome, verbose
 
     def render(self, width=800, out=None) -> dict:

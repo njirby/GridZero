@@ -4,13 +4,13 @@
   "title": "GRID-STATE",
   "description": "The single canonical snapshot of the grid. Produced by the backend (from grid2op), returned by GET /sim/state, printed by simctl observe --detailed, and consumed by the frontend SVG map. Pure current-state: no deltas, no action history (those live in C4 events).",
   "type": "object",
-  "required": ["schema_version","env","t","max_t","reward","cum_reward","done","n_line","n_sub","lines","subs","max_rho","n_down"],
+  "required": ["schema_version","env","t","reward","cum_reward","done","n_line","n_sub","lines","subs","max_rho","n_down"],
   "additionalProperties": false,
   "properties": {
     "schema_version": {"const": 1},
     "env": {"type": "string"},
     "t": {"type": "integer", "minimum": 0},
-    "max_t": {"type": "integer", "minimum": 1},
+    "max_t": {"type": "integer", "minimum": 1, "description": "episode horizon. OMITTED from agent-facing routes when the backend runs with SIM_HIDE_HORIZON=1."},
     "reward": {"type": "number", "description": "Most recent step's grid2op reward (loss-based, ~64/step in the sandbox). At t=0 this is the reset/initial reward (sandbox: -10, the reward_range lower bound) — do not include it in cum_reward."},
     "cum_reward": {"type": "number", "description": "Running sum of COMPLETED step rewards only. Starts at 0.0 at t=0; the t=0 reset reward is excluded. This is the chart's 'score'."},
     "done": {"type": "boolean"},
@@ -23,6 +23,7 @@
     "max_rho": {"type": "number", "description": "max line loading fraction across lines."},
     "n_down": {"type": "integer", "description": "count of lines currently down."},
     "n_overflow": {"type": "integer", "description": "count of lines with rho>1."},
+    "overflow_allowed": {"type": "integer", "description": "env NB_TIMESTEP_OVERFLOW_ALLOWED: a line whose timestep_overflow would exceed this trips (it trips on its (overflow_allowed+1)th consecutive overloaded step)."},
     "lines": {"type":"array","items":{"$ref":"#/$defs/line"}},
     "subs": {"type":"array","items":{"$ref":"#/$defs/sub"}},
     "gens": {"type":"array","items":{"$ref":"#/$defs/gen"}},
@@ -56,7 +57,10 @@
         "status":{"enum":["up","down","cooldown","maintenance"]},
         "overflow":{"type":"boolean","description":"rho > 1.0."},
         "cooldown":{"type":"integer","minimum":0,"description":"steps until re-addressable (0 = ready)."},
-        "maint":{"type":"integer","description":"0=in maintenance now, k>0=starts in k steps, -1=none."}
+        "maint":{"type":"integer","description":"0=in maintenance now, k>0=starts in k steps, -1=none."},
+        "or_bus":{"type":"integer","description":"busbar of the origin end at its substation (1 or 2; -1 = disconnected)."},
+        "ex_bus":{"type":"integer","description":"busbar of the extremity end (1 or 2; -1 = disconnected)."},
+        "timestep_overflow":{"type":"integer","minimum":0,"description":"consecutive steps this line has been overloaded (0 = not overloaded); compare with overflow_allowed."}
       }
     },
     "sub": {
@@ -82,7 +86,10 @@
         "sub":{"type":"string","description":"host substation name."},
         "p":{"type":"number","description":"MW output."},
         "renewable":{"type":"boolean"},
-        "redispatchable":{"type":"boolean"}
+        "redispatchable":{"type":"boolean"},
+        "connected":{"type":"boolean","description":"generator is connected to a busbar."},
+        "target_dispatch":{"type":"number","description":"cumulative redispatch you requested for this gen (MW)."},
+        "actual_dispatch":{"type":"number","description":"redispatch actually in effect on this gen now (MW); lags target_dispatch while ramp/pmin/pmax limits bind."}
       }
     }
   }
