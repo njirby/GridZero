@@ -213,3 +213,17 @@ base prompt is ~12.6k tokens); 48k works for probes, the config default is 98304
 - LR 1e-4 on the LoRA moves the policy ~0.035 KL per update and grad_norm rose 0.22 → 0.91; watch it on
   longer runs.
 
+
+## 2026-10-12 — BUG: task episode params never reached the sim (all runs before this date)
+Harbor's docker env in non-compose mode applies task.toml `[environment.env]` only to `docker exec`
+calls (`_persistent_env` -> `-e`), never to the container's PID 1. The entrypoint/backend start with
+the container, so every task booted the entrypoint defaults: **case14, chronic 0, 24 steps, seed 0**.
+Evidence: across 94 case14 task ids in harbor_trials, only 10 distinct t=0 states; the first idf smoke
+ran case14 for 24 steps (reward ~57/step; idf is ~194). Meanwhile the verifier subtracted each task's
+own chronic's do-nothing baseline, so per-task reward differences were baseline noise, not behavior.
+All earlier case14 training effectively saw ONE scenario.
+Fix: params now live in each task's `environment/docker-compose.yaml` (Harbor layers it over the
+prebuilt compose; checked with Harbor's compose files: PID 1 gets idf/201/288). The entrypoint writes
+`/run/gridzero/episode.json` (root-only) and the verifier fails as INFRA_FAILURE unless it matches the
+task's baseline row. Old task dirs (`lego/tasks`, `lego/tasks_scale`) predate this: regenerate them
+with make_tasks.py before reuse.

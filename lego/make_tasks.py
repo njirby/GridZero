@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Generate grid2op Harbor task directories from the template.
 
-Each task = one (chronic, horizon, seed) episode. Params are delivered to the
-container via literal [environment.env] values in task.toml (Harbor passes
-literals through unchanged), so ALL tasks share the prebuilt gridzero-rl-base
-image — no per-task image build.
+Each task = one (env, chronic, horizon, seed) episode. Params are delivered to the
+container's entrypoint via environment/docker-compose.yaml (NOT task.toml
+[environment.env], which Harbor's docker mode only applies to `docker exec`), so ALL
+tasks share the prebuilt gridzero-rl-base image — no per-task image build.
 
 Usage:
   # one task (smoke)
@@ -81,6 +81,8 @@ def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeou
     # prebuilt images (docker_image in task.toml). Not built when force_build=False.
     (task_dir / "environment" / "Dockerfile").write_text(
         render(TEMPLATE / "environment" / "Dockerfile", **kw), encoding="utf-8")
+    (task_dir / "environment" / "docker-compose.yaml").write_text(
+        render(TEMPLATE / "environment" / "docker-compose.yaml", **kw), encoding="utf-8")
     return task_dir
 
 

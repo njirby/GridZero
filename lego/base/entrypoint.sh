@@ -2,7 +2,7 @@
 # grid2op task entrypoint: start the SIM-API backend as a pure sim server, then
 # keep the container alive (Harbor's healthcheck gates readiness; the agent and
 # verifier docker-exec in later). Episode params come from the SIM_* env vars
-# (set per task via task.toml [environment.env]); defaults below are for smoke runs.
+# (set per task via environment/docker-compose.yaml); defaults below are for smoke runs.
 set -e
 
 export SIM_CHRONIC="${SIM_CHRONIC:-0}"
@@ -30,6 +30,10 @@ mkdir -p /run/gridzero
 chmod 700 /run/gridzero
 printf '%s' "$tok" > /run/gridzero/token
 chmod 600 /run/gridzero/token
+# The episode this container actually runs (root-only); the verifier checks it against the
+# task's baseline row, so tasks whose params never reached PID 1 fail loudly.
+printf '{"env": "%s", "chronic": %d, "horizon": %d, "seed": %d}\n' \
+    "$SIM_ENV" "$SIM_CHRONIC" "$SIM_HORIZON" "$SIM_SEED" > /run/gridzero/episode.json
 
 # Operator manual: append this grid's facts to /app/AGENTS.md (root-owned; once per container).
 facts="/app/docs/grid_facts/$SIM_ENV.md"

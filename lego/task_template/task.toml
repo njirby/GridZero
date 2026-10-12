@@ -28,11 +28,7 @@ memory_mb = 8192
 storage_mb = 10240
 allow_internet = true
 
-[environment.env]
-SIM_ENV = "$env"
-SIM_CHRONIC = "$chronic"
-SIM_HORIZON = "$horizon"
-SIM_SEED = "$seed"
+# Episode params (SIM_ENV/CHRONIC/HORIZON/SEED) live in environment/docker-compose.yaml.
 
 [environment.healthcheck]
 command = "curl -sf http://127.0.0.1:8731/sim/status"

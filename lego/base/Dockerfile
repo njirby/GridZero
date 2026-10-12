@@ -4,7 +4,7 @@
 #
 # Contains: python 3.12 + grid2op stack + the SIM-API backend + simctl + agent docs.
 # Episode params (SIM_CHRONIC/SIM_HORIZON/SIM_SEED) arrive as env vars set from each
-# task's task.toml [environment.env], so every task shares this one prebuilt image.
+# task's environment/docker-compose.yaml, so every task shares this one prebuilt image.
 
 FROM python:3.12-slim
 

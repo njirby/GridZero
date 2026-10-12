@@ -1,0 +1,11 @@
+# Episode params for the container's entrypoint (the sim backend starts with the container).
+# task.toml [environment.env] can't do this: in Harbor's non-compose docker mode those vars only
+# reach `docker exec` calls, never PID 1, so every task silently booted the entrypoint defaults
+# (case14, chronic 0, 24 steps). Harbor layers this file over its prebuilt compose ("main").
+services:
+  main:
+    environment:
+      SIM_ENV: "$env"
+      SIM_CHRONIC: "$chronic"
+      SIM_HORIZON: "$horizon"
+      SIM_SEED: "$seed"

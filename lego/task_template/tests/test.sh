@@ -37,13 +37,26 @@ except Exception as e:
     raise SystemExit
 dn = 0.0
 if os.path.exists(os.environ["BASELINE"]):
-    dn = float(json.load(open(os.environ["BASELINE"]))["dn_cum_reward"])
+    base = json.load(open(os.environ["BASELINE"]))
+    # The container must have run THIS task's episode (written by the entrypoint).
+    try:
+        ep = json.load(open("/run/gridzero/episode.json"))
+    except Exception as e:
+        print(f"ERR episode.json unreadable: {e}")
+        raise SystemExit
+    want = {k: base.get(k) for k in ("env", "chronic", "horizon", "seed")}
+    if base.get("env") is None:
+        want["env"] = ep["env"]  # pre-env baseline rows (case14)
+    if {k: ep.get(k) for k in want} != want:
+        print(f"ERR episode mismatch: container ran {ep}, task wants {want}")
+        raise SystemExit
+    dn = float(base["dn_cum_reward"])
 print(round(cum - dn, 4))
 PY
 )
 
 if [[ ! "$reward" =~ ^-?[0-9]+(\.[0-9]+)?([eE][-+]?[0-9]+)?$ ]]; then
-  echo "verifier infra failure: backend status unavailable ($reward)" | tee /logs/verifier/INFRA_FAILURE >&2
+  echo "verifier infra failure: $reward" | tee /logs/verifier/INFRA_FAILURE >&2
   exit 1
 fi
 
