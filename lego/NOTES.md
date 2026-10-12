@@ -4,7 +4,7 @@ Non-obvious workarounds and design decisions for the 2×3090 (24GB) GRPO+LoRA sm
 test. These are NOT in the upstream lego-rl/verl docs — future-you (or an agent)
 will hit each of these walls. The config is `configs/gridzero_2b_lora.env`.
 
-## Topology: 2-GPU colocated (cards 0-1); cards 2-3 belong to the user's own model
+## Topology: colocated sync on cards 0-1 (`gridzero_2b_lora_scale.env`), or async 2+2 on all four (`gridzero_2b_lora_async.env`, see 2026-10-12)
 - This box: 4×3090, **30GB RAM** + 71GB swap. The 27B (me) runs on cards 2-3 via
   `vllm serve` (port 8001, venv `~/ml/venvs/vllm-qwen35`). RL training uses cards 0-1.
 - `NGPUS_PER_NODE=2`, `GEN_TP=2` (ONE vLLM replica, TP=2 across both cards — not two
@@ -148,3 +148,51 @@ Full chronology: `debug-journal.md`. The load-bearing facts:
 
 **Results**: run `2b-lora-20261007-195243` (sleep on, v2 image, non-root agent): exit 0,
 `critic/score/mean` 104.4 (12 rollouts), `pg_loss`≈0, `grad_norm` 0.58, step 198 s.
+
+## Findings 2026-10-08 → 10-12 (scale runs, RAM, async 2+2, rollout splitting)
+Chronology lives in the session; the load-bearing facts:
+
+**What the policy learned (sync, 7→30 turns, 64 rollouts/step).** With 7 turns it fired several no-op
+`simctl act` calls per turn to fast-forward (reward hack; 1249 vs ~125). With do-nothing-relative reward
+and 30 turns it converged in ~8 steps to `simctl step && simctl step && …` chains: score ≈ 0 = parity
+with do-nothing. Not a hack — the env is easy (do-nothing survives 324/328 scenarios). Real skill needs
+harder episodes (follow-up). Side effect: the chains grew to ~200 `simctl` per command (~3.5k tokens of
+decode per turn), quadrupling rollout time — rollout speed was token generation, not containers.
+
+**RAM (30 GB box) — read before raising concurrency.**
+- CUDA **pinned host memory shows up as `Shmem`** in /proc/meminfo and **cannot be swapped**. The
+  "mystery" 18.6 GB of Shmem was our offloads (FSDP param offload ~8 GB fp32 + vLLM sleep weight copy
+  4.5 GB + torch's pinned cache). It forced everything else into swap.
+- Sustained memory pressure makes **systemd-oomd kill whole tmux scopes** (it killed the user's model
+  twice). Guard on PSI (`/proc/pressure/memory` some avg10 > 40% ×3 or avg60 > 30% → stop), not on
+  swap size. Swap in use with PSI ≈ 0 is fine.
+- Turning off param + activation offload (SP=2 + the leak fix made GPU room) cut Shmem to ~6 GB and
+  made steps 29% faster. 32 concurrent trials made each trial 66% slower (paging); 16 is the sweet spot.
+
+**Async 2+2 (`TRAINING_MODE=async`, `gridzero_2b_lora_async.env`).** Trainer (SP=2) on cards 0-1, two
+TP=1 vLLM replicas (262k context) on 2-3, staleness 1. Upstream LoRA sync sent base weights only →
+fixed to adapter-only (see `patches/README.md`). Verify with `lego/scripts/probe_async_sync.sh`.
+- **Keep `ROLLOUT_CORRECTION_BYPASS=False` with GSPO.** GSPO clips the *sequence* ratio at 3e-4/4e-4,
+  but vLLM-vs-FSDP numerical mismatch alone is 6e-4 mean / 1.3e-3 max per sequence (measured), so with
+  bypass (old = rollout logprobs) noise clips sequences (25% at step 1). Bypass off recomputes old
+  logprobs (+17 s forward, ~8 GB more swap from save_model_to_cpu; hidden while the trainer waits).
+- Cleanup trap: vLLM rollout processes rename themselves `VLLM::EngineCore` / `VLLM::Worker` and
+  survive `pkill -f "[D]ocuments/lego-rl/.venv"`. Kill them by experiment:
+  `for p in $(pgrep -f VLLM::); do grep -qz "EXP_NAME=<exp>" /proc/$p/environ && kill -9 $p; done`
+  (check `nvidia-smi` is empty afterwards).
+
+**Rollout splitting (train whole long episodes).** Episodes no longer get truncated: opencode compacts
+proactively (`OC_CONTEXT_LIMIT`, default off; async config 98304/8192), the proxy archives each context
+window as a segment, the agent loop emits one training row per segment, GRPO advantage is shared and
+each row weighted 1/N (Agent Lightning / ReSum / verl PR #7580 style). Facts from a real opencode
+1.14.22 trace: compaction call system prompt "You are an anchored context summarization assistant…";
+resumed thread = `[system, kept tail…, user "What did we do so far?", assistant <summary>, user
+<continue>]`; the original task message is dropped and the tail may start with an assistant turn;
+the tail is long (22k → 18k tokens) so compaction recurs often. opencode's own prompt is ~12.6k tokens
+— a compaction threshold below that loops forever (the scaffold now refuses < 20k).
+
+**Bugs fixed on the way (all in the patches):** lego-rl's verl patches were only half applied (the
+trajectory filter never ran); the proxy dropped every post-compaction turn; `_recompute_prefix_logprobs`
+raised IndexError on every "MAXIMUM STEPS" history rebuild; vLLM `add_lora` was called per IPC bucket on
+reused buffer views.
+
