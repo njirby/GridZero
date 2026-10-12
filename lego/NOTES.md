@@ -196,3 +196,17 @@ trajectory filter never ran); the proxy dropped every post-compaction turn; `_re
 raised IndexError on every "MAXIMUM STEPS" history rebuild; vLLM `add_lora` was called per IPC bucket on
 reused buffer views.
 
+**End-to-end result (P5, 2026-10-12, `gridzero_2b_lora_async.env`, 4 prompts × 4, compaction at 48k).**
+Two updates, exit 0: rows/episodes 18/16 and 17/16 (real compaction splits through opencode → proxy →
+agent loop → trainer; the per-episode invariants are asserted in code and held), `pg_clipfrac` 0, trainer
+peak 14.7–14.9 GB of 24, PSI 0, weight-sync canary at the numerical floor after every sync. Step time
+**384 s vs 16.4 min** for colocated sync (rollouts overlap training; the rollouter never idles, the trainer
+waits ~60–70% of the time → rollouts are now the bottleneck). Compaction at 24k is too tight (opencode's
+base prompt is ~12.6k tokens); 48k works for probes, the config default is 98304/8192.
+- Staleness check: update 2 trained on 8 stale trajectories (sampled under version 0). With bypass off,
+  `old_log_prob` is recomputed with the CURRENT weights, so `rollout_corr/kl` jumped 4e-4 → 3.5e-2 = one
+  update of real policy drift, previously uncorrected. Fix: `ROLLOUT_IS=token`, threshold 2.0 (truncated
+  importance sampling, i.e. decoupled PPO) in the async config.
+- LR 1e-4 on the LoRA moves the policy ~0.035 KL per update and grad_norm rose 0.22 → 0.91; watch it on
+  longer runs.
+
