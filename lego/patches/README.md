@@ -90,3 +90,7 @@ floor 4.2%; negative control (sdpa all-to-all removed) 16.4/0.473. ALL PASS.
 `lego/scripts/probe_async_sync.sh` (2 updates, canary on). 2026-10-12: vLLM moves ~0.04 mean |Δlogprob|
 per sync and stays at the vLLM-vs-FSDP base floor (0.027) vs the current trainer; adapter checksum
 identical on both replicas; ~2 s per sync after the first.
+`configs/gridzero_2b_lora_async.env` defaults `ROLLOUT_CORRECTION_BYPASS=False` (trainer recomputes
+old log-probs): the measured vLLM-vs-FSDP sequence mismatch (|log ratio| 6e-4 mean, 1.3e-3 max) is wider
+than GSPO's 3e-4/4e-4 clip, so with bypass on, noise alone clipped 25% of sequences at update 1.
+`BYPASS_KEEP_LOSS_MODE=1` lets bypass run with a non-`bypass_mode` loss if you opt back in.
