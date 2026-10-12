@@ -18,11 +18,8 @@ crosses the threshold — the viewer's picture is never off by more than eps.
 """
 from __future__ import annotations
 
-import os
-
-# Defaults are per deployment (SIM_CHANGES_RHO_EPS / SIM_CHANGES_MW_EPS); callers may override per call.
-DEFAULT_RHO_EPS = float(os.environ.get("SIM_CHANGES_RHO_EPS") or 0.01)
-DEFAULT_MW_EPS = float(os.environ.get("SIM_CHANGES_MW_EPS") or 1.0)
+DEFAULT_RHO_EPS = 0.01
+DEFAULT_MW_EPS = 1.0
 
 ENTITY_KEYS = ("lines", "subs", "gens")
 # fields compared with a threshold: {kind: {field: which eps}}
