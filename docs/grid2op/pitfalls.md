@@ -13,14 +13,16 @@ after any rejected act; keep it in your head when composing JSON.
    limits from `env.get_thermal_limit()`. You drive the grid via `simctl`
    anyway — just don't write code assuming the old API.
 2. **`obs.line_status` is a BOOL array** — `True` = connected, `False` =
-   down. The old API used ints (1/-1). The C3 JSON you read via
-   `observe --detailed` renders it as `status: "up"/"down"/"cooldown"/"maintenance"`.
+   down. The old API used ints (1/-1). `simctl` shows it as the line
+   `status` (`up`/`down`/`cooldown`/`maintenance`; `grid` flags only the
+   non-`up` ones).
 3. **`set_line_status` values are `1` / `-1` / `0`**, not booleans.
    `1` = force closed, `-1` = force open, `0` = no-op. `true`/`false` are
-   not the values the parser wants.
+   rejected as `Invalid action` (time does not advance).
 4. **`change_line_status` takes a LIST, not a name→bool dict.**
    `{"change_line_status": ["0_1_0"]}` works; `{"change_line_status":
-   {"0_1_0": true}}` raises `AmbiguousAction` in 1.12.4. Same for
+   {"0_1_0": true}}` is `Invalid action: … must be a list of line names,
+   got dict` (time does not advance). Same for
    `change_bus` sub-keys: `{"change_bus": {"lines_or_id": ["1_4_4"]}}` is
    right, `{"lines_or_id": {"1_4_4": true}}` is not. (`set_bus`, by contrast,
    IS a name→bus-number dict: `{"set_bus": {"lines_or_id": {"0_4_1": 2}}}`.)
@@ -48,7 +50,7 @@ after any rejected act; keep it in your head when composing JSON.
    most opens re-route fine — but the re-route lands somewhere.
    Verified at t=0 (chronic 0): opening `0_4_1` pushes `1_4_4` to rho 1.019
    in ONE step (other scenarios push it much higher).
-   If a substation is left with a single feeder, any further open isolates
+   `simctl get sub.<name>` lists a sub's attached lines. If a substation is left with a single feeder, any further open isolates
    it → cascade. Check `new_overloads` before celebrating an open.
 8. **A line trips on its 3rd consecutive step above 1.0** (verified on
    grid2op 1.12.4 case14, `NB_TIMESTEP_OVERFLOW_ALLOWED=2`: hot at t=2
@@ -59,36 +61,42 @@ after any rejected act; keep it in your head when composing JSON.
    (Loading ≥ 2.0 is a hard overflow and trips instantly.)
 9. **Tripped lines are OPEN for their cooldown** (10 steps on case14; your
    grid's value is in "Grid facts"). A tripped line is disconnected
-   (`status: "down"`, `cooldown` counting down). Attempting
-   `set_line_status … 1` on it during cooldown is ILLEGAL: the step pays 0
-   and the line stays down (verified: `Illegal action: … cooldown of [10]`,
-   reward 0.0, cooldown ticking 10 → 9). A line YOU opened yourself has NO
-   cooldown — you can close it the very next step. The `status` field says
-   `down` for both; `cooldown > 0` marks a tripped one.
+   (`down cooldown=N` in `grid`). Attempting `set_line_status … 1` on it
+   during cooldown is ILLEGAL: the step pays 0 and the line stays down
+   (verified: `Illegal action: line 1_4_4 cannot be changed for 10 more
+   steps (cooldown: 0 steps after an action on it, 10 after a trip)`, reward
+   0.0, cooldown ticking 10 → 9). A line YOU opened yourself has NO cooldown
+   — you can close it the very next step. Both read `down`; a `cooldown=N`
+   flag marks a tripped one.
 10. **`redispatch` is cumulative.** -5, then -5, then +10 = net -10, and it
     persists across no-op steps (`target_dispatch` stays -10). Undo your own
     dispatch when the maneuver is done. Per-step ramps are listed per gen in
     "Grid facts" (AGENTS.md); renewables 0 (`curtail` them instead). The backend does
-    NOT show margins; a larger single move (e.g. `-50`) is `Ambiguous action`
-    (reward 0, nothing applied), so stay within the ramp and keep your own
-    running total per gen.
+    NOT show margins; a larger single move is `Ambiguous action: redispatch
+    gen_1_0 -50 MW exceeds its ramp-down limit 5 MW/step …` (reward 0,
+    nothing applied), and a cumulative target beyond the gen's `pmax - pmin`
+    is reported as illegal. Your running total per gen is `target_dispatch`
+    (`dispatch target=… actual=…` in the `grid` GENS row).
 11. **Bus changes re-route, they don't delete.** Moving a line end to
     busbar 2 takes it off the sub's main flow; the MW re-enters through the
     sub's sibling lines. Verified: moving `1_4_4`'s or end to busbar 2 after opening
     `0_4_1` drops 1_4_4 to 0 and (chronic 0) leaves max_rho at 0.79; in other
     scenarios a sibling can heat up instead. Always re-observe after a bus
     move.
-12. **Only busbars 1 and 2 exist.** `set_bus` to `3` raises
-    `AmbiguousAction` at build time.
+12. **Only busbars 1 and 2 exist.** `set_bus` to `3` is `Invalid action:
+    … must be 1 or 2 (busbar), -1 (disconnect) or 0, got 3` (time does not
+    advance).
 
 ## Process traps
 
-13. **A rejected act usually still advances time.** `Illegal action: …`
-    (exit 1): grid2op replaced it with do-nothing and stepped anyway, reward 0.
-    The chronic moved while you were fixing your JSON; re-observe before
-    re-acting. The exception: an action that can't be built at all (wrong
-    shape, unknown element name, bus 3) prints `Illegal — …`, exit 1, and
-    time does NOT advance.
+13. **Read the first word of a rejection.** `Illegal action: …` /
+    `Ambiguous action: …` (exit 1): grid2op replaced it with do-nothing and
+    stepped anyway, reward 0. The chronic moved while you were fixing your
+    JSON; re-observe before re-acting. `Invalid action: …` (exit 1): the
+    action couldn't be built (wrong shape, unknown element name, bus 3,
+    curtail outside 0..1) and time did NOT advance. Every message ends by
+    saying which happened, and the next `observe` shows the act as
+    `(rejected, not applied)`.
 14. **Every `act`/`step` is exactly one step.** There is no multi-step
     command (`simctl step 3` is refused). You can chain several `simctl`
     calls in one shell command, but each is a full step taken blind — you
@@ -100,4 +108,5 @@ after any rejected act; keep it in your head when composing JSON.
 16. **`render` may be disabled and is rarely needed.** Where it works it costs
     tokens to look at; where it doesn't it prints `render is disabled in this
     environment` (exit 1) — don't retry. `--out` takes a bare filename only.
-    `observe --detailed` has each line's `or`/`ex` substations (topology).
+    Topology without it: a line's name is `<or_sub>_<ex_sub>_<id>`, and
+    `simctl get sub.<name>` lists each attached line, its end and busbar.

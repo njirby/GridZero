@@ -10,11 +10,11 @@ docs/
   grid2op/
     environment.md            episodes: step/done, info keys, scenarios
     action_space.md           COMPLETE action reference: every key, exact JSON
-    observation.md            how to read state: C3 fields + advanced obs attrs
+    observation.md            reading state: every view, row formats, --json fields
     scoring.md                reward semantics, what "good" looks like
     pitfalls.md               grid2op 1.12 gotchas — read after a rejected act
 recipes/
-  check_state.md              status + observe
+  check_state.md              status, observe, grid, get, list, --changes
   disconnect_line.md          open a line safely, check new_overloads
   change_topology.md          set_bus / change_bus to re-route flow
   redispatch.md               shift generation

@@ -60,9 +60,10 @@ with gen_2_1 and gen_0_5 picking up. 1_4_4 eased 64.3% → 63.8%.
 
 ## When a turn goes wrong
 
-- `Illegal action: …` (exit 1) → your move was dropped but time advanced
-  and the step paid 0. Re-observe, fix, re-act. (`Illegal — …` means the
-  action couldn't even be built; time did NOT advance.)
+- `Illegal action: …` / `Ambiguous action: …` (exit 1) → your move was
+  dropped but time advanced and the step paid 0. Re-observe, fix, re-act.
+  (`Invalid action: …` means the action couldn't even be built; time did
+  NOT advance.) The message names the element, the value and the limit.
 - `new_overloads=[X]` → X crossed 1.0 this step. Your NEXT act must cool X
   (re-route, redispatch, or undo) before anything else.
 - `overloads=[X]` still present at the next observe → X is on its 2nd hot

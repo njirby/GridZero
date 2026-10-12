@@ -20,8 +20,8 @@ backend starts it for you; **you cannot reset or restart it.**
 - `reward` at `t=0` (`-10.0`) is a placeholder from the reset, not a step
   reward; `cum` only sums completed steps.
 - `done=yes` ends the episode. Causes: the episode ran its full length
-  (`time_exceeded`), or a blackout / cascading failure (`game_over`, `observe --detailed` has
-  the `cause`). **After `done` the episode is over: `act` and `step` print
+  (`time_exceeded`), or a blackout / cascading failure (`game_over`; the
+  `simctl grid` header shows `done=yes (<cause>)`). **After `done` the episode is over: `act` and `step` print
   `Episode is over (<cause>). Stop acting and write your summary.` and exit
   1. Stop and summarize.** `status`/`observe` still show the final state.
 
@@ -33,9 +33,10 @@ backend starts it for you; **you cannot reset or restart it.**
 > action is replaced with a 'do nothing' action."
 
 That means: **a rejected act does not freeze time.** The grid steps forward,
-your move is dropped, and the step's reward is 0. Exception: an action that
-cannot even be built (wrong JSON shape, unknown line/gen name, bus 3) prints
-`Illegal — <reason>` (exit 1) and does NOT advance time.
+your move is dropped, and the step's reward is 0 (`Illegal action: …` /
+`Ambiguous action: …`, exit 1). Exception: an action that cannot even be
+built (wrong JSON shape, unknown line/gen name, bus 3, curtail outside 0..1)
+prints `Invalid action: … Not applied; time did NOT advance (t=N).` (exit 1).
 
 What `simctl act --json` returns (the C2 envelope):
 
@@ -49,18 +50,18 @@ What `simctl act --json` returns (the C2 envelope):
 
 | key | meaning |
 |---|---|
-| `ok` / `error` | `false` + `Illegal action: ...` / `Ambiguous action: ...` when the sim rejected it (exit 1) |
+| `ok` / `error` | `false` + `Illegal action: ...` / `Ambiguous action: ...` / `Invalid action: ...` when rejected (exit 1) |
 | `new_overloads` | lines that crossed 1.0 on this step |
 | `overloads`, `lines_down` | all lines above 1.0 / currently disconnected, after the step |
-| `disc_lines` | lines that tripped on this step (see `observe --detailed` `status: down` to confirm) |
-| `illegal` / `ambiguous` | the action was dropped (reward 0, clock advanced) |
+| `disc_lines` | lines that tripped on this step (`simctl list lines --where status=down` to confirm) |
+| `illegal` / `ambiguous` | the action was dropped (for `Invalid action` the clock did not advance; otherwise reward 0, clock advanced) |
 | `verbose.predicted_disc_lines` | lines the backend's dry-run predicted would trip from your move |
 
 ## Load and generation follow the data (chronics)
 
 The sandbox replays a recorded **chronic**: 5-minute load and renewable-output
 time series. You don't set loads; they drift with the series. Renewables
-(`renewable: true` in the `gens` list of `observe --detailed`) vary with it — that's what moves
+(`W` in the GENS table of `simctl grid`) vary with it — that's what moves
 `rho` when you do nothing. `simctl step` is how you watch that drift.
 
 A **scenario** is one draw from the data set (start timestamp, load curve).
@@ -70,8 +71,8 @@ The operator picks it; you don't manage scenarios, and numbers in the docs
 ## Grid shape
 
 Sizes, redispatchable gens (with ramps), curtailable gens, protections and
-any opponent are in the "Grid facts" section of AGENTS.md; `observe
---detailed` lists every line, sub and gen. What holds on every grid:
+any opponent are in the "Grid facts" section of AGENTS.md; `simctl grid`
+lists every line, sub and gen. What holds on every grid:
 
 - Substations `sub_0`…`sub_<n-1>`, each with **2 busbars**.
 - Lines named `<or_sub>_<ex_sub>_<idx>` (e.g. `0_4_1` = sub_0→sub_4, id 1);

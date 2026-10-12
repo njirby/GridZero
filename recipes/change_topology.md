@@ -8,8 +8,8 @@ but carries (nearly) nothing.
 
 ## `change_bus` — flip an element to the other busbar
 
-Values are a **LIST of names** (not a name→true dict — that is rejected as
-`Illegal — … AmbiguousAction`, and time does not advance):
+Values are a **LIST of names** (a name→true dict is rejected as `Invalid action:
+… must be a list of line names`, and time does not advance):
 
 ```
 simctl act '{"change_bus": {"lines_or_id": ["1_4_4"]}}'
@@ -26,12 +26,15 @@ simctl act '{"set_bus": {"lines_ex_id": {"3_4_6": 1}}}'
 simctl act '{"set_bus": {"lines_or_id": {"1_4_4": 2}}}'
 ```
 Use `set_bus` when you know which side you want; `change_bus` when "flip it"
-is enough. Only `1` or `2` are legal (bus `3` → rejected, nothing happens,
-no step).
+is enough. Only `1` or `2` are valid busbars (bus `3` → `Invalid action`,
+nothing happens, no step).
 
 **One substation per act.** Two bus changes at different subs in one act
-(e.g. `change_bus` on 1_4_4 and 5_12_9) print `Illegal action: … More than 1
-substation affected` — the step advances and pays 0.
+are illegal — the step advances and pays 0:
+```
+$ simctl act '{"change_bus": {"lines_or_id": ["1_4_4", "5_12_9"]}}'
+Illegal action: at most 1 substation change per action (got 2: sub_1, sub_5). Not applied: the step advanced to t=5 with do-nothing instead (reward 0).
+```
 
 ## Worked re-route (real `l2rpn_case14_sandbox` run, chronic 0; names and numbers differ on other grids)
 
@@ -50,7 +53,16 @@ gens: 73.9 72.7 35.6 0.0 0.0 73.1
 since your last act (t=1 change_bus lines_or_id=['1_4_4']): no trips (max_rho=0.79)
 ```
 `1_4_4`'s or end sits on sub_1's busbar 2, off the main flow, so it drops out
-of the top loads and the overload is gone. The MW you moved went somewhere:
+of the top loads and the overload is gone. `simctl get sub.sub_1` shows the
+split:
+```
+  attached lines (4):
+    0_1_0 ex end, bus=1, status=up, rho=0.5797, p_or=73.056
+    1_2_2 or end, bus=1, status=up, rho=0.5148, p_or=46.201
+    1_3_3 or end, bus=1, status=up, rho=0.4953, p_or=77.49
+    1_4_4 or end, bus=2, status=up, rho=0.0, p_or=-0.0
+```
+and its `grid` row reads `1_4_4  0.000  -0.0 or_bus=2`. The MW you moved went somewhere:
 `0_1_0` is now the line to watch (58%). In other scenarios the sibling that
 takes the load can go hot — check `top loads` every time.
 
@@ -65,7 +77,8 @@ simctl act '{"set_line_status": {"0_4_1": 1}}'              # back to lines_down
 ## Rules of thumb
 
 - A bus change on a line end isolates that end from ONE busbar's elements —
-  it doesn't cut the line. The line reads `status: "up"`, `rho ≈ 0`.
+  it doesn't cut the line. The line stays `up` (no `down` flag), `rho ≈ 0`,
+  flagged `or_bus=2` / `ex_bus=2`.
 - Re-routes are second-order: every bus move heats some sibling line. Re-
   observe and watch `new_overloads` before the next move.
 - **Don't stack bus changes on the same substation.** If a re-route pushes a

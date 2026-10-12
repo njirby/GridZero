@@ -9,9 +9,19 @@ other grids.)
 
 ## Step 1 — pick a line that's NOT the only path
 
-From `observe --detailed`, check both endpoint subs have another feeder.
-`0_4_1` (sub_0→sub_4) is a good teaching example: sub_4 also has `1_4_4`
-(from sub_1) and `3_4_6` (from sub_3); sub_0 has `0_1_0`.
+Check both endpoint subs have another feeder: `simctl get sub.<name>` lists
+every attached line. `0_4_1` (sub_0→sub_4) is a good teaching example:
+```
+$ simctl get sub.sub_4
+...
+  attached lines (4):
+    0_4_1 ex end, bus=1, status=up, rho=0.2911, p_or=32.191
+    1_4_4 ex end, bus=1, status=up, rho=0.6434, p_or=27.709
+    3_4_6 ex end, bus=1, status=up, rho=0.4118, p_or=-33.093
+    4_5_17 or end, bus=1, status=up, rho=0.448, p_or=18.719
+  attached gens (0):
+```
+(at t=0; the sub's own fields elided.) sub_0 also has `0_1_0`.
 
 ## Step 2 — open it and read the result
 
@@ -22,8 +32,9 @@ simctl act '{"set_line_status": {"0_4_1": -1}}'
 applied set_line_status 0_4_1=down · t=1 · reward=63.41 · new_overloads=[1_4_4] · illegal=no
 ```
 `new_overloads` names the lines that crossed 1.0 because of your move. One
-line per act: opening two lines at once is illegal (`More than 1 line
-status affected`, the step advances with reward 0).
+line per act: opening two lines at once is illegal (`Illegal action: at
+most 1 line status change per action (got 2: …)`, the step advances with
+reward 0).
 
 ## Step 3 — observe, then fix the new hotspot
 

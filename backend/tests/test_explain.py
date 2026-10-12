@@ -169,3 +169,11 @@ def test_rejected_act_marked_in_last_action(c14):
     assert la["summary"] == "redispatch gen_1_0=50.0 (rejected, not applied)"
     _act(c14, {})
     assert "rejected" not in c14.latest_state()["last_action"]["summary"]
+
+
+def test_bool_values_rejected(c14):
+    # grid2op would read false as 0 (no-op), silently NOT opening the line
+    _not_built(c14, {"set_line_status": {"0_4_1": False}},
+               "`set_line_status` value for 0_4_1 must be a number, got false")
+    _not_built(c14, {"set_bus": {"lines_or_id": {"1_4_4": True}}},
+               "set_bus.lines_or_id value for 1_4_4 must be 1 or 2 (busbar), -1 (disconnect) or 0, got True")

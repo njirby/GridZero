@@ -3,7 +3,7 @@
 You act with `simctl act '<json>'`. The JSON is a grid2op 1.12.4 action
 dict. All shapes below were verified against the installed library on
 `l2rpn_case14_sandbox` (element names in examples are case14's; use the
-names from your grid's `observe --detailed`). **Acting also advances exactly
+names from your grid's `simctl grid` / `simctl list`). **Acting also advances exactly
 one timestep** (grid2op
 semantics: a step applies the action, then runs the grid forward 5 minutes).
 
@@ -25,15 +25,19 @@ Closing a line you opened yourself is instant (no cooldown).
 Closing a line that TRIPPED is illegal until its cooldown runs out.
 
 ### `change_line_status` — toggle a line (up→down, down→up)
-**Takes a LIST of line names/ids, not a name→bool dict.** The dict form
-`{"0_1_0": true}` raises `AmbiguousAction` in 1.12.4 (the older grid2op docs
-show the dict form — ignore them).
+**Takes a LIST of line names/ids, not a name→bool dict.**
 ```
 simctl act '{"change_line_status": ["0_4_1"]}'      # toggle 0_4_1
 ```
+The dict form (shown in older grid2op docs) is rejected without advancing
+time:
+```
+$ simctl act '{"change_line_status": {"0_1_0": true}}'
+Invalid action: `change_line_status` must be a list of line names, got dict. Not applied; time did NOT advance (t=0).
+```
 One line per act: at most ONE line's status may change per act
-(`set_line_status` too). `["0_4_1", "1_4_4"]` prints `Illegal action: … More
-than 1 line status affected by the action` — the step advances, reward 0.
+(`set_line_status` too). Two lines print
+`Illegal action: at most 1 line status change per action (got 2: 0_1_0, 1_2_2). Not applied: the step advanced to t=4 with do-nothing instead (reward 0).`
 Use this when you want "switch it" without deciding which way; use
 `set_line_status` when you want a guaranteed state.
 
@@ -53,7 +57,9 @@ simctl act '{"set_bus": {"generators_id": {"gen_1_0": 2}}}'
 Busbar 1 is the main busbar; busbar 2 the backup. Moving a line END onto
 busbar 2 disconnects that end from the sub's main flow **without opening the
 line** — power re-routes through the sub's sibling lines. Only `1` or `2`
-are valid (this env has 2 busbars per sub); bus `3` raises `AmbiguousAction`.
+are valid busbars (this env has 2 per sub; `-1` disconnects the element,
+`0` = no-op); bus `3` is rejected without advancing time:
+`Invalid action: set_bus.lines_or_id value for 0_4_1 must be 1 or 2 (busbar), -1 (disconnect) or 0, got 3. Not applied; time did NOT advance (t=0).`
 
 ### `change_bus` — toggle an element to the other busbar (1→2, 2→1)
 Sub-keys: `lines_or_id`, `lines_ex_id`, `loads_id`, `generators_id`. Each maps
@@ -85,18 +91,26 @@ simctl act '{"redispatch": {"gen_2_1": 10.0}}'    # add 10 MW to gen_2_1
 setpoint (grid2op keeps `target_dispatch`); it survives subsequent no-op
 steps until you counteract it. -5 then -5 = -10. To undo, send +5 (or +10).
 Keep |Δ| within the gen's per-step ramp (see "Grid facts"; on case14
-gen_1_0 ±5, gen_2_1 ±10, gen_0_5 ±15). Margins are not shown by `observe`/`--detailed`; a larger Δ (e.g. `-50`)
-is rejected as `Ambiguous action` — reward 0, nothing applied, step still
-advances. Keep your own running total.
+gen_1_0 ±5, gen_2_1 ±10, gen_0_5 ±15). Margins are not shown by any view
+(your running `target_dispatch` is: the `dispatch` flag in `simctl grid`,
+or `simctl get gen.<name>`). A larger Δ is rejected — nothing applied, step
+still advances, reward 0:
+```
+Ambiguous action: redispatch gen_1_0 -50 MW exceeds its ramp-down limit 5 MW/step (current target_dispatch 0 MW). Not applied: the step advanced to t=3 with do-nothing instead (reward 0).
+```
+A move that would take the cumulative `target_dispatch` beyond
+`pmax - pmin` of that gen is likewise reported as illegal (not applied).
 
 ### `curtail` — cap a renewable generator
 Maps **gen name → fraction 0..1** of its max output.
 ```
 simctl act '{"curtail": {"gen_5_2": 0.5}}'        # wind gen_5_2 capped at 50%
 ```
-The action echoes as: `Limit unit "gen_5_2" to 50.0% of its Pmax`. Use it to
-dump unwanted renewable output that's pushing a line hot. (Note: the key is
-`curtail` — see "keys that silently no-op" below.)
+The action echoes as `applied curtail gen_5_2=0.5 …`. Use it to dump
+unwanted renewable output that's pushing a line hot. A value outside 0..1 is
+rejected without advancing time:
+`Invalid action: curtail value for gen_5_2 must be between 0.0 and 1.0 (fraction of pmax), got 1.5. Not applied; time did NOT advance (t=0).`
+(Note: the key is `curtail` — see "keys that silently no-op" below.)
 
 ### Combining keys
 
@@ -125,9 +139,10 @@ changed:
   against this page.
 
 A nonexistent element NAME or a wrong value shape, by contrast, is loud:
-building the action raises `AmbiguousAction` ("No known line with name …").
-The act is rejected (exit 1, `Illegal — <reason>` on stdout) and **time does
-NOT advance**.
+the act is rejected (exit 1) and **time does NOT advance**:
+```
+Invalid action: unknown line 'x_y' (`simctl list lines` lists them). Not applied; time did NOT advance (t=0).
+```
 
 ## The factory methods (for reference)
 
@@ -158,25 +173,29 @@ your interface — but the semantics above match them 1:1.
 | | happens when | what you see | grid effect |
 |---|---|---|---|
 | **legal** | normal | `applied … illegal=no`, exit 0 | action + 1 step |
-| **illegal** | not allowed in this state (close a line mid-cooldown, change 2 lines at once) | `Illegal action: <reason>`, exit 1 | 1 step as do-nothing, **reward 0** |
-| **malformed** | can't be built (bus>2, name→bool where a list is required, unknown element name) | `Illegal — <reason>`, exit 1 | **no step**, time does not advance |
+| **illegal / ambiguous** | not allowed in this state (close a line mid-cooldown, change 2 lines or 2 subs at once, redispatch beyond the ramp or beyond pmax − pmin) | `Illegal action: …` / `Ambiguous action: …`, exit 1 | 1 step as do-nothing, **reward 0** |
+| **invalid** | can't be built (unknown element name, name→bool where a list is required, bus 3, curtail outside 0..1) | `Invalid action: …`, exit 1 | **no step**, time does not advance |
 
-From `Environment.step`'s docstring: "If the action is illegal or
-ambiguous, the step is performed, but the action is replaced with a 'do
-nothing' action." (An `Ambiguous action: <reason>` message, same effect as
-illegal, is possible too.) Read the reason, adjust, re-act.
+Each message names the element, the requested value and the limit, and
+ends by saying whether time advanced. From `Environment.step`'s docstring:
+"If the action is illegal or ambiguous, the step is performed, but the
+action is replaced with a 'do nothing' action." Afterwards the `since your
+last act` line of `observe` shows the act with `(rejected, not applied)`.
+Read the reason, adjust, re-act.
 
 ## Cooldowns (verified numbers)
 
 - **Overload trip**: a line above `rho=1.0` trips on its **3rd consecutive
   overloaded step** (2 allowed, verified on case14; hard overflow at
   `rho≥2.0` is instant; your grid's protections are in "Grid facts"). A
-  tripped line is OPEN, `status: "down"`, `cooldown` counting down (10 on
-  case14) — closing it before 0 is illegal.
+  tripped line is OPEN (`down cooldown=N` in its `grid` row, counting down
+  from 10 on case14) — closing it before 0 is illegal:
+  `Illegal action: line 1_4_4 cannot be changed for 10 more steps (cooldown: 0 steps after an action on it, 10 after a trip). Not applied: the step advanced to t=9 with do-nothing instead (reward 0).`
 - **Self-opened line**: no re-close cooldown. `set_line_status … 1` works
   immediately.
-- `observe --detailed` shows `cooldown: <steps left>` per line (and
-  `status: "cooldown"` for a connected line still in cooldown).
+- `simctl grid` flags `cooldown=<steps left>` per line (and `cooldown` as
+  the status of a connected line still in cooldown);
+  `simctl list lines --where 'cooldown>0'` lists them.
 
 ## Which keys shift load where (cheat sheet)
 

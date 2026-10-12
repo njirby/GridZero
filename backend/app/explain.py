@@ -64,6 +64,8 @@ def prevalidate(env, action: dict):
                     return _unknown(env, kind, name)
             if shape == "dict":
                 for name, v in val.items():
+                    if isinstance(v, bool):  # grid2op reads true as 1 and false as 0 (= no-op, NOT open)
+                        return f"`{key}` value for {name} must be a number, got {str(v).lower()}"
                     x = _num(v)
                     if x is None:
                         return f"`{key}` value for {name} must be a number, got {v!r}"
@@ -88,7 +90,7 @@ def prevalidate(env, action: dict):
                         return _unknown(env, kind, name)
                 if key == "set_bus":
                     for name, b in items.items():
-                        if _num(b) not in (-1, 0, 1, 2):
+                        if isinstance(b, bool) or _num(b) not in (-1, 0, 1, 2):
                             return f"set_bus.{sub} value for {name} must be 1 or 2 (busbar), -1 (disconnect) or 0, got {b!r}"
     return None
 

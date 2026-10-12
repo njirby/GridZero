@@ -32,41 +32,66 @@ Read it top-down:
 2. `overloads` non-empty → that line trips on its 3rd consecutive overloaded
    step (above: hot since t=1, so it trips at t=3 unless relieved by your
    next act); make relieving it YOUR next act.
-3. `lines_down` rose → something is open. Find it in `observe --detailed`
-   (`status: "down"`; `cooldown > 0` means it tripped and can't be closed yet).
+3. `lines_down` rose → something is open. Find it with
+   `simctl list lines --where status=down` (a `cooldown=N` flag means it
+   tripped and can't be closed yet).
 4. Last line → what your previous act did, `no trips` or `tripped: [...]`.
-   It is absent before your first act.
+   It is absent before your first act; a rejected act ends with
+   `(rejected, not applied)`.
 
-Full detail (every line's rho/status, subs, gens — the C3 JSON):
+Full detail — every line, sub and gen, one row each (`observe --detailed`
+prints the same):
 
 ```
-simctl observe --detailed
+simctl grid
 ```
-```json
-{"t": 2, "max_rho": 1.0125, "n_down": 1, "n_overflow": 1,
- "lines": [{"id": 1, "name": "0_4_1", "or": "sub_0", "ex": "sub_4", "rho": 0.0,
-            "p_or": 0.0, "p_ex": 0.0, "status": "down", "overflow": false,
-            "cooldown": 0, "maint": -1},
-           {"id": 4, "name": "1_4_4", "or": "sub_1", "ex": "sub_4", "rho": 1.0125,
-            "p_or": 43.605, "p_ex": -42.583, "status": "up", "overflow": true,
-            "cooldown": 0, "maint": -1}, ...],
- "gens": [{"id": 0, "name": "gen_1_0", "sub": "sub_1", "p": 73.9,
-           "renewable": false, "redispatchable": true}, ...],
- "last_action": {"source": "agent", "summary": "set_line_status 0_4_1=down",
-                 "args": {"set_line_status": {"0_4_1": -1}}, "t": 0},
- "last_disc_lines": [], "cause": null, ...}
 ```
-(`...` marks elided entries.) Machine-readable version of any command:
-append `--json`.
+t=1 reward=63.4 (cum 63.4) done=no · max_rho=1.019 n_down=1 n_overflow=1 overflow_allowed=2 · sim_clock=2019-01-06 00:05:00
+since your last act (t=0 set_line_status 0_4_1=down): no trips
+LINES (20) — name rho p_or(MW) [flags]; flags only when not default: status (down/cooldown/maintenance), cooldown=N, maint=now|in N, or_bus=/ex_bus= (default 1; -1 when down), overflow k/allowed
+  0_1_0     0.579     73.0
+  0_4_1     0.000      0.0 down
+  ...
+  1_4_4     1.019     43.9 overflow 1/2
+  ...
+SUBS (14) — name type net_p(MW, gen positive)
+  sub_0  gen       73.0
+  ...
+GENS (6) — name sub p(MW) R=redispatchable W=renewable [flags: disconnected, dispatch target= actual= (MW, when non-zero)]
+  gen_1_0 sub_1      73.3 R-
+  ...
+(every field of one element: simctl get <line|sub|gen>.<name>; all fields as JSON: simctl --json grid)
+```
+(`...` marks elided rows.) Row formats and flags: `docs/grid2op/observation.md`.
+Machine-readable version of any command: append `--json`.
 
-On a big grid, read `--detailed` once at the start, then each turn
+Narrower reads:
+
+```
+simctl get sub.sub_4                     # every field + attached lines (end, busbar) and gens
+simctl get line.1_4_4                    # every field of one line
+simctl list lines --sort rho --top 5     # the 5 hottest lines
+simctl list lines --where 'cooldown>0'   # lines that can't be switched yet
+simctl history line.1_4_4 --last 6       # one line's rho/p_or/status per step
+```
+```
+$ simctl list lines --sort rho --top 5
+5 of 20 matching lines (of 20) · sorted by rho descending, top 5 — name rho p_or(MW) [flags]; …
+  5_12_9    0.799     20.6
+  5_10_7    0.667     14.2
+  1_4_4     0.643     27.7
+  5_11_8    0.522      8.3
+  11_12_13  0.509      2.7
+```
+(at t=0; header shortened with `…`.)
+
+On a big grid, read `simctl grid` once at the start, then each turn
 `simctl observe` plus:
 
 ```
 simctl observe --changes
 ```
-It lists only the lines/subs/gens that changed since your last `--detailed`
-or `--changes` view, each with the same fields as in `--detailed`. Discrete
-changes (status, overflow, cooldown start/end) always show; rho/MW drift
-only above the thresholds printed in its header (`--rho-eps`, `--mw-eps` to
-change them).
+It prints the `grid` rows only for the lines/subs/gens that changed since
+your last `grid` or `--changes` view. Discrete changes (status, bus,
+overflow, cooldown start/end) always show; rho/MW drift only above the
+thresholds printed in its header (`--rho-eps`, `--mw-eps` to change them).

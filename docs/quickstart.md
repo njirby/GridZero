@@ -30,8 +30,8 @@ since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [
 - `max_rho` — the most loaded line. 1.0 = at its thermal limit. **A line above
   1.0 trips on its 3rd consecutive overloaded step** (you get 2 acts to fix it).
 - `overloads` — lines currently above 1.0. `top loads` — the 3 hottest lines.
-- `gens` — MW of every generator, in gen id order (the `gens` list of
-  `observe --detailed` gives the names).
+- `gens` — MW of every generator, in gen id order (the GENS table of
+  `simctl grid` gives the names).
 - Last line — what your previous action did: `no trips` or `tripped: [...]`,
   plus the overloads that exist now. Absent before your first act (and at
   t=0 `reward=-10.0` is a placeholder, not a real step).
@@ -44,16 +44,24 @@ applied set_line_status 0_4_1=down · t=1 · reward=63.41 · new_overloads=[1_4_
 ```
 
 - `new_overloads` — lines that JUST crossed 1.0 because of your move.
-- A rejected move prints `Illegal action: <reason>` (exit 1) instead. It was
-  NOT applied, but the clock still advanced one step and that step paid 0.
+- A rejected move (exit 1) says what was wrong and whether time advanced:
+  ```
+  Ambiguous action: redispatch gen_1_0 -50 MW exceeds its ramp-down limit 5 MW/step (current target_dispatch 0 MW). Not applied: the step advanced to t=3 with do-nothing instead (reward 0).
+  Invalid action: unknown line 'x_y' (`simctl list lines` lists them). Not applied; time did NOT advance (t=0).
+  ```
+  `Illegal action` / `Ambiguous action`: NOT applied, the clock still
+  advanced one step and that step paid 0. `Invalid action`: NOT applied,
+  time did not advance.
 
-On a big grid the compact view hides most lines. Read `simctl observe
---detailed` once at the start (full JSON: every line, sub, gen), then each
-turn `simctl observe` plus `simctl observe --changes` — the same per-entity
-fields as `--detailed`, but only the entities that changed since your last
-`--detailed`/`--changes` view (discrete changes always; continuous ones
-above the thresholds printed in its header, tunable with `--rho-eps` /
-`--mw-eps`).
+On a big grid the compact view hides most lines. `simctl grid` (same as
+`observe --detailed`) prints every line, sub and gen as one table row each;
+`simctl observe --changes` prints the same rows, but only for elements that
+changed since your last `grid`/`--changes` (discrete changes always;
+continuous ones above the thresholds printed in its header, tunable with
+`--rho-eps` / `--mw-eps`). For one element: `simctl get line.1_4_4`,
+`simctl get sub.sub_4` (lists what is attached, and on which busbar); for a
+filtered view: `simctl list lines --sort rho --top 5`; for its past steps:
+`simctl history line.1_4_4`. Details in `grid2op/observation.md`.
 
 ## Worked example: open a line, eat the overload, re-route it
 

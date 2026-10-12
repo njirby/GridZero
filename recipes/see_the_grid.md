@@ -1,9 +1,10 @@
 # Recipe: see the grid (render + Read) — OPTIONAL
 
 **When:** you need TOPOLOGY visually — which lines connect which subs, where
-the generators sit. This is optional: `observe --detailed` already gives the
-topology as numbers (each line's `or`/`ex` subs, each sub's `x`/`y`), and in
-some environments (e.g. RL training) render is turned off.
+the generators sit. This is optional: the topology is also available as text
+(a line's name is `<or_sub>_<ex_sub>_<id>`; `simctl get sub.<name>` lists
+every attached line, its end and busbar, and every gen), and in some
+environments (e.g. RL training) render is turned off.
 
 ## Step 1 — render
 
@@ -27,7 +28,7 @@ invalid render filename: use a bare name like 't0052' or 't0052.png'
 ```
 render is disabled in this environment
 ```
-(exit 1). Don't retry; use `observe --detailed`.
+(exit 1). Don't retry; use `simctl grid` / `simctl get sub.<name>`.
 
 ## Step 2 — Read it
 
@@ -46,8 +47,9 @@ on a roughly ring-shaped grid; a large grid is much denser.)
   others.
 - Gen subs (icons) are your `redispatch` levers; a hot line coming OFF a gen
   sub → pull that gen down.
-- `observe --detailed` has the same geometry as numbers: each line's `or`/`ex`
-  fields name its two subs, and each sub's `x`/`y` are the render coordinates.
+- The same geometry as text: `simctl get line.<name>` has its `or`/`ex`
+  subs, `simctl get sub.<name>` its `x`/`y` (the render coordinates) and
+  its attached lines and gens.
 
 ## Then act
 
