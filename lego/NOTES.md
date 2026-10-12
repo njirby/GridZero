@@ -227,3 +227,11 @@ prebuilt compose; checked with Harbor's compose files: PID 1 gets idf/201/288). 
 `/run/gridzero/episode.json` (root-only) and the verifier fails as INFRA_FAILURE unless it matches the
 task's baseline row. Old task dirs (`lego/tasks`, `lego/tasks_scale`) predate this: regenerate them
 with make_tasks.py before reuse.
+
+## 2026-10-12 — BUG: fully-async ran only AGENT_NUM_WORKERS (=2) trials at once
+lego-rl's dispatch puts each agent-loop worker in a shared queue ONCE and hands it one single-sample
+shard at a time, so concurrency = agent.num_workers, not workers x HARBOR_MAX_CONCURRENT_TRIALS. Seen
+on the first idf run: validation launched trials ~2 at a time. Earlier async runs (P5 etc.) had the same
+cap. Fix (verl patch): each worker gets HARBOR_MAX_CONCURRENT_TRIALS queue slots. Checked: 16 trials
+concurrent with 2 workers x 8. RAM at 16 idf trials: containers 8 GiB (~0.5 GB each), 6 GB free, 17 GB
+swap -> 16 is the practical max on this 30 GB box.

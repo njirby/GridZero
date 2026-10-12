@@ -41,6 +41,11 @@ applying to a clean checkout and diffing against the live tree).
   entropy, KL) with the fixed denominator. No-op when no episode splits. Metrics `rollout/{rows,
   episodes, split_episodes, pad_rows, rows_per_mini_batch}`. Code: `verl/trainer/ppo/split_rollouts.py`.
 
+- **Agent-loop worker queue slots** (`fully_async_rollouter._init_worker_queue`, `AgentLoopManager.generate_sequences`):
+  each worker is queued `HARBOR_MAX_CONCURRENT_TRIALS` times. With one slot per worker, total trial
+  concurrency was capped at `agent.num_workers` (2 here) regardless of the per-worker cap, for both
+  training rollouts and validation.
+
 ## What's in `lego-rl.patch`
 - Proxy (`vllm_chat_completion_proxy.py`): fixed UFW-allowed port (8011+); **segment archiving** — after
   an opencode compaction the post-compaction main thread is bound back to the episode as a new segment

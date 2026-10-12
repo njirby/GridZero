@@ -3361,7 +3361,7 @@ index 73608f20..071bc679 100644
  
  async def split_weight_chunks(
 diff --git a/verl/experimental/agent_loop/agent_loop.py b/verl/experimental/agent_loop/agent_loop.py
-index 268f8d5f..5e71dd63 100644
+index 268f8d5f..61a667c1 100644
 --- a/verl/experimental/agent_loop/agent_loop.py
 +++ b/verl/experimental/agent_loop/agent_loop.py
 @@ -49,6 +49,8 @@ from verl.experimental.agent_loop.utils import resolve_config_path
@@ -3610,7 +3610,7 @@ index 268f8d5f..5e71dd63 100644
  async def get_trajectory_info(step, index, validate):
      """Get trajectory info.
  
-@@ -1108,13 +1249,29 @@ class AgentLoopManager:
+@@ -1108,13 +1249,33 @@ class AgentLoopManager:
          Returns:
              DataProto: Output batch.
          """
@@ -3622,8 +3622,12 @@ index 268f8d5f..5e71dd63 100644
 -            ]
 -        )
 +        worker_queue = asyncio.Queue()
-+        for worker in self.agent_loop_workers:
-+            await worker_queue.put(worker)
++        # One slot per concurrent trial a worker may run (HARBOR_MAX_CONCURRENT_TRIALS);
++        # one slot per worker capped total concurrency at agent.num_workers.
++        slots = max(1, int(os.environ.get("HARBOR_MAX_CONCURRENT_TRIALS", "0") or 0))
++        for _ in range(slots):
++            for worker in self.agent_loop_workers:
++                await worker_queue.put(worker)
 +        single_samples = list(prompts.chunk(len(prompts)))  # List[DataProto], each DataProto has batch_size=1
 +        async def process_task(sample):
 +            worker = await worker_queue.get()
@@ -3647,7 +3651,7 @@ index 268f8d5f..5e71dd63 100644
          output = DataProto.concat(outputs)
  
          # calculate performance metrics
-@@ -1122,6 +1279,28 @@ class AgentLoopManager:
+@@ -1122,6 +1283,28 @@ class AgentLoopManager:
          timing = self._performance_metrics(metrics, output)
  
          output.meta_info = {"timing": timing, **outputs[0].meta_info}
@@ -3676,7 +3680,7 @@ index 268f8d5f..5e71dd63 100644
          return output
  
      def _performance_metrics(self, metrics: list[list[dict[str, str]]], output: DataProto) -> dict[str, float]:
-@@ -1156,4 +1335,25 @@ class AgentLoopManager:
+@@ -1156,4 +1339,25 @@ class AgentLoopManager:
              timing["agent_loop/slowest/prompt_length"] = attention_mask[:prompt_length].sum().item()
              timing["agent_loop/slowest/response_length"] = attention_mask[prompt_length:].sum().item()
  
@@ -3917,7 +3921,7 @@ index f96ad910..88746e99 100644
      )
  
 diff --git a/verl/experimental/fully_async_policy/fully_async_rollouter.py b/verl/experimental/fully_async_policy/fully_async_rollouter.py
-index 1eb70754..642ba60d 100644
+index 1eb70754..aead4909 100644
 --- a/verl/experimental/fully_async_policy/fully_async_rollouter.py
 +++ b/verl/experimental/fully_async_policy/fully_async_rollouter.py
 @@ -15,8 +15,10 @@
@@ -3948,7 +3952,23 @@ index 1eb70754..642ba60d 100644
  from verl.utils.rollout_trace import rollout_trace_op
  from verl.utils.tracking import ValidationGenerationsLogger
  from verl.workers.rollout.llm_server import LLMServerClient, LLMServerManager
-@@ -367,26 +370,127 @@ class FullyAsyncLLMServerManager(LLMServerManager):
+@@ -48,6 +51,15 @@ logger = logging.getLogger(__file__)
+ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "WARN"))
+ 
+ 
++
++def _worker_slots() -> int:
++    """Concurrent single-sample dispatches allowed per agent-loop worker."""
++    try:
++        n = int(os.environ.get("HARBOR_MAX_CONCURRENT_TRIALS", "0") or 0)
++    except ValueError:
++        n = 0
++    return max(1, n)
++
+ class FullyAsyncLLMServerClient(LLMServerClient):
+     """FullyLLMServerClient supports resume generation on partial rollout, making rollout interruption
+     invisible to the AgentLoop.
+@@ -367,26 +379,132 @@ class FullyAsyncLLMServerManager(LLMServerManager):
  
  
  class FullyAsyncAgentLoopManager(AgentLoopManager):
@@ -3968,8 +3988,13 @@ index 1eb70754..642ba60d 100644
 +        with self._worker_queue_lock:
 +            if self._worker_queue is None:
 +                self._worker_queue = Queue()
-+                for worker in self.agent_loop_workers:
-+                    self._worker_queue.put(worker)
++                # One queue slot per concurrent trial a worker may run (its own cap is
++                # HARBOR_MAX_CONCURRENT_TRIALS). With one slot per worker, total concurrency
++                # was capped at agent.num_workers (e.g. 2) whatever the per-worker cap.
++                slots = _worker_slots()
++                for _ in range(slots):
++                    for worker in self.agent_loop_workers:
++                        self._worker_queue.put(worker)
 +        return self._worker_queue
 +
 +    async def _dispatch_to_workers(self, prompts: DataProto) -> list[DataProto]:
@@ -4089,7 +4114,7 @@ index 1eb70754..642ba60d 100644
  
  
  @ray.remote(num_cpus=10, max_concurrency=100)
-@@ -490,6 +594,13 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
+@@ -490,6 +608,13 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
          self.max_concurrent_samples = None
          # queue size
          self.max_queue_size = None
@@ -4103,7 +4128,7 @@ index 1eb70754..642ba60d 100644
  
          # Statistics
          self.total_generated_samples = 0
-@@ -538,7 +649,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
+@@ -538,7 +663,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
                  / (self.required_samples * self.config.async_training.trigger_parameter_sync_step)
              )
  
@@ -4112,7 +4137,7 @@ index 1eb70754..642ba60d 100644
              self.max_concurrent_samples = min(self.max_concurrent_samples, self.max_required_samples)
              self.max_queue_size = self.max_required_samples
  
-@@ -602,13 +713,31 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
+@@ -602,13 +727,31 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
          """Stop rollout profiling on all replicas before the next weight sync."""
          await self.llm_server_manager.stop_profile()
  
@@ -4147,7 +4172,7 @@ index 1eb70754..642ba60d 100644
      async def save_checkpoint(self, local_global_step_folder: str):
          # WARNING!: Due to the asynchronous nature, there are some in-flight samples
          # (pending/cancel/result queue and message queue).
-@@ -818,6 +947,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
+@@ -818,6 +961,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
          for epoch, batch_dict in continuous_iterator:
              # Similar to _prepare_generate_batch: Separate data
              full_batch = prepare_single_generation_data(batch_dict, self.config)
@@ -4155,7 +4180,7 @@ index 1eb70754..642ba60d 100644
  
              sample_id = f"sample_{epoch}_{self.global_steps}"
  
-@@ -891,6 +1021,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
+@@ -891,6 +1035,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
                          resume_future.cancel()
                          await asyncio.gather(resume_future, return_exceptions=True)
                  continue
@@ -4163,7 +4188,7 @@ index 1eb70754..642ba60d 100644
              # Get sample from appropriate queue and immediately mark task as done
              rollout_sample = await self.pending_queue.get()
              self.pending_queue.task_done()
-@@ -923,6 +1054,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
+@@ -923,6 +1068,7 @@ class FullyAsyncRollouter(SeparateRayPPOTrainer):
              # Submit single sample processing
              if self.paused:
                  await self._resume_event.wait()
