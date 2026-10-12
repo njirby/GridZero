@@ -24,6 +24,10 @@ import shutil
 from pathlib import Path
 from string import Template
 
+DEFAULT_ENV = "l2rpn_case14_sandbox"
+DEFAULT_IMAGE = "gridzero-rl-base:v3"
+ENV_TAGS = {"l2rpn_idf_2023": "idf"}
+
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "task_template"
 
@@ -49,14 +53,17 @@ def render(template: Path, **kw: str) -> str:
 
 
 def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeout: float,
-             baselines: dict | None = None) -> Path:
-    instance_id = f"c{chronic}_h{horizon}_s{seed}"
+             baselines: dict | None = None, env: str = DEFAULT_ENV,
+             image: str = DEFAULT_IMAGE) -> Path:
+    # case14 keeps its historical names; other grids are tagged so tasks never collide.
+    tag = "" if env == DEFAULT_ENV else f"{ENV_TAGS.get(env, env)}_"
+    instance_id = f"{tag}c{chronic}_h{horizon}_s{seed}"
     task_dir = out_root / f"gridzero_{instance_id}"
     (task_dir / "tests").mkdir(parents=True, exist_ok=True)
     (task_dir / "environment").mkdir(parents=True, exist_ok=True)
 
-    kw = dict(chronic=chronic, horizon=horizon, seed=seed,
-              instance_id=instance_id, agent_timeout=int(agent_timeout))
+    kw = dict(env=env, chronic=chronic, horizon=horizon, seed=seed,
+              instance_id=instance_id, agent_timeout=int(agent_timeout), image=image)
     (task_dir / "instruction.md").write_text(render(TEMPLATE / "instruction.md", **kw), encoding="utf-8")
     (task_dir / "task.toml").write_text(render(TEMPLATE / "task.toml", **kw), encoding="utf-8")
     shutil.copyfile(TEMPLATE / "tests" / "test.sh", task_dir / "tests" / "test.sh")
@@ -65,23 +72,27 @@ def make_one(out_root: Path, chronic: int, horizon: int, seed: int, agent_timeou
     # Lives in tests/, which Harbor copies in only at verification time (after the agent).
     if baselines is not None:
         row = baselines.get(str(chronic))
-        if row is None or row["horizon"] != horizon or row["seed"] != seed:
-            raise SystemExit(f"no DN baseline for chronic={chronic} horizon={horizon} seed={seed}; "
+        if (row is None or row["horizon"] != horizon or row["seed"] != seed
+                or row.get("env", DEFAULT_ENV) != env):
+            raise SystemExit(f"no DN baseline for env={env} chronic={chronic} horizon={horizon} seed={seed}; "
                              f"run lego/baselines/compute_dn.py first")
         (task_dir / "tests" / "baseline.json").write_text(json.dumps(row), encoding="utf-8")
     # Harbor's env validation requires an environment/Dockerfile (or compose) even for
     # prebuilt images (docker_image in task.toml). Not built when force_build=False.
-    shutil.copyfile(TEMPLATE / "environment" / "Dockerfile", task_dir / "environment" / "Dockerfile")
+    (task_dir / "environment" / "Dockerfile").write_text(
+        render(TEMPLATE / "environment" / "Dockerfile", **kw), encoding="utf-8")
     return task_dir
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, help="output root for task dirs")
+    ap.add_argument("--env", default=DEFAULT_ENV, help="grid2op env name (SIM_ENV in the task)")
     ap.add_argument("--chronic", default="0", help="chronic id(s): '3' | '0-31' | '0,5,9'")
     ap.add_argument("--horizon", type=int, default=24, help="episode horizon (steps)")
     ap.add_argument("--seed", default="0", help="seed(s): '0' | '0,1'")
     ap.add_argument("--agent-timeout", type=float, default=1800.0, help="agent phase timeout (s)")
+    ap.add_argument("--image", default=DEFAULT_IMAGE, help="prebuilt task image (needs the grid's data)")
     ap.add_argument("--baselines", default=None,
                     help="DN baseline json from lego/baselines/compute_dn.py; enables the "
                          "do-nothing-relative reward (reward = cum_reward - dn_cum_reward)")
@@ -96,7 +107,8 @@ def main() -> None:
     made = []
     for c in chronic_ids:
         for s in seed_ids:
-            made.append(make_one(out_root, c, args.horizon, s, args.agent_timeout, baselines))
+            made.append(make_one(out_root, c, args.horizon, s, args.agent_timeout, baselines, args.env,
+                                  args.image))
 
     print(f"generated {len(made)} task(s) under {out_root}")
     for t in made[:10]:

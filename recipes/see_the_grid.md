@@ -33,15 +33,17 @@ render is disabled in this environment
 
 Use your `Read` tool on the printed path.
 
-What you'll see: 14 substations as labeled nodes on a roughly ring-shaped
-grid, 20 lines as segments between them colored by loading, open lines
-drawn differently, and generator icons on the gen subs.
+What you'll see: the substations as labeled nodes, lines as segments
+between them colored by loading, open lines drawn differently, and
+generator icons on the gen subs. (On `l2rpn_case14_sandbox` that is 14 subs
+on a roughly ring-shaped grid; a large grid is much denser.)
 
 ## Reading the layout
 
 - A line labeled `a_b_c` runs from `sub_a` to `sub_b`.
-- Subs that share lines are coupled — e.g. sub_4 has four feeders (0_4_1,
-  1_4_4, 3_4_6, 4_5_17): opening one re-routes through the others.
+- Subs that share lines are coupled — e.g. on case14 sub_4 has four
+  feeders (0_4_1, 1_4_4, 3_4_6, 4_5_17): opening one re-routes through the
+  others.
 - Gen subs (icons) are your `redispatch` levers; a hot line coming OFF a gen
   sub → pull that gen down.
 - `observe --detailed` has the same geometry as numbers: each line's `or`/`ex`

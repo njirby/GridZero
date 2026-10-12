@@ -40,3 +40,4 @@ auth.json
 .DS_Store
 lego/logs/
 lego/tasks_scale/
+lego/tasks_idf/

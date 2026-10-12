@@ -2,7 +2,7 @@
 # Launch the GridZero GRPO+LoRA run. Recreated 2026-10-07 after /tmp/opencode was lost on reboot.
 # Usage: bash run_train.sh [config.env]   (logs -> $LOG_DIR/grz-train.log)
 set -uo pipefail
-CONFIG="${1:-/home/nate/Documents/GridZero/lego/configs/gridzero_2b_lora.env}"
+CONFIG="$(realpath "${1:-/home/nate/Documents/GridZero/lego/configs/gridzero_2b_lora.env}")"
 LEGO=/home/nate/Documents/lego-rl
 # Ray's memory monitor kills workers at 95% RAM before the kernel ever swaps — disable it
 # so swap is usable. Must reach the raylet env, so ray must not already be running.

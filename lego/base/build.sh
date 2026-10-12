@@ -27,11 +27,17 @@ mkdir -p "$CTX/lego/base"
 cp     "$ROOT/lego/base/entrypoint.sh" "$CTX/lego/base/entrypoint.sh"
 cp     "$ROOT/lego/base/Dockerfile"    "$CTX/lego/base/Dockerfile"
 
-# Bake the grid2op env data in so each fresh container skips the 294MB download
-# (grid2op uses ~/data_grid2op/<env> if present, else downloads).
+# Bake the grid2op env data in so each fresh container skips the download
+# (grid2op uses ~/data_grid2op/<env> if present, else downloads). GRID_ENVS picks which grids
+# (space-separated; l2rpn_idf_2023 is 5.1GB). Hard links when the context is on the same
+# filesystem, so large datasets aren't duplicated on disk.
+GRID_ENVS="${GRID_ENVS:-l2rpn_case14_sandbox}"
 mkdir -p "$CTX/data_grid2op"
-cp -r "$HOME/data_grid2op/l2rpn_case14_sandbox" "$CTX/data_grid2op/l2rpn_case14_sandbox"
-rm -rf "$CTX/data_grid2op/l2rpn_case14_sandbox/__pycache__"
+for g in $GRID_ENVS; do
+    [ -d "$HOME/data_grid2op/$g" ] || { echo "[FATAL] missing grid data: $HOME/data_grid2op/$g" >&2; exit 1; }
+    cp -al "$HOME/data_grid2op/$g" "$CTX/data_grid2op/$g" 2>/dev/null || cp -r "$HOME/data_grid2op/$g" "$CTX/data_grid2op/$g"
+    rm -rf "$CTX/data_grid2op/$g/__pycache__"
+done
 
 cp     "$ROOT/lego/base/Dockerfile.update" "$CTX/lego/base/Dockerfile.update"
 

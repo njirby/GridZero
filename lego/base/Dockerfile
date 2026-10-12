@@ -59,6 +59,14 @@ RUN mkdir -p /logs/agent /logs/artifacts /logs/verifier \
     && chmod 777 /logs/agent /logs/artifacts \
     && chmod 755 /logs /logs/verifier
 
+# Hide the episode length from the agent: SIM_HORIZON reaches every docker-exec'd process via
+# the container env, so non-root bash (Harbor launches opencode via `bash -c` as agent, and
+# opencode's tool shells inherit) drops it. Root (entrypoint, verifier) keeps it.
+RUN mkdir -p /etc/gridzero \
+    && printf '[ "$(id -u)" = 0 ] || unset SIM_HORIZON\n' > /etc/gridzero/agent_env.sh \
+    && chmod 644 /etc/gridzero/agent_env.sh
+ENV BASH_ENV=/etc/gridzero/agent_env.sh
+
 COPY lego/base/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 

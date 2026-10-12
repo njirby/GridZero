@@ -1,0 +1,7490 @@
+{
+ "0": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 0,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57646.6807,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "1": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 1,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27242.6056,
+  "dn_t": 135,
+  "dn_cause": "game_over"
+ },
+ "2": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 2,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53348.606,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "3": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 3,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40207.7299,
+  "dn_t": 214,
+  "dn_cause": "game_over"
+ },
+ "4": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 4,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51181.1708,
+  "dn_t": 248,
+  "dn_cause": "game_over"
+ },
+ "5": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 5,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56218.5132,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "6": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 6,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44478.1313,
+  "dn_t": 231,
+  "dn_cause": "game_over"
+ },
+ "7": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 7,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46850.6993,
+  "dn_t": 244,
+  "dn_cause": "game_over"
+ },
+ "8": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 8,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29491.251,
+  "dn_t": 148,
+  "dn_cause": "game_over"
+ },
+ "9": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 9,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 37284.2575,
+  "dn_t": 199,
+  "dn_cause": "game_over"
+ },
+ "10": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 10,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54513.8747,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "11": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 11,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 35487.5164,
+  "dn_t": 189,
+  "dn_cause": "game_over"
+ },
+ "12": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 12,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53103.2875,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "13": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 13,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48514.5411,
+  "dn_t": 243,
+  "dn_cause": "game_over"
+ },
+ "14": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 14,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42226.4377,
+  "dn_t": 217,
+  "dn_cause": "game_over"
+ },
+ "15": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 15,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53772.1275,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "16": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 16,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38145.4613,
+  "dn_t": 203,
+  "dn_cause": "game_over"
+ },
+ "17": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 17,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 43405.24,
+  "dn_t": 230,
+  "dn_cause": "game_over"
+ },
+ "18": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 18,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 34660.2538,
+  "dn_t": 178,
+  "dn_cause": "game_over"
+ },
+ "19": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 19,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55131.6811,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "20": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 20,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 28418.3035,
+  "dn_t": 149,
+  "dn_cause": "game_over"
+ },
+ "21": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 21,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41835.5804,
+  "dn_t": 216,
+  "dn_cause": "game_over"
+ },
+ "22": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 22,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52882.7826,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "23": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 23,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53612.0097,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "24": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 24,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41525.5072,
+  "dn_t": 220,
+  "dn_cause": "game_over"
+ },
+ "25": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 25,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54580.5347,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "26": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 26,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44394.5098,
+  "dn_t": 226,
+  "dn_cause": "game_over"
+ },
+ "27": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 27,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42107.4779,
+  "dn_t": 218,
+  "dn_cause": "game_over"
+ },
+ "28": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 28,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44409.0258,
+  "dn_t": 227,
+  "dn_cause": "game_over"
+ },
+ "29": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 29,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40964.9069,
+  "dn_t": 213,
+  "dn_cause": "game_over"
+ },
+ "30": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 30,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 20500.8561,
+  "dn_t": 98,
+  "dn_cause": "game_over"
+ },
+ "31": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 31,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41589.4008,
+  "dn_t": 209,
+  "dn_cause": "game_over"
+ },
+ "32": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 32,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53079.2594,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "33": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 33,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 1563.7151,
+  "dn_t": 9,
+  "dn_cause": "game_over"
+ },
+ "34": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 34,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 22379.8387,
+  "dn_t": 108,
+  "dn_cause": "game_over"
+ },
+ "35": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 35,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38105.3391,
+  "dn_t": 204,
+  "dn_cause": "game_over"
+ },
+ "36": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 36,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52808.1942,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "37": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 37,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54501.0017,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "38": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 38,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44245.659,
+  "dn_t": 236,
+  "dn_cause": "game_over"
+ },
+ "39": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 39,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45908.7382,
+  "dn_t": 241,
+  "dn_cause": "game_over"
+ },
+ "40": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 40,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55510.5503,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "41": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 41,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51290.2694,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "42": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 42,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44887.2794,
+  "dn_t": 216,
+  "dn_cause": "game_over"
+ },
+ "43": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 43,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 28113.5262,
+  "dn_t": 145,
+  "dn_cause": "game_over"
+ },
+ "44": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 44,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 17950.1067,
+  "dn_t": 86,
+  "dn_cause": "game_over"
+ },
+ "45": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 45,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 28544.0978,
+  "dn_t": 144,
+  "dn_cause": "game_over"
+ },
+ "46": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 46,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 19235.3136,
+  "dn_t": 93,
+  "dn_cause": "game_over"
+ },
+ "47": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 47,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 37708.9566,
+  "dn_t": 196,
+  "dn_cause": "game_over"
+ },
+ "48": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 48,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46828.6014,
+  "dn_t": 250,
+  "dn_cause": "game_over"
+ },
+ "49": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 49,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 35986.573,
+  "dn_t": 205,
+  "dn_cause": "game_over"
+ },
+ "50": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 50,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 18129.3983,
+  "dn_t": 90,
+  "dn_cause": "game_over"
+ },
+ "51": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 51,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 21889.7458,
+  "dn_t": 114,
+  "dn_cause": "game_over"
+ },
+ "52": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 52,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 36095.4444,
+  "dn_t": 198,
+  "dn_cause": "game_over"
+ },
+ "53": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 53,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 43381.2591,
+  "dn_t": 229,
+  "dn_cause": "game_over"
+ },
+ "54": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 54,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53805.6842,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "55": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 55,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48252.7956,
+  "dn_t": 261,
+  "dn_cause": "game_over"
+ },
+ "56": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 56,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 43134.8457,
+  "dn_t": 220,
+  "dn_cause": "game_over"
+ },
+ "57": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 57,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 36802.7843,
+  "dn_t": 204,
+  "dn_cause": "game_over"
+ },
+ "58": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 58,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40810.6603,
+  "dn_t": 218,
+  "dn_cause": "game_over"
+ },
+ "59": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 59,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 39270.2128,
+  "dn_t": 209,
+  "dn_cause": "game_over"
+ },
+ "60": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 60,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 43990.3712,
+  "dn_t": 236,
+  "dn_cause": "game_over"
+ },
+ "61": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 61,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 2697.9162,
+  "dn_t": 15,
+  "dn_cause": "game_over"
+ },
+ "62": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 62,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40418.2112,
+  "dn_t": 218,
+  "dn_cause": "game_over"
+ },
+ "63": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 63,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38554.8881,
+  "dn_t": 207,
+  "dn_cause": "game_over"
+ },
+ "64": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 64,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 19023.4262,
+  "dn_t": 96,
+  "dn_cause": "game_over"
+ },
+ "65": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 65,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 39971.6807,
+  "dn_t": 214,
+  "dn_cause": "game_over"
+ },
+ "66": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 66,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 37789.7482,
+  "dn_t": 210,
+  "dn_cause": "game_over"
+ },
+ "67": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 67,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44577.3935,
+  "dn_t": 224,
+  "dn_cause": "game_over"
+ },
+ "68": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 68,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 23725.6132,
+  "dn_t": 124,
+  "dn_cause": "game_over"
+ },
+ "69": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 69,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51410.6917,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "70": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 70,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 39618.5351,
+  "dn_t": 217,
+  "dn_cause": "game_over"
+ },
+ "71": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 71,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41052.1508,
+  "dn_t": 224,
+  "dn_cause": "game_over"
+ },
+ "72": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 72,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45940.6759,
+  "dn_t": 244,
+  "dn_cause": "game_over"
+ },
+ "73": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 73,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 26981.0363,
+  "dn_t": 146,
+  "dn_cause": "game_over"
+ },
+ "74": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 74,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41753.7663,
+  "dn_t": 223,
+  "dn_cause": "game_over"
+ },
+ "75": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 75,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55180.0954,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "76": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 76,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53833.0422,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "77": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 77,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41316.3743,
+  "dn_t": 225,
+  "dn_cause": "game_over"
+ },
+ "78": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 78,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 23545.9608,
+  "dn_t": 116,
+  "dn_cause": "game_over"
+ },
+ "79": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 79,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 530.0208,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "80": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 80,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40539.0771,
+  "dn_t": 224,
+  "dn_cause": "game_over"
+ },
+ "81": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 81,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 532.6866,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "82": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 82,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41781.205,
+  "dn_t": 234,
+  "dn_cause": "game_over"
+ },
+ "83": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 83,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44913.7292,
+  "dn_t": 236,
+  "dn_cause": "game_over"
+ },
+ "84": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 84,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42373.9488,
+  "dn_t": 227,
+  "dn_cause": "game_over"
+ },
+ "85": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 85,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42564.9122,
+  "dn_t": 229,
+  "dn_cause": "game_over"
+ },
+ "86": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 86,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 37997.9543,
+  "dn_t": 215,
+  "dn_cause": "game_over"
+ },
+ "87": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 87,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52879.6261,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "88": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 88,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 39154.4987,
+  "dn_t": 218,
+  "dn_cause": "game_over"
+ },
+ "89": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 89,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 788.4501,
+  "dn_t": 5,
+  "dn_cause": "game_over"
+ },
+ "90": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 90,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38843.6988,
+  "dn_t": 215,
+  "dn_cause": "game_over"
+ },
+ "91": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 91,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40915.1737,
+  "dn_t": 219,
+  "dn_cause": "game_over"
+ },
+ "92": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 92,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52588.1778,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "93": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 93,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 17008.4682,
+  "dn_t": 82,
+  "dn_cause": "game_over"
+ },
+ "94": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 94,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 17182.9436,
+  "dn_t": 86,
+  "dn_cause": "game_over"
+ },
+ "95": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 95,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52855.4105,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "96": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 96,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51405.5305,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "97": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 97,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48037.3744,
+  "dn_t": 267,
+  "dn_cause": "game_over"
+ },
+ "98": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 98,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 907.4272,
+  "dn_t": 6,
+  "dn_cause": "game_over"
+ },
+ "99": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 99,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42795.569,
+  "dn_t": 244,
+  "dn_cause": "game_over"
+ },
+ "100": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 100,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38305.3431,
+  "dn_t": 213,
+  "dn_cause": "game_over"
+ },
+ "101": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 101,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45388.8775,
+  "dn_t": 258,
+  "dn_cause": "game_over"
+ },
+ "102": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 102,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 23473.4672,
+  "dn_t": 126,
+  "dn_cause": "game_over"
+ },
+ "103": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 103,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51821.2095,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "104": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 104,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29116.3281,
+  "dn_t": 150,
+  "dn_cause": "game_over"
+ },
+ "105": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 105,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 3338.8462,
+  "dn_t": 19,
+  "dn_cause": "game_over"
+ },
+ "106": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 106,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51990.3719,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "107": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 107,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 39381.3896,
+  "dn_t": 215,
+  "dn_cause": "game_over"
+ },
+ "108": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 108,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 1881.2319,
+  "dn_t": 11,
+  "dn_cause": "game_over"
+ },
+ "109": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 109,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27020.1494,
+  "dn_t": 141,
+  "dn_cause": "game_over"
+ },
+ "110": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 110,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 32487.3654,
+  "dn_t": 178,
+  "dn_cause": "game_over"
+ },
+ "111": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 111,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52264.8201,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "112": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 112,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41682.5271,
+  "dn_t": 223,
+  "dn_cause": "game_over"
+ },
+ "113": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 113,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38733.6346,
+  "dn_t": 212,
+  "dn_cause": "game_over"
+ },
+ "114": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 114,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 554.1755,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "115": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 115,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42422.0618,
+  "dn_t": 236,
+  "dn_cause": "game_over"
+ },
+ "116": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 116,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 25297.9782,
+  "dn_t": 131,
+  "dn_cause": "game_over"
+ },
+ "117": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 117,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 43894.0485,
+  "dn_t": 243,
+  "dn_cause": "game_over"
+ },
+ "118": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 118,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 4447.1191,
+  "dn_t": 25,
+  "dn_cause": "game_over"
+ },
+ "119": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 119,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53465.7258,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "120": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 120,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53715.8708,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "121": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 121,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 19288.6862,
+  "dn_t": 98,
+  "dn_cause": "game_over"
+ },
+ "122": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 122,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 50140.5701,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "123": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 123,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 1056.753,
+  "dn_t": 7,
+  "dn_cause": "game_over"
+ },
+ "124": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 124,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 2355.849,
+  "dn_t": 13,
+  "dn_cause": "game_over"
+ },
+ "125": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 125,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 18903.4068,
+  "dn_t": 96,
+  "dn_cause": "game_over"
+ },
+ "126": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 126,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55110.1142,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "127": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 127,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49941.0195,
+  "dn_t": 271,
+  "dn_cause": "game_over"
+ },
+ "128": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 128,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42059.242,
+  "dn_t": 233,
+  "dn_cause": "game_over"
+ },
+ "129": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 129,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46148.1709,
+  "dn_t": 249,
+  "dn_cause": "game_over"
+ },
+ "130": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 130,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45296.3757,
+  "dn_t": 242,
+  "dn_cause": "game_over"
+ },
+ "131": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 131,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45976.1657,
+  "dn_t": 265,
+  "dn_cause": "game_over"
+ },
+ "132": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 132,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53663.9525,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "133": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 133,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44765.8799,
+  "dn_t": 239,
+  "dn_cause": "game_over"
+ },
+ "134": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 134,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 50681.091,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "135": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 135,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56219.5545,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "136": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 136,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 19758.8023,
+  "dn_t": 99,
+  "dn_cause": "game_over"
+ },
+ "137": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 137,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44190.0105,
+  "dn_t": 239,
+  "dn_cause": "game_over"
+ },
+ "138": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 138,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52056.0153,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "139": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 139,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54717.5706,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "140": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 140,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 535.8786,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "141": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 141,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 23996.2961,
+  "dn_t": 119,
+  "dn_cause": "game_over"
+ },
+ "142": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 142,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53039.3021,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "143": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 143,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 4263.45,
+  "dn_t": 22,
+  "dn_cause": "game_over"
+ },
+ "144": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 144,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 50140.5378,
+  "dn_t": 253,
+  "dn_cause": "game_over"
+ },
+ "145": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 145,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29011.3948,
+  "dn_t": 156,
+  "dn_cause": "game_over"
+ },
+ "146": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 146,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27626.8663,
+  "dn_t": 136,
+  "dn_cause": "game_over"
+ },
+ "147": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 147,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 31825.3684,
+  "dn_t": 164,
+  "dn_cause": "game_over"
+ },
+ "148": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 148,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 22212.8363,
+  "dn_t": 110,
+  "dn_cause": "game_over"
+ },
+ "149": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 149,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 50235.9086,
+  "dn_t": 271,
+  "dn_cause": "game_over"
+ },
+ "150": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 150,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52563.8266,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "151": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 151,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53161.9465,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "152": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 152,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49318.4722,
+  "dn_t": 262,
+  "dn_cause": "game_over"
+ },
+ "153": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 153,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 47876.495,
+  "dn_t": 261,
+  "dn_cause": "game_over"
+ },
+ "154": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 154,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51230.6354,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "155": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 155,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56110.7223,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "156": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 156,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41533.4604,
+  "dn_t": 226,
+  "dn_cause": "game_over"
+ },
+ "157": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 157,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 3463.7643,
+  "dn_t": 18,
+  "dn_cause": "game_over"
+ },
+ "158": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 158,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 719.499,
+  "dn_t": 5,
+  "dn_cause": "game_over"
+ },
+ "159": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 159,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53513.7227,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "160": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 160,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49465.0854,
+  "dn_t": 266,
+  "dn_cause": "game_over"
+ },
+ "161": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 161,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54224.6048,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "162": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 162,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51315.802,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "163": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 163,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 2947.5535,
+  "dn_t": 17,
+  "dn_cause": "game_over"
+ },
+ "164": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 164,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 50034.2052,
+  "dn_t": 269,
+  "dn_cause": "game_over"
+ },
+ "165": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 165,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52426.7852,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "166": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 166,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54145.294,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "167": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 167,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 21286.409,
+  "dn_t": 99,
+  "dn_cause": "game_over"
+ },
+ "168": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 168,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 35629.947,
+  "dn_t": 197,
+  "dn_cause": "game_over"
+ },
+ "169": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 169,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 26576.1956,
+  "dn_t": 134,
+  "dn_cause": "game_over"
+ },
+ "170": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 170,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51799.5719,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "171": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 171,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29658.7689,
+  "dn_t": 160,
+  "dn_cause": "game_over"
+ },
+ "172": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 172,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 50859.4974,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "173": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 173,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49934.949,
+  "dn_t": 261,
+  "dn_cause": "game_over"
+ },
+ "174": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 174,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48605.0866,
+  "dn_t": 260,
+  "dn_cause": "game_over"
+ },
+ "175": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 175,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 47087.6685,
+  "dn_t": 249,
+  "dn_cause": "game_over"
+ },
+ "176": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 176,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54241.566,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "177": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 177,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48897.671,
+  "dn_t": 251,
+  "dn_cause": "game_over"
+ },
+ "178": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 178,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56186.7084,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "179": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 179,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45755.4346,
+  "dn_t": 238,
+  "dn_cause": "game_over"
+ },
+ "180": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 180,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46247.6696,
+  "dn_t": 251,
+  "dn_cause": "game_over"
+ },
+ "181": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 181,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55093.5104,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "182": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 182,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 51716.5023,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "183": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 183,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56073.0426,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "184": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 184,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46224.7869,
+  "dn_t": 229,
+  "dn_cause": "game_over"
+ },
+ "185": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 185,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48027.0189,
+  "dn_t": 255,
+  "dn_cause": "game_over"
+ },
+ "186": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 186,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 553.4454,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "187": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 187,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53462.1073,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "188": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 188,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48374.9375,
+  "dn_t": 262,
+  "dn_cause": "game_over"
+ },
+ "189": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 189,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54999.0612,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "190": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 190,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27501.5904,
+  "dn_t": 136,
+  "dn_cause": "game_over"
+ },
+ "191": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 191,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53310.9792,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "192": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 192,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53929.0866,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "193": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 193,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55911.6269,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "194": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 194,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41732.7375,
+  "dn_t": 220,
+  "dn_cause": "game_over"
+ },
+ "195": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 195,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55868.85,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "196": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 196,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48218.8488,
+  "dn_t": 262,
+  "dn_cause": "game_over"
+ },
+ "197": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 197,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29285.9058,
+  "dn_t": 150,
+  "dn_cause": "game_over"
+ },
+ "198": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 198,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 39068.8268,
+  "dn_t": 211,
+  "dn_cause": "game_over"
+ },
+ "199": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 199,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55924.3944,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "200": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 200,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49211.9261,
+  "dn_t": 260,
+  "dn_cause": "game_over"
+ },
+ "201": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 201,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55864.8603,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "202": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 202,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55963.301,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "203": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 203,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 28279.8105,
+  "dn_t": 137,
+  "dn_cause": "game_over"
+ },
+ "204": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 204,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 32173.9827,
+  "dn_t": 156,
+  "dn_cause": "game_over"
+ },
+ "205": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 205,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 47527.5064,
+  "dn_t": 245,
+  "dn_cause": "game_over"
+ },
+ "206": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 206,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54203.2429,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "207": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 207,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54503.8964,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "208": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 208,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55943.4672,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "209": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 209,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55680.5832,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "210": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 210,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58504.9977,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "211": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 211,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57316.4972,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "212": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 212,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 31007.9413,
+  "dn_t": 148,
+  "dn_cause": "game_over"
+ },
+ "213": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 213,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 26731.6925,
+  "dn_t": 125,
+  "dn_cause": "game_over"
+ },
+ "214": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 214,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56576.1624,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "215": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 215,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 23840.0434,
+  "dn_t": 120,
+  "dn_cause": "game_over"
+ },
+ "216": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 216,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57999.0945,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "217": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 217,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55219.0635,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "218": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 218,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53171.3086,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "219": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 219,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 25207.2074,
+  "dn_t": 123,
+  "dn_cause": "game_over"
+ },
+ "220": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 220,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 53228.5777,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "221": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 221,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27537.4701,
+  "dn_t": 137,
+  "dn_cause": "game_over"
+ },
+ "222": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 222,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49024.6211,
+  "dn_t": 257,
+  "dn_cause": "game_over"
+ },
+ "223": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 223,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57074.5532,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "224": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 224,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52891.7448,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "225": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 225,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55945.1288,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "226": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 226,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56778.5454,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "227": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 227,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55777.4757,
+  "dn_t": 278,
+  "dn_cause": "game_over"
+ },
+ "228": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 228,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55016.1503,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "229": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 229,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52819.2332,
+  "dn_t": 260,
+  "dn_cause": "game_over"
+ },
+ "230": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 230,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58011.4854,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "231": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 231,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 25334.1941,
+  "dn_t": 125,
+  "dn_cause": "game_over"
+ },
+ "232": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 232,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 47341.1457,
+  "dn_t": 258,
+  "dn_cause": "game_over"
+ },
+ "233": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 233,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56403.3832,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "234": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 234,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27453.9666,
+  "dn_t": 139,
+  "dn_cause": "game_over"
+ },
+ "235": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 235,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55805.6427,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "236": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 236,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56950.016,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "237": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 237,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54684.9462,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "238": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 238,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56119.5791,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "239": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 239,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55917.5604,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "240": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 240,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 31307.4536,
+  "dn_t": 154,
+  "dn_cause": "game_over"
+ },
+ "241": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 241,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57893.6351,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "242": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 242,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56341.7856,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "243": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 243,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57232.9473,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "244": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 244,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57067.6047,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "245": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 245,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59973.0242,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "246": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 246,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58204.6502,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "247": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 247,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57515.0785,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "248": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 248,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55463.1057,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "249": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 249,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61338.111,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "250": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 250,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57223.789,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "251": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 251,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58701.2474,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "252": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 252,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56426.5072,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "253": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 253,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58439.0661,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "254": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 254,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57614.7125,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "255": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 255,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60284.0012,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "256": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 256,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57726.6626,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "257": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 257,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60200.8162,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "258": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 258,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58873.5862,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "259": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 259,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38649.9771,
+  "dn_t": 176,
+  "dn_cause": "game_over"
+ },
+ "260": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 260,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59304.9956,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "261": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 261,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27240.9575,
+  "dn_t": 131,
+  "dn_cause": "game_over"
+ },
+ "262": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 262,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61229.8174,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "263": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 263,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60603.6916,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "264": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 264,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60879.4684,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "265": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 265,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59574.3313,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "266": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 266,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58964.2375,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "267": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 267,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29697.267,
+  "dn_t": 130,
+  "dn_cause": "game_over"
+ },
+ "268": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 268,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40374.4688,
+  "dn_t": 190,
+  "dn_cause": "game_over"
+ },
+ "269": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 269,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57362.9098,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "270": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 270,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40862.6682,
+  "dn_t": 186,
+  "dn_cause": "game_over"
+ },
+ "271": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 271,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48091.3198,
+  "dn_t": 235,
+  "dn_cause": "game_over"
+ },
+ "272": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 272,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59807.9026,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "273": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 273,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63303.5068,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "274": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 274,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 37322.0268,
+  "dn_t": 185,
+  "dn_cause": "game_over"
+ },
+ "275": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 275,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62990.0426,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "276": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 276,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29382.201,
+  "dn_t": 126,
+  "dn_cause": "game_over"
+ },
+ "277": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 277,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59805.5658,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "278": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 278,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 26245.4168,
+  "dn_t": 111,
+  "dn_cause": "game_over"
+ },
+ "279": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 279,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63615.8795,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "280": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 280,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62297.2302,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "281": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 281,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62576.5872,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "282": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 282,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62287.9548,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "283": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 283,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59857.5329,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "284": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 284,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63771.402,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "285": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 285,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64789.1543,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "286": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 286,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61692.4038,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "287": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 287,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61585.407,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "288": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 288,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63789.1041,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "289": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 289,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61903.9987,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "290": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 290,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61340.7015,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "291": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 291,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 29326.5749,
+  "dn_t": 126,
+  "dn_cause": "game_over"
+ },
+ "292": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 292,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 30223.9003,
+  "dn_t": 119,
+  "dn_cause": "game_over"
+ },
+ "293": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 293,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 33017.9438,
+  "dn_t": 141,
+  "dn_cause": "game_over"
+ },
+ "294": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 294,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63158.7367,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "295": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 295,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61789.3454,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "296": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 296,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61790.9996,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "297": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 297,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64463.1882,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "298": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 298,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64585.3388,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "299": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 299,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60373.0922,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "300": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 300,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63789.8529,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "301": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 301,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 65523.3718,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "302": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 302,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66040.1387,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "303": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 303,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66460.1977,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "304": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 304,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63444.1467,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "305": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 305,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70820.5175,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "306": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 306,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68308.9299,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "307": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 307,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68256.3169,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "308": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 308,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38915.4557,
+  "dn_t": 168,
+  "dn_cause": "game_over"
+ },
+ "309": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 309,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67061.4134,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "310": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 310,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63259.0443,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "311": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 311,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64315.6422,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "312": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 312,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 25029.3646,
+  "dn_t": 103,
+  "dn_cause": "game_over"
+ },
+ "313": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 313,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63132.5423,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "314": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 314,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64362.3589,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "315": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 315,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61397.6534,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "316": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 316,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 34411.8537,
+  "dn_t": 142,
+  "dn_cause": "game_over"
+ },
+ "317": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 317,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63178.0491,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "318": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 318,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67521.2508,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "319": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 319,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64403.4391,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "320": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 320,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72110.729,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "321": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 321,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68743.752,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "322": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 322,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67680.3781,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "323": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 323,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66859.1713,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "324": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 324,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69813.9091,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "325": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 325,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66278.9419,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "326": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 326,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74786.2857,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "327": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 327,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63757.7685,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "328": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 328,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69231.2825,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "329": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 329,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69753.1217,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "330": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 330,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 35929.3019,
+  "dn_t": 147,
+  "dn_cause": "game_over"
+ },
+ "331": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 331,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72431.3835,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "332": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 332,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68121.7638,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "333": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 333,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67872.2615,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "334": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 334,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73268.7229,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "335": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 335,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68495.6215,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "336": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 336,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70608.548,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "337": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 337,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71278.751,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "338": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 338,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66560.4504,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "339": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 339,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69668.3259,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "340": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 340,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44715.021,
+  "dn_t": 186,
+  "dn_cause": "game_over"
+ },
+ "341": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 341,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67679.9946,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "342": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 342,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70096.3515,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "343": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 343,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67456.3588,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "344": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 344,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68425.6938,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "345": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 345,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70500.8018,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "346": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 346,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70046.5051,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "347": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 347,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68816.9718,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "348": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 348,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70384.2843,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "349": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 349,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70015.371,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "350": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 350,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70363.0738,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "351": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 351,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69088.6265,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "352": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 352,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74965.9196,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "353": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 353,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74079.5971,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "354": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 354,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 759.2849,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "355": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 355,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72325.7268,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "356": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 356,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69080.3651,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "357": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 357,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73966.5215,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "358": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 358,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72163.0856,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "359": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 359,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73128.1264,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "360": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 360,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71786.7996,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "361": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 361,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72415.3409,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "362": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 362,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67678.969,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "363": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 363,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74752.6727,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "364": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 364,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75373.1644,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "365": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 365,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74511.6315,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "366": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 366,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72807.5873,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "367": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 367,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73841.2127,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "368": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 368,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75588.3276,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "369": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 369,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73567.6665,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "370": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 370,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76566.3479,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "371": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 371,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76615.8699,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "372": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 372,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69989.3072,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "373": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 373,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76836.1544,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "374": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 374,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72731.0151,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "375": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 375,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75968.6491,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "376": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 376,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76569.9796,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "377": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 377,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44892.9093,
+  "dn_t": 169,
+  "dn_cause": "game_over"
+ },
+ "378": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 378,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73539.3257,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "379": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 379,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72837.1136,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "380": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 380,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73514.9621,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "381": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 381,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73195.1621,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "382": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 382,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76214.4815,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "383": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 383,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71588.894,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "384": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 384,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 77862.537,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "385": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 385,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74113.6749,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "386": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 386,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71690.2009,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "387": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 387,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78833.0856,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "388": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 388,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76568.2654,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "389": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 389,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76079.8514,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "390": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 390,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81166.8631,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "391": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 391,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79524.5105,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "392": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 392,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84618.4729,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "393": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 393,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 77827.5866,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "394": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 394,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73615.5038,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "395": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 395,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 37423.0599,
+  "dn_t": 132,
+  "dn_cause": "game_over"
+ },
+ "396": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 396,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76341.2264,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "397": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 397,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74823.5203,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "398": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 398,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78727.8971,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "399": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 399,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79279.2894,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "400": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 400,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82891.9528,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "401": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 401,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80851.914,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "402": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 402,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79514.3889,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "403": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 403,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82727.4712,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "404": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 404,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81126.0933,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "405": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 405,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78766.9255,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "406": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 406,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80083.9417,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "407": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 407,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75573.8094,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "408": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 408,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84052.2158,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "409": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 409,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79132.0482,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "410": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 410,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76578.1782,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "411": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 411,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 77058.4856,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "412": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 412,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79435.9941,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "413": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 413,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80440.2517,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "414": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 414,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79775.466,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "415": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 415,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78385.8203,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "416": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 416,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81334.6499,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "417": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 417,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 77592.8177,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "418": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 418,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82263.8189,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "419": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 419,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82292.9046,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "420": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 420,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85538.2503,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "421": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 421,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85898.089,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "422": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 422,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84212.4861,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "423": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 423,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75314.1419,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "424": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 424,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80683.6412,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "425": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 425,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49361.2316,
+  "dn_t": 173,
+  "dn_cause": "game_over"
+ },
+ "426": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 426,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81027.9577,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "427": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 427,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79524.8491,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "428": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 428,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78621.3465,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "429": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 429,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86286.9218,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "430": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 430,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81085.9983,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "431": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 431,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78353.8138,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "432": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 432,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83955.676,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "433": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 433,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87825.4102,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "434": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 434,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81390.0914,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "435": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 435,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82232.2592,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "436": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 436,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83143.5853,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "437": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 437,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78134.6873,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "438": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 438,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90470.1361,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "439": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 439,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84357.9583,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "440": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 440,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88852.1179,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "441": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 441,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89496.2813,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "442": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 442,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84656.2126,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "443": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 443,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85556.5996,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "444": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 444,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80424.6312,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "445": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 445,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90857.9317,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "446": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 446,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84100.3373,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "447": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 447,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87676.3644,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "448": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 448,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91822.8633,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "449": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 449,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88871.0724,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "450": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 450,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87890.9359,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "451": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 451,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86995.0885,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "452": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 452,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93980.9304,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "453": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 453,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 97452.1441,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "454": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 454,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87687.6463,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "455": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 455,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84469.1883,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "456": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 456,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85886.6451,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "457": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 457,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88518.2165,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "458": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 458,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86686.9705,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "459": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 459,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83269.3153,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "460": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 460,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85590.4255,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "461": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 461,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91107.67,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "462": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 462,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82018.5954,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "463": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 463,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79402.5747,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "464": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 464,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83682.2784,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "465": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 465,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87828.4823,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "466": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 466,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 95056.9205,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "467": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 467,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86652.0081,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "468": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 468,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93987.3161,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "469": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 469,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87349.3936,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "470": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 470,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90123.2777,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "471": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 471,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89056.964,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "472": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 472,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82325.1791,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "473": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 473,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91121.5297,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "474": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 474,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87612.49,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "475": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 475,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86213.7728,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "476": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 476,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94035.576,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "477": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 477,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 97946.5399,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "478": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 478,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84754.8319,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "479": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 479,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88885.8764,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "480": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 480,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92891.5123,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "481": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 481,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84222.6716,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "482": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 482,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89499.0181,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "483": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 483,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86533.0154,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "484": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 484,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89603.7115,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "485": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 485,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89962.7755,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "486": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 486,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88421.2661,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "487": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 487,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92886.0485,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "488": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 488,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94882.0456,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "489": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 489,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92683.9892,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "490": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 490,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90156.5074,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "491": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 491,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91603.7618,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "492": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 492,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88056.7231,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "493": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 493,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 97710.3566,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "494": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 494,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86726.1513,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "495": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 495,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87709.0085,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "496": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 496,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91651.4546,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "497": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 497,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84181.3928,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "498": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 498,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89815.396,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "499": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 499,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 96626.4331,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "500": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 500,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88372.0631,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "501": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 501,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88364.9895,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "502": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 502,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87847.052,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "503": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 503,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88472.0927,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "504": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 504,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90423.1635,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "505": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 505,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93316.2404,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "506": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 506,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93283.4163,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "507": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 507,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89669.2157,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "508": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 508,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91741.5686,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "509": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 509,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91266.8704,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "510": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 510,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92926.2051,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "511": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 511,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90989.7856,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "512": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 512,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92834.0719,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "513": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 513,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94816.0227,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "514": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 514,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 95070.5893,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "515": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 515,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88580.6034,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "516": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 516,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87772.1024,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "517": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 517,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87285.3989,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "518": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 518,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89458.3224,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "519": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 519,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94711.5956,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "520": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 520,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87937.744,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "521": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 521,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92928.1854,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "522": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 522,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92773.5508,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "523": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 523,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87800.6369,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "524": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 524,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94624.1973,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "525": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 525,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 95413.6064,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "526": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 526,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93954.6586,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "527": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 527,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92371.2547,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "528": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 528,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 97204.1362,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "529": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 529,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 98044.4672,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "530": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 530,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86359.8737,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "531": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 531,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85685.3618,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "532": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 532,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 95416.4812,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "533": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 533,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 95304.6092,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "534": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 534,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54209.6436,
+  "dn_t": 172,
+  "dn_cause": "game_over"
+ },
+ "535": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 535,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94248.7015,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "536": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 536,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92304.2056,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "537": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 537,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94268.4221,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "538": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 538,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90125.9588,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "539": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 539,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86090.9456,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "540": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 540,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93909.3118,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "541": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 541,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90270.3209,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "542": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 542,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87736.6199,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "543": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 543,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93736.5042,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "544": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 544,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89055.0613,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "545": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 545,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 96094.4627,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "546": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 546,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92309.1002,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "547": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 547,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 96478.5246,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "548": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 548,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84423.9813,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "549": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 549,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86886.8644,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "550": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 550,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85110.8481,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "551": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 551,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 102283.2675,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "552": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 552,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 52858.8145,
+  "dn_t": 162,
+  "dn_cause": "game_over"
+ },
+ "553": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 553,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84035.0526,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "554": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 554,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88432.8414,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "555": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 555,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 92626.2782,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "556": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 556,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88431.6968,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "557": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 557,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88811.8633,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "558": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 558,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86446.5663,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "559": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 559,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 96958.2177,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "560": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 560,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90164.0805,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "561": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 561,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89137.6826,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "562": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 562,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88888.8328,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "563": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 563,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90391.7388,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "564": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 564,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90374.0542,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "565": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 565,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55787.8242,
+  "dn_t": 188,
+  "dn_cause": "game_over"
+ },
+ "566": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 566,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84449.2551,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "567": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 567,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85694.9821,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "568": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 568,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88947.8293,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "569": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 569,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90391.9673,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "570": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 570,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91099.8542,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "571": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 571,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94659.8619,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "572": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 572,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89648.7151,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "573": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 573,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91287.0917,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "574": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 574,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88766.5187,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "575": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 575,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 93230.5566,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "576": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 576,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87451.7316,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "577": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 577,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87412.5061,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "578": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 578,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84464.9786,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "579": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 579,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81044.1385,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "580": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 580,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 96747.2859,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "581": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 581,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86537.5778,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "582": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 582,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89622.2925,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "583": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 583,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85318.3734,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "584": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 584,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88960.627,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "585": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 585,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84980.5272,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "586": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 586,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87748.7205,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "587": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 587,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94508.3492,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "588": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 588,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87224.4098,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "589": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 589,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80852.3731,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "590": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 590,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89324.6711,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "591": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 591,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85686.8888,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "592": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 592,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 90010.415,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "593": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 593,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85675.9435,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "594": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 594,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42123.6914,
+  "dn_t": 143,
+  "dn_cause": "game_over"
+ },
+ "595": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 595,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88520.9364,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "596": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 596,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85576.697,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "597": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 597,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83172.0078,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "598": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 598,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89051.9012,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "599": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 599,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 94213.854,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "600": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 600,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87432.1915,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "601": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 601,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82209.1097,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "602": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 602,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91181.9777,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "603": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 603,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 919.7321,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "604": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 604,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 91905.8936,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "605": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 605,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80765.1215,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "606": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 606,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85603.526,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "607": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 607,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 88654.5862,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "608": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 608,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85070.3577,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "609": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 609,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85458.4902,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "610": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 610,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79556.943,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "611": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 611,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83662.1905,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "612": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 612,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81601.0733,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "613": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 613,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83895.3039,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "614": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 614,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80519.3832,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "615": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 615,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81381.7408,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "616": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 616,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 87882.7578,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "617": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 617,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 89732.3161,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "618": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 618,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79987.5118,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "619": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 619,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80573.878,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "620": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 620,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84271.5582,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "621": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 621,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79779.6966,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "622": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 622,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83758.1464,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "623": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 623,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81244.4574,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "624": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 624,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80852.6403,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "625": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 625,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83849.3208,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "626": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 626,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83869.0945,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "627": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 627,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83362.4638,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "628": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 628,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45102.9081,
+  "dn_t": 162,
+  "dn_cause": "game_over"
+ },
+ "629": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 629,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84837.2103,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "630": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 630,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82330.7875,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "631": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 631,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80398.47,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "632": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 632,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80812.8528,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "633": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 633,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80179.3235,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "634": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 634,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74278.2365,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "635": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 635,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81275.3045,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "636": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 636,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 85823.8247,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "637": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 637,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79695.4749,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "638": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 638,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81008.6853,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "639": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 639,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 86613.4265,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "640": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 640,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81111.7307,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "641": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 641,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80352.6243,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "642": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 642,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79135.9137,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "643": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 643,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76905.4032,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "644": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 644,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80574.4937,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "645": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 645,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81026.6287,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "646": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 646,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 83834.1568,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "647": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 647,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78726.6246,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "648": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 648,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 82626.957,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "649": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 649,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81034.5712,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "650": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 650,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80367.0833,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "651": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 651,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80790.3278,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "652": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 652,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 84289.2323,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "653": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 653,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78649.5836,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "654": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 654,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80545.4503,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "655": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 655,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 38953.4926,
+  "dn_t": 123,
+  "dn_cause": "game_over"
+ },
+ "656": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 656,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75242.752,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "657": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 657,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74738.2141,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "658": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 658,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 77055.2669,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "659": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 659,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74325.7543,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "660": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 660,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78075.3141,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "661": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 661,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46067.9438,
+  "dn_t": 181,
+  "dn_cause": "game_over"
+ },
+ "662": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 662,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81021.1923,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "663": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 663,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 77855.3716,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "664": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 664,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71669.4123,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "665": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 665,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 79509.1797,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "666": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 666,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 81822.1825,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "667": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 667,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75636.138,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "668": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 668,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76934.0926,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "669": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 669,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76755.0811,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "670": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 670,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 1574.5025,
+  "dn_t": 7,
+  "dn_cause": "game_over"
+ },
+ "671": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 671,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73925.9729,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "672": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 672,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 78575.0053,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "673": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 673,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72587.987,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "674": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 674,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73076.0685,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "675": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 675,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74398.0757,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "676": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 676,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75953.1852,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "677": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 677,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74986.6833,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "678": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 678,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71662.5896,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "679": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 679,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74857.1932,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "680": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 680,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74645.6096,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "681": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 681,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 75136.0206,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "682": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 682,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76559.1391,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "683": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 683,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 76152.2201,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "684": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 684,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 32912.8508,
+  "dn_t": 118,
+  "dn_cause": "game_over"
+ },
+ "685": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 685,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 80695.9001,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "686": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 686,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70684.065,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "687": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 687,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 771.1267,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "688": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 688,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 32173.354,
+  "dn_t": 123,
+  "dn_cause": "game_over"
+ },
+ "689": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 689,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68041.7529,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "690": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 690,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73580.6153,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "691": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 691,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70490.1558,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "692": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 692,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70433.5496,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "693": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 693,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70964.4767,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "694": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 694,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74959.4814,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "695": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 695,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72569.9575,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "696": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 696,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71329.2714,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "697": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 697,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 74079.3379,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "698": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 698,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68090.1083,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "699": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 699,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 723.4895,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "700": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 700,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73849.4608,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "701": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 701,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 43209.8373,
+  "dn_t": 164,
+  "dn_cause": "game_over"
+ },
+ "702": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 702,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66964.8167,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "703": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 703,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70815.9362,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "704": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 704,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70981.6157,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "705": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 705,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68029.8452,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "706": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 706,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72534.4395,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "707": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 707,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 31824.6557,
+  "dn_t": 124,
+  "dn_cause": "game_over"
+ },
+ "708": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 708,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 803.3244,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "709": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 709,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67769.0058,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "710": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 710,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69794.3356,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "711": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 711,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67923.4329,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "712": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 712,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 70927.2691,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "713": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 713,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 72585.3057,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "714": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 714,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69582.3875,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "715": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 715,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 679.8055,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "716": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 716,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68896.0958,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "717": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 717,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 73839.7347,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "718": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 718,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 71553.2476,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "719": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 719,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 682.2376,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "720": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 720,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 720.2903,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "721": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 721,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67520.7517,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "722": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 722,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67591.8376,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "723": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 723,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66682.3594,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "724": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 724,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46266.4381,
+  "dn_t": 195,
+  "dn_cause": "game_over"
+ },
+ "725": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 725,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69434.0517,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "726": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 726,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66766.5194,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "727": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 727,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67599.1841,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "728": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 728,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69901.8665,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "729": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 729,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68286.0318,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "730": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 730,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66254.9156,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "731": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 731,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69505.0652,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "732": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 732,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 40122.2517,
+  "dn_t": 162,
+  "dn_cause": "game_over"
+ },
+ "733": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 733,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 69080.7793,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "734": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 734,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66621.197,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "735": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 735,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 35679.2842,
+  "dn_t": 146,
+  "dn_cause": "game_over"
+ },
+ "736": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 736,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67761.4235,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "737": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 737,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66287.5344,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "738": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 738,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67688.0746,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "739": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 739,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 66715.764,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "740": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 740,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 65057.1941,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "741": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 741,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61798.375,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "742": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 742,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 36779.9961,
+  "dn_t": 157,
+  "dn_cause": "game_over"
+ },
+ "743": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 743,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64683.4302,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "744": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 744,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 68004.2698,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "745": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 745,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 686.4597,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "746": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 746,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64599.3654,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "747": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 747,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 697.9879,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "748": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 748,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 67291.3444,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "749": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 749,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63916.8957,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "750": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 750,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64315.4257,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "751": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 751,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 30351.3377,
+  "dn_t": 130,
+  "dn_cause": "game_over"
+ },
+ "752": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 752,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61248.7281,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "753": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 753,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61850.0852,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "754": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 754,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 65388.7322,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "755": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 755,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61854.0741,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "756": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 756,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 35373.4218,
+  "dn_t": 155,
+  "dn_cause": "game_over"
+ },
+ "757": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 757,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48386.0231,
+  "dn_t": 214,
+  "dn_cause": "game_over"
+ },
+ "758": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 758,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62192.7466,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "759": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 759,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 65629.7682,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "760": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 760,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61784.9988,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "761": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 761,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62412.3739,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "762": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 762,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 699.8429,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "763": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 763,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64499.8112,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "764": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 764,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62907.2776,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "765": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 765,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 27529.8557,
+  "dn_t": 119,
+  "dn_cause": "game_over"
+ },
+ "766": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 766,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 690.2992,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "767": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 767,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64364.6995,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "768": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 768,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58243.2646,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "769": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 769,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 64607.6698,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "770": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 770,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 32168.8025,
+  "dn_t": 142,
+  "dn_cause": "game_over"
+ },
+ "771": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 771,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 50237.3638,
+  "dn_t": 234,
+  "dn_cause": "game_over"
+ },
+ "772": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 772,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63516.4942,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "773": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 773,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46639.425,
+  "dn_t": 217,
+  "dn_cause": "game_over"
+ },
+ "774": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 774,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 63392.1328,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "775": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 775,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59357.4129,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "776": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 776,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60935.7635,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "777": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 777,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 37024.6823,
+  "dn_t": 160,
+  "dn_cause": "game_over"
+ },
+ "778": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 778,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59433.8162,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "779": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 779,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61062.7551,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "780": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 780,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60890.0543,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "781": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 781,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62364.4823,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "782": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 782,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62914.9256,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "783": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 783,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60687.1747,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "784": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 784,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57797.4378,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "785": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 785,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58704.8055,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "786": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 786,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57864.8868,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "787": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 787,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60770.3346,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "788": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 788,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 32293.1614,
+  "dn_t": 147,
+  "dn_cause": "game_over"
+ },
+ "789": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 789,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60170.8468,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "790": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 790,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58349.1136,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "791": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 791,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59116.2867,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "792": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 792,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 33492.3072,
+  "dn_t": 156,
+  "dn_cause": "game_over"
+ },
+ "793": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 793,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 11960.3134,
+  "dn_t": 50,
+  "dn_cause": "game_over"
+ },
+ "794": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 794,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 28031.3301,
+  "dn_t": 130,
+  "dn_cause": "game_over"
+ },
+ "795": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 795,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 45841.6739,
+  "dn_t": 217,
+  "dn_cause": "game_over"
+ },
+ "796": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 796,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44981.5223,
+  "dn_t": 221,
+  "dn_cause": "game_over"
+ },
+ "797": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 797,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58216.1365,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "798": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 798,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 49364.6671,
+  "dn_t": 226,
+  "dn_cause": "game_over"
+ },
+ "799": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 799,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58690.3836,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "800": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 800,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 26549.6371,
+  "dn_t": 125,
+  "dn_cause": "game_over"
+ },
+ "801": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 801,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 62308.1967,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "802": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 802,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 48655.3511,
+  "dn_t": 243,
+  "dn_cause": "game_over"
+ },
+ "803": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 803,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42952.7073,
+  "dn_t": 222,
+  "dn_cause": "game_over"
+ },
+ "804": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 804,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58847.3114,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "805": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 805,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 34161.3807,
+  "dn_t": 158,
+  "dn_cause": "game_over"
+ },
+ "806": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 806,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 601.0297,
+  "dn_t": 4,
+  "dn_cause": "game_over"
+ },
+ "807": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 807,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 19199.5008,
+  "dn_t": 85,
+  "dn_cause": "game_over"
+ },
+ "808": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 808,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 60214.4795,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "809": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 809,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42720.5074,
+  "dn_t": 216,
+  "dn_cause": "game_over"
+ },
+ "810": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 810,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 43580.4564,
+  "dn_t": 212,
+  "dn_cause": "game_over"
+ },
+ "811": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 811,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 46906.1282,
+  "dn_t": 230,
+  "dn_cause": "game_over"
+ },
+ "812": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 812,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57421.2995,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "813": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 813,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 25733.9786,
+  "dn_t": 124,
+  "dn_cause": "game_over"
+ },
+ "814": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 814,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59184.894,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "815": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 815,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 58302.7086,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "816": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 816,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 41567.8319,
+  "dn_t": 202,
+  "dn_cause": "game_over"
+ },
+ "817": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 817,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 26566.6127,
+  "dn_t": 119,
+  "dn_cause": "game_over"
+ },
+ "818": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 818,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 44593.4189,
+  "dn_t": 230,
+  "dn_cause": "game_over"
+ },
+ "819": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 819,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 59889.449,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "820": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 820,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55977.732,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "821": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 821,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 57653.6908,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "822": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 822,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56632.9901,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "823": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 823,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 42377.9117,
+  "dn_t": 213,
+  "dn_cause": "game_over"
+ },
+ "824": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 824,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 54790.5703,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "825": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 825,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 61180.4269,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "826": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 826,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56577.8228,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "827": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 827,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 55568.208,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "828": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 828,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 33303.765,
+  "dn_t": 161,
+  "dn_cause": "game_over"
+ },
+ "829": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 829,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 21592.7286,
+  "dn_t": 100,
+  "dn_cause": "game_over"
+ },
+ "830": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 830,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 56580.2151,
+  "dn_t": 288,
+  "dn_cause": "time_exceeded"
+ },
+ "831": {
+  "env": "l2rpn_idf_2023",
+  "chronic": 831,
+  "horizon": 288,
+  "seed": 0,
+  "dn_cum_reward": 16723.1541,
+  "dn_t": 81,
+  "dn_cause": "game_over"
+ }
+}

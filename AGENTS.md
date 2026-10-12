@@ -1,9 +1,9 @@
 # Grid operator — you drive a live grid2op sim
 
-You are a power-grid operator running a live grid2op simulation
-(`l2rpn_case14_sandbox`: 14 substations, 20 lines, 6 generators, 5-minute steps;
-the horizon is the `max_t` in `simctl status`, e.g. `t=0/24`). Your goal: **keep the grid stable (no line
-overloads or trips) and maximize cumulative reward.**
+You are a power-grid operator running a live grid2op simulation (5-minute
+steps). The grid's size, generators, ramps, reward scale and protection rules
+are in the **Grid facts** section at the end of this file. Your goal: **keep
+the grid stable (no line overloads or trips) and maximize cumulative reward.**
 
 ## Control: `simctl`
 
@@ -13,8 +13,9 @@ remote: one command in, one result out. The sim state lives in the backend.
 | command | what it does |
 |---|---|
 | `simctl status` | is the sim up? `t`, reward, `done` |
-| `simctl observe` | compact state: overloads, max loading, gen MW, feedback on your last act |
+| `simctl observe` | compact state: overloads, max loading, feedback on your last act |
 | `simctl observe --detailed` | full JSON state (every line's rho/status/endpoints, subs, gens) |
+| `simctl observe --changes` | same JSON shape, only what changed since your last `--detailed`/`--changes` |
 | `simctl act '<json>'` | apply a grid2op action AND advance one step |
 | `simctl step` | advance exactly 1 step doing nothing (no-op) |
 | `simctl render [--out NAME]` | OPTIONAL grid map PNG (`--out` = bare filename); on `render is disabled` skip it |
@@ -23,8 +24,9 @@ remote: one command in, one result out. The sim state lives in the backend.
 Add `--json` to any command for machine-readable output. Exit codes: 0 ok,
 1 rejected (illegal act, render error, episode over; reason on stdout), 2 sim not running / backend error, 3 bad command.
 
-Action JSON — keys and exact shapes in `docs/grid2op/action_space.md`. The
-ones you'll use:
+Action JSON — keys and exact shapes in `docs/grid2op/action_space.md`. Use
+the element names of YOUR grid (`observe --detailed`, Grid facts); the names
+below are examples:
 
 ```
 simctl act '{"set_line_status": {"0_4_1": -1}}'          # open line 0_4_1  (1=force closed, 0=noop)
@@ -45,30 +47,31 @@ Combine several keys in one `act` if the moves belong together.
 2. `simctl observe` — read the state. What matters: `overloads=[...]`,
    `max_rho`, `lines_down`, and the last line ("since your last act …") which
    tells you what YOUR previous action did (it is absent before your first act).
+   Once at the start, `simctl observe --detailed` for the full picture; after
+   that, `simctl observe --changes` shows just what moved.
 3. Decide. State your reasoning in 1–2 sentences, grounded in the numbers you
    just read.
-4. `simctl act '<json>'`
+4. `simctl act '<json>'` (or `simctl step` to deliberately do nothing).
 5. Read the result: `new_overloads` (lines that crossed 1.0 — deal with them
    next turn). A rejected act prints `Illegal action: <reason>` (exit 1): not
    applied, but the step still advanced with reward 0. Pick a different line
    or smaller delta.
-6. Repeat.
+6. Repeat until `done=yes`.
 
-Topology (which lines join which subs) is in `observe --detailed` (`or`/`ex`
-per line). Optionally `simctl render` + `Read` the PNG; if it says `render is
-disabled`, don't retry.
+Topology (which lines join which subs) is in the line names
+(`<or_sub>_<ex_sub>_<id>`) and in `observe --detailed` (`or`/`ex` per line).
 
 ## Key concepts
 
-- **No resets, no fast-forward.** The episode runs until `done=yes` (horizon)
-  or a blackout; either ends the run — summarize and stop. `simctl step` (or
-  `act '{}'`) is a no-op that advances EXACTLY 1 step; every step is yours.
+- **Every step is yours.** The episode runs until `done=yes` or a blackout;
+  either ends the run — summarize and stop. There is no reset. Each `act` or
+  `step` advances exactly ONE step; there is no multi-step command. You can
+  chain several simctl calls in one shell command, but each is a full step
+  taken without looking at the grid in between.
 - **`rho` = line loading fraction.** 1.0 = 100% of thermal limit. A line above
-  1.0 **trips (disconnects) on its 3rd consecutive overloaded step**: the first
-  observe showing it is step 1, so you have 2 acts to bring it under 1.0 and
-  the second is the last chance. A tripped line is OPEN and can't be closed
-  for 10 steps. Trips are the main way you lose reward; they show as
-  `lines_down` rising (see `observe --detailed` for which).
+  1.0 for too many consecutive steps trips (disconnects); the count and the
+  reconnect cooldown are in Grid facts. Trips are the main way you lose
+  reward; they show as `lines_down` rising (see `observe --detailed` for which).
 - **Opening a line shifts its flow onto parallel paths.** Check
   `new_overloads` and the next `observe`. Never open the only line feeding a
   substation.
@@ -77,16 +80,16 @@ disabled`, don't retry.
   Moving a line end to busbar 2 disconnects it from the sub's main flow
   WITHOUT opening the line — the load re-routes through sibling lines.
 - **`redispatch` is cumulative**: -5 then -5 = -10 total, and it persists on
-  later no-op steps. Margins are NOT shown; each move must fit the gen's
-  per-step ramp (gen_1_0 ±5 MW, gen_2_1 ±10, gen_0_5 ±15) — a bigger one is
-  `Ambiguous action` (reward 0, nothing applied). Only these 3 can be redispatched.
-  `gens:` in `observe` = MW of gen_1_0, gen_2_1, gen_5_2, gen_5_3, gen_7_4, gen_0_5.
+  later no-op steps. Only the generators listed as redispatchable in Grid
+  facts accept it, and each move must fit that gen's per-step ramp — a bigger
+  one is `Ambiguous action` (reward 0, nothing applied). Margins are NOT shown;
+  each gen's running total is `target_dispatch` in `observe --detailed`.
 - **Cooldowns**: a line YOU opened can be closed again immediately. A line
-  that TRIPPED is in cooldown (10 steps); closing it early is illegal, the
-  step still advances and rewards 0.
-- **Reward**: higher is better. A healthy step is ≈ +64. An illegal step is
-  0. A cascade of trips drags it toward -10. (`-10.0` at t=0 is a placeholder,
-  not counted in `cum`.)
+  that TRIPPED is in cooldown; closing it early is illegal, the step still
+  advances and rewards 0.
+- **Reward**: higher is better; the healthy-step scale is in Grid facts. An
+  illegal step is 0. A cascade of trips drags it toward the minimum. (The
+  reward shown at t=0 is a placeholder, not counted in `cum`.)
 
 ## Docs — read when you need them
 
@@ -95,7 +98,8 @@ disabled`, don't retry.
 - `docs/grid2op/observation.md` — all state fields
 - `docs/grid2op/environment.md`, `scoring.md` — episodes, reward
 - `docs/grid2op/pitfalls.md` — gotchas (read after any rejected act)
-- `recipes/` — copy-paste command sequences with real output
+- `recipes/` — copy-paste command sequences with real output (from a small
+  example grid; names and numbers differ on yours)
 
 ## Safety
 
@@ -104,11 +108,3 @@ effects. If an `act` is rejected, read the reason, adjust, retry. A malformed
 action (bad JSON shape, unknown element name) is rejected WITHOUT advancing
 time; unknown KEYS are silently ignored, so check spelling. Keep explanations
 short and tied to the last `observe` numbers.
-
-## Your first five commands
-
-1. `simctl status`
-2. `simctl observe`
-3. `simctl observe --detailed` — every line's rho/status and endpoints
-4. `simctl act '{"redispatch": {"gen_1_0": -3.0}}'` (small, legal, within its 5 MW ramp)
-5. `simctl observe` — check the "since your last act" line

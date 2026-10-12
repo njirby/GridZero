@@ -2,7 +2,9 @@
 
 You act with `simctl act '<json>'`. The JSON is a grid2op 1.12.4 action
 dict. All shapes below were verified against the installed library on
-`l2rpn_case14_sandbox`. **Acting also advances one timestep** (grid2op
+`l2rpn_case14_sandbox` (element names in examples are case14's; use the
+names from your grid's `observe --detailed`). **Acting also advances exactly
+one timestep** (grid2op
 semantics: a step applies the action, then runs the grid forward 5 minutes).
 
 Element names are exact strings from the env: lines like `0_4_1` (see
@@ -71,9 +73,10 @@ Verified re-route (from `quickstart.md`): after opening 0_4_1,
 may heat up in other scenarios. Always re-observe after a bus change.
 
 ### `redispatch` — shift a dispatchable generator by ΔMW
-Maps **gen name → ΔMW** (or a list of `[id, ΔMW]` pairs). Only the 3
-dispatchable gens respond: `gen_1_0` (sub_1), `gen_2_1` (sub_2), `gen_0_5`
-(sub_0). Renewables can't be redispatched.
+Maps **gen name → ΔMW** (or a list of `[id, ΔMW]` pairs). Only gens with
+`redispatchable: true` respond (listed with their ramps in "Grid facts" in
+AGENTS.md; on case14: `gen_1_0`, `gen_2_1`, `gen_0_5`). Renewables can't be
+redispatched.
 ```
 simctl act '{"redispatch": {"gen_1_0": -5.0}}'    # take 5 MW off gen_1_0
 simctl act '{"redispatch": {"gen_2_1": 10.0}}'    # add 10 MW to gen_2_1
@@ -81,8 +84,8 @@ simctl act '{"redispatch": {"gen_2_1": 10.0}}'    # add 10 MW to gen_2_1
 **CUMULATIVE and PERSISTENT.** The delta adds to the generator's running
 setpoint (grid2op keeps `target_dispatch`); it survives subsequent no-op
 steps until you counteract it. -5 then -5 = -10. To undo, send +5 (or +10).
-Keep |Δ| within the gen's per-step ramp: gen_1_0 ±5, gen_2_1 ±10, gen_0_5
-±15. Margins are not shown by `observe`/`--detailed`; a larger Δ (e.g. `-50`)
+Keep |Δ| within the gen's per-step ramp (see "Grid facts"; on case14
+gen_1_0 ±5, gen_2_1 ±10, gen_0_5 ±15). Margins are not shown by `observe`/`--detailed`; a larger Δ (e.g. `-50`)
 is rejected as `Ambiguous action` — reward 0, nothing applied, step still
 advances. Keep your own running total.
 
@@ -166,9 +169,10 @@ illegal, is possible too.) Read the reason, adjust, re-act.
 ## Cooldowns (verified numbers)
 
 - **Overload trip**: a line above `rho=1.0` trips on its **3rd consecutive
-  overloaded step** (2 allowed, verified; hard overflow at `rho≥2.0` is
-  instant). A tripped line is OPEN, `status: "down"`, `cooldown: 10`
-  counting down — closing it before 0 is illegal.
+  overloaded step** (2 allowed, verified on case14; hard overflow at
+  `rho≥2.0` is instant; your grid's protections are in "Grid facts"). A
+  tripped line is OPEN, `status: "down"`, `cooldown` counting down (10 on
+  case14) — closing it before 0 is illegal.
 - **Self-opened line**: no re-close cooldown. `set_line_status … 1` works
   immediately.
 - `observe --detailed` shows `cooldown: <steps left>` per line (and

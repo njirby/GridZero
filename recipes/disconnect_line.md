@@ -4,6 +4,9 @@
 section, or reconfigure before maintenance. Opening a line shifts its MW to
 the parallel paths, so the risk is a SECOND line going hot.
 
+(Example from an `l2rpn_case14_sandbox` run; names and numbers differ on
+other grids.)
+
 ## Step 1 — pick a line that's NOT the only path
 
 From `observe --detailed`, check both endpoint subs have another feeder.
@@ -35,7 +38,8 @@ gens: 73.3 72.6 36.6 0.0 0.0 73.0
 since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [1_4_4] (max_rho=1.02)
 ```
 1_4_4 is hot for the first step (t=1). Doing nothing: still hot at t=2, and
-it TRIPS at t=3 (verified) and stays open 10 steps. You have 2 acts.
+it TRIPS at t=3 (verified) and stays open for its cooldown (10 steps on
+case14). You have 2 acts.
 
 Options, in order of preference:
 

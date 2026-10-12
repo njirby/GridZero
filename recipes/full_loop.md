@@ -1,7 +1,8 @@
 # Recipe: a complete turn (observe → decide → act → verify → repeat)
 
-One full operator turn with real sandbox numbers at t=0 (chronic 0). Copy
-this rhythm; vary the decision.
+One full operator turn with real numbers from an `l2rpn_case14_sandbox` run
+at t=0 (chronic 0; names and numbers differ on other grids). Copy this
+rhythm; vary the decision.
 
 **1. Read the state.**
 ```
@@ -20,7 +21,7 @@ line at 80%.
 **2. Decide, out loud, in 1–2 sentences.**
 "Nothing is overloaded and max_rho is 0.80, so no emergency. I'll make one
 small verified move: pull 5 MW off gen_1_0, which is within its 5 MW per-step
-ramp, and watch where the MW goes."
+ramp (ramps: "Grid facts" in AGENTS.md), and watch where the MW goes."
 
 (Self-correction habit: name the second-order effect BEFORE acting. Know
 which lines your lever actually touches.)
@@ -55,7 +56,7 @@ with gen_2_1 and gen_0_5 picking up. 1_4_4 eased 64.3% → 63.8%.
   `simctl act '{"redispatch": {"gen_1_0": 5.0}}'`.
 - If a line crosses 1.0, the relief is usually structural (open/re-route,
   see `disconnect_line.md`, `change_topology.md`), not more redispatch.
-- Stop when `done=yes` (the horizon in `simctl status`, e.g. `t=24/24`).
+- Stop when `done=yes` in `simctl status` (`time_exceeded` or `game_over`).
 
 ## When a turn goes wrong
 

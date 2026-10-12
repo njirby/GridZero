@@ -1,7 +1,8 @@
 # Pitfalls — grid2op 1.12.4 gotchas
 
-Everything here bit someone or was verified live. Read this after any
-rejected act; keep it in your head when composing JSON.
+Everything here bit someone or was verified live (examples from
+`l2rpn_case14_sandbox`; names and numbers differ on other grids). Read this
+after any rejected act; keep it in your head when composing JSON.
 
 ## API shape (1.12 "glop" restructure)
 
@@ -36,27 +37,29 @@ rejected act; keep it in your head when composing JSON.
    against `action_space.md`.
 6. **`rho` is NOT `p_or / limit`.** It's current-based:
    `max(|a_or|, |a_ex|) / limit`, and `env.get_thermal_limit()` returns AMPS
-   (541, 450, 375, …) while `p_or`/`p_ex` are MW. A line can have `p_or = 0`
-   and `rho = 0.43` (reactive flow, e.g. 6_7_18 at t=0). Just read `rho` —
+   while `p_or`/`p_ex` are MW. A line can have `p_or = 0` and `rho = 0.43`
+   (reactive flow). Just read `rho` —
    don't recompute it.
 
 ## Physics traps
 
-7. **Don't open a line that's the only path.** Most subs have 2–4 feeders
-   (sub_4 has four: 0_4_1, 1_4_4, 3_4_6, 4_5_17), so most opens re-route
-   fine — but the re-route lands somewhere.
+7. **Don't open a line that's the only path.** Most subs have several
+   feeders (on case14, sub_4 has four: 0_4_1, 1_4_4, 3_4_6, 4_5_17), so
+   most opens re-route fine — but the re-route lands somewhere.
    Verified at t=0 (chronic 0): opening `0_4_1` pushes `1_4_4` to rho 1.019
    in ONE step (other scenarios push it much higher).
    If a substation is left with a single feeder, any further open isolates
    it → cascade. Check `new_overloads` before celebrating an open.
 8. **A line trips on its 3rd consecutive step above 1.0** (verified on
-   grid2op 1.12.4, `NB_TIMESTEP_OVERFLOW_ALLOWED=2`: hot at t=2 counter 1,
-   t=3 counter 2, gone at t=4). The first observe that shows `overloads=[X]`
+   grid2op 1.12.4 case14, `NB_TIMESTEP_OVERFLOW_ALLOWED=2`: hot at t=2
+   counter 1, t=3 counter 2, gone at t=4; your grid's protections are in
+   "Grid facts"). The first observe that shows `overloads=[X]`
    is step 1: you have 2 acts, and the act you take at the second hot
    observe is the last one that can save it. A line at 1.05 is NOT a maybe.
    (Loading ≥ 2.0 is a hard overflow and trips instantly.)
-9. **Tripped lines are OPEN for 10 steps.** A tripped line is
-   disconnected (`status: "down"`, `cooldown: 10` counting down). Attempting
+9. **Tripped lines are OPEN for their cooldown** (10 steps on case14; your
+   grid's value is in "Grid facts"). A tripped line is disconnected
+   (`status: "down"`, `cooldown` counting down). Attempting
    `set_line_status … 1` on it during cooldown is ILLEGAL: the step pays 0
    and the line stays down (verified: `Illegal action: … cooldown of [10]`,
    reward 0.0, cooldown ticking 10 → 9). A line YOU opened yourself has NO
@@ -64,8 +67,8 @@ rejected act; keep it in your head when composing JSON.
    `down` for both; `cooldown > 0` marks a tripped one.
 10. **`redispatch` is cumulative.** -5, then -5, then +10 = net -10, and it
     persists across no-op steps (`target_dispatch` stays -10). Undo your own
-    dispatch when the maneuver is done. Per-step ramps: gen_1_0 5 MW, gen_2_1
-    10, gen_0_5 15; renewables 0 (`curtail` them instead). The backend does
+    dispatch when the maneuver is done. Per-step ramps are listed per gen in
+    "Grid facts" (AGENTS.md); renewables 0 (`curtail` them instead). The backend does
     NOT show margins; a larger single move (e.g. `-50`) is `Ambiguous action`
     (reward 0, nothing applied), so stay within the ramp and keep your own
     running total per gen.
@@ -86,10 +89,15 @@ rejected act; keep it in your head when composing JSON.
     re-acting. The exception: an action that can't be built at all (wrong
     shape, unknown element name, bus 3) prints `Illegal — …`, exit 1, and
     time does NOT advance.
-14. **After `done`, stop.** The episode can't be reset. `act`/`step` print
+14. **Every `act`/`step` is exactly one step.** There is no multi-step
+    command (`simctl step 3` is refused). You can chain several `simctl`
+    calls in one shell command, but each is a full step taken blind — you
+    don't see the state in between, so an overload can start and trip a
+    line while you aren't looking.
+15. **After `done`, stop.** The episode can't be reset. `act`/`step` print
     `Episode is over (<cause>). Stop acting and write your summary.` (exit 1).
     Read the final `cum_reward` from `status` and summarize.
-15. **`render` may be disabled and is rarely needed.** Where it works it costs
+16. **`render` may be disabled and is rarely needed.** Where it works it costs
     tokens to look at; where it doesn't it prints `render is disabled in this
     environment` (exit 1) — don't retry. `--out` takes a bare filename only.
     `observe --detailed` has each line's `or`/`ex` substations (topology).

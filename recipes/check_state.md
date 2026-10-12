@@ -1,19 +1,20 @@
 # Recipe: check the state
 
 **When:** start of your session, after any act, whenever unsure. This is the
-read-only pair — it never changes the grid.
+read-only pair — it never changes the grid. (Outputs below are from an
+`l2rpn_case14_sandbox` run; names and numbers differ on other grids.)
 
 ```
 simctl status
 ```
 ```
-sim up · env=l2rpn_case14_sandbox · t=0/24 · reward=-10.0 (cum 0.0) · done=no
+sim up · env=l2rpn_case14_sandbox · t=0 · reward=-10.0 (cum 0.0) · done=no
 ```
-`t=0/24` = step 0 of a 24-step horizon; the episode ends at `max_t`. The
-`-10.0` at t=0 is a placeholder before any step. `done=no` = running.
+`t=0` = step 0; each act/step advances it by one. The `-10.0` at t=0 is a placeholder before any step. `done=no` = running.
 `sim down` or a backend error (exit 2) → retry `simctl status`; you cannot
 reset the episode — if the sim stays down, the run is over. After
-`done=yes`, stop and write your summary.
+`done=yes` (cause `time_exceeded` or `game_over`), stop and write your
+summary.
 
 ```
 simctl observe
@@ -42,7 +43,7 @@ Full detail (every line's rho/status, subs, gens — the C3 JSON):
 simctl observe --detailed
 ```
 ```json
-{"t": 2, "max_t": 24, "max_rho": 1.0125, "n_down": 1, "n_overflow": 1,
+{"t": 2, "max_rho": 1.0125, "n_down": 1, "n_overflow": 1,
  "lines": [{"id": 1, "name": "0_4_1", "or": "sub_0", "ex": "sub_4", "rho": 0.0,
             "p_or": 0.0, "p_ex": 0.0, "status": "down", "overflow": false,
             "cooldown": 0, "maint": -1},
@@ -57,3 +58,15 @@ simctl observe --detailed
 ```
 (`...` marks elided entries.) Machine-readable version of any command:
 append `--json`.
+
+On a big grid, read `--detailed` once at the start, then each turn
+`simctl observe` plus:
+
+```
+simctl observe --changes
+```
+It lists only the lines/subs/gens that changed since your last `--detailed`
+or `--changes` view, each with the same fields as in `--detailed`. Discrete
+changes (status, overflow, cooldown start/end) always show; rho/MW drift
+only above the thresholds printed in its header (`--rho-eps`, `--mw-eps` to
+change them).

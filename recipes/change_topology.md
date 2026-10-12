@@ -33,7 +33,7 @@ no step).
 (e.g. `change_bus` on 1_4_4 and 5_12_9) print `Illegal action: … More than 1
 substation affected` — the step advances and pays 0.
 
-## Worked re-route (real run, chronic 0)
+## Worked re-route (real `l2rpn_case14_sandbox` run, chronic 0; names and numbers differ on other grids)
 
 State at t=1: `0_4_1` open, `1_4_4` overloaded at 101.9% (hot for one step,
 trips at t=3 if nothing changes), sub_4 importing through sub_1.

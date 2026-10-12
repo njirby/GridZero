@@ -13,10 +13,18 @@ index 9ce2bee..3ad2880 100644
              _pf_fatal "ROLLOUT_CORRECTION_BYPASS=True but POLICY_LOSS_MODE=${POLICY_LOSS_MODE:-unset} — the actor's loss never enters bypass mode (no DIS, no token IS); set POLICY_LOSS_MODE=bypass_mode"
          fi
 diff --git a/scripts/templates/scaffold/oc.env b/scripts/templates/scaffold/oc.env
-index 8323413..84d84ff 100644
+index 8323413..5f6c6e0 100644
 --- a/scripts/templates/scaffold/oc.env
 +++ b/scripts/templates/scaffold/oc.env
-@@ -25,6 +25,35 @@ served = os.environ["SERVED_MODEL_NAME"]
+@@ -17,6 +17,7 @@ if [ -z "${HARBOR_OPENCODE_CONFIG_CONTENT:-}" ]; then
+     HARBOR_OPENCODE_CONFIG_CONTENT="$(
+         SERVED_MODEL_NAME="${SERVED_MODEL_NAME:-vllm_model}" \
+         OPENCODE_DISABLE_STREAMING="${OPENCODE_DISABLE_STREAMING}" \
++        OC_AGENT_PROMPT_FILE="${OC_AGENT_PROMPT_FILE:-}" OC_DISABLED_TOOLS="${OC_DISABLED_TOOLS:-}" \
+         python3 - <<'PYOPENCODE'
+ import json
+ import os
+@@ -25,6 +26,35 @@ served = os.environ["SERVED_MODEL_NAME"]
  opencode_model = f"hosted_vllm/{served}"
  max_steps = int(os.environ.get("HARBOR_AGENT_MAX_ITERATIONS", 200))
  disable_streaming = os.environ["OPENCODE_DISABLE_STREAMING"].lower() in {"1", "true", "yes", "on"}
@@ -52,7 +60,7 @@ index 8323413..84d84ff 100644
  options = {
      "baseURL": "{env:HOSTED_VLLM_BASE_URL}",
      "apiKey": "{env:HOSTED_VLLM_API_KEY}",
-@@ -34,10 +63,19 @@ options = {
+@@ -34,10 +64,19 @@ options = {
  }
  if disable_streaming:
      options["disableStreaming"] = True
@@ -73,7 +81,7 @@ index 8323413..84d84ff 100644
      "enabled_providers": ["hosted_vllm"],
      "provider": {
          "hosted_vllm": {
-@@ -45,7 +83,7 @@ print(json.dumps({
+@@ -45,7 +84,7 @@ print(json.dumps({
              "name": "Hosted vLLM",
              "options": options,
              "models": {
@@ -82,7 +90,7 @@ index 8323413..84d84ff 100644
              },
          },
      },
-@@ -55,9 +93,12 @@ print(json.dumps({
+@@ -55,9 +94,29 @@ print(json.dumps({
          "summary": {"model": opencode_model},
          "compaction": {"model": opencode_model},
      },
@@ -90,6 +98,23 @@ index 8323413..84d84ff 100644
 +}
 +if ctx_limit > 0:
 +    config["compaction"] = {"auto": True}
++# Opt-in task-specific system prompt: replaces opencode's built-in coding-assistant persona
++# (system = [agent.prompt ?? provider persona, AGENTS.md instructions, ...]).
++prompt_file = os.environ.get("OC_AGENT_PROMPT_FILE") or ""
++if prompt_file:
++    with open(prompt_file, encoding="utf-8") as f:
++        prompt = f.read().strip()
++    if not prompt:
++        raise SystemExit(f"OC_AGENT_PROMPT_FILE={prompt_file} is empty")
++    config["agent"]["build"]["prompt"] = prompt
++# Opt-in: tools to withhold from the model (comma-separated opencode tool ids).
++disabled = [t.strip() for t in (os.environ.get("OC_DISABLED_TOOLS") or "").split(",") if t.strip()]
++if disabled:
++    config["tools"] = {t: False for t in disabled}
++    # The permission block above allows edit/webfetch/task, which would re-enable them; a denied
++    # permission is what removes a tool from the request (write/patch/multiedit share "edit").
++    for t in disabled:
++        config["permission"]["edit" if t in {"edit", "write", "patch", "multiedit"} else t] = "deny"
 +print(json.dumps(config, separators=(",", ":")))
  PYOPENCODE
 -    )"

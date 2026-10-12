@@ -3,6 +3,7 @@ SimSession and the exact reset the backend does at startup from SIM_CHRONIC/SIM_
 SIM_SEED (backend/app/main.py). The RL verifier scores cum_reward - dn_cum_reward.
 
 Usage: .venv/bin/python lego/baselines/compute_dn.py --chronic 0-319,996-1003 --horizon 24 --seed 0
+       .venv/bin/python lego/baselines/compute_dn.py --env l2rpn_idf_2023 --chronic 0-831 --horizon 288
 """
 import argparse, json, os, sys, tempfile, warnings
 from multiprocessing import Pool
@@ -26,31 +27,36 @@ def run_one(args):
     global _SESS
     warnings.filterwarnings("ignore")
     from backend.app.sim_session import SimSession
-    chronic, horizon, seed = args
+    env_name, chronic, horizon, seed = args
     if _SESS is None:
-        _SESS = SimSession(render_dir=tempfile.mkdtemp())
+        _SESS = SimSession(env_name=env_name, render_dir=tempfile.mkdtemp())
     s = _SESS
     s.reset(seed=seed, options={"time serie id": chronic, "max step": horizon})
     out = None
     while not s._finished:
         out, _ = s.step(1)
     st = s.latest_state()
-    return {"chronic": chronic, "horizon": horizon, "seed": seed,
+    return {"env": env_name, "chronic": chronic, "horizon": horizon, "seed": seed,
             "dn_cum_reward": round(float(st["cum_reward"]), 4), "dn_t": int(st["t"]),
             "dn_cause": st.get("cause")}
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
+    ap.add_argument("--env", default="l2rpn_case14_sandbox")
     ap.add_argument("--chronic", required=True)
     ap.add_argument("--horizon", type=int, default=24)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--procs", type=int, default=8)
     ap.add_argument("--out", default=None)
     a = ap.parse_args()
-    jobs = [(c, a.horizon, a.seed) for c in parse_ranges(a.chronic)]
+    jobs = [(a.env, c, a.horizon, a.seed) for c in parse_ranges(a.chronic)]
+    # Import once in the parent so forked workers share one consistent copy of the backend.
+    from backend.app.sim_session import SimSession  # noqa: F401
     with Pool(a.procs) as p:
         rows = p.map(run_one, jobs, chunksize=4)
-    out = a.out or os.path.join(os.path.dirname(__file__), f"dn_h{a.horizon}_s{a.seed}.json")
+    default_name = (f"dn_h{a.horizon}_s{a.seed}.json" if a.env == "l2rpn_case14_sandbox"
+                    else f"dn_{a.env}_h{a.horizon}_s{a.seed}.json")
+    out = a.out or os.path.join(os.path.dirname(__file__), default_name)
     json.dump({str(r["chronic"]): r for r in rows}, open(out, "w"), indent=1)
     print(f"wrote {len(rows)} -> {out}")

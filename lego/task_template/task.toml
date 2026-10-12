@@ -2,7 +2,7 @@ schema_version = "1.1"
 
 [task]
 name = "gridzero/$instance_id"
-description = "Operate the grid2op l2rpn_case14_sandbox grid: keep it stable and maximize cumulative reward over $horizon steps (chronic $chronic, seed $seed)."
+description = "Operate the grid2op $env grid: keep it stable and maximize cumulative reward over $horizon steps (chronic $chronic, seed $seed)."
 authors = [{name = "gridzero"}]
 keywords = ["grid2op", "power-grid", "rl", "control"]
 
@@ -21,7 +21,7 @@ timeout_sec = $agent_timeout
 network_mode = "public"
 
 [environment]
-docker_image = "gridzero-rl-base:v2"
+docker_image = "$image"
 build_timeout_sec = 600.0
 cpus = 2
 memory_mb = 8192
@@ -29,6 +29,7 @@ storage_mb = 10240
 allow_internet = true
 
 [environment.env]
+SIM_ENV = "$env"
 SIM_CHRONIC = "$chronic"
 SIM_HORIZON = "$horizon"
 SIM_SEED = "$seed"

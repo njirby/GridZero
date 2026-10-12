@@ -1,8 +1,8 @@
 # Quickstart — 3 minutes to your first act
 
 `simctl` is a stateless CLI on PATH. It talks to the running grid2op sim
-(`l2rpn_case14_sandbox`: 14 subs, 20 lines, 6 gens). You operate the grid by
-repeating one loop:
+(which grid, and its sizes: see "Grid facts" in AGENTS.md). You operate the
+grid by repeating one loop:
 
 ```
 observe  →  decide (1-2 sentences of reasoning)  →  act  →  read the result  →  observe
@@ -12,6 +12,9 @@ observe  →  decide (1-2 sentences of reasoning)  →  act  →  read the resul
 always shows you the grid AFTER the last step.
 
 ## The two commands that matter
+
+(Outputs on this page are from an `l2rpn_case14_sandbox` run; names and
+numbers differ on other grids.)
 
 ```
 simctl observe
@@ -27,7 +30,8 @@ since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [
 - `max_rho` — the most loaded line. 1.0 = at its thermal limit. **A line above
   1.0 trips on its 3rd consecutive overloaded step** (you get 2 acts to fix it).
 - `overloads` — lines currently above 1.0. `top loads` — the 3 hottest lines.
-- `gens` — MW of gen_1_0, gen_2_1, gen_5_2, gen_5_3, gen_7_4, gen_0_5.
+- `gens` — MW of every generator, in gen id order (the `gens` list of
+  `observe --detailed` gives the names).
 - Last line — what your previous action did: `no trips` or `tripped: [...]`,
   plus the overloads that exist now. Absent before your first act (and at
   t=0 `reward=-10.0` is a placeholder, not a real step).
@@ -42,6 +46,14 @@ applied set_line_status 0_4_1=down · t=1 · reward=63.41 · new_overloads=[1_4_
 - `new_overloads` — lines that JUST crossed 1.0 because of your move.
 - A rejected move prints `Illegal action: <reason>` (exit 1) instead. It was
   NOT applied, but the clock still advanced one step and that step paid 0.
+
+On a big grid the compact view hides most lines. Read `simctl observe
+--detailed` once at the start (full JSON: every line, sub, gen), then each
+turn `simctl observe` plus `simctl observe --changes` — the same per-entity
+fields as `--detailed`, but only the entities that changed since your last
+`--detailed`/`--changes` view (discrete changes always; continuous ones
+above the thresholds printed in its header, tunable with `--rho-eps` /
+`--mw-eps`).
 
 ## Worked example: open a line, eat the overload, re-route it
 
@@ -91,8 +103,8 @@ simctl status          # "sim down ..." or backend error (exit 2)
 ```
 You CANNOT reset the episode — if the sim is down, retry `simctl status` a
 few times (the backend may be restarting); if it stays down, the run is over.
-After `done=yes` (`t` reached the `max_t` shown by `status`, or a blackout)
-`act` and `step` print `Episode is over (...)` and exit 1: stop and summarize.
+After `done=yes` (the episode ran its course — `time_exceeded` — or a
+blackout — `game_over`) `act` and `step` print `Episode is over (...)` and exit 1: stop and summarize.
 
 Next: `grid2op/action_space.md` (every action key), `grid2op/pitfalls.md`
 (what breaks silently).

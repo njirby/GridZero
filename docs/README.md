@@ -8,7 +8,7 @@ AGENTS.md                     operator prompt — read this first
 docs/
   quickstart.md               3-minute start: the loop + one worked example
   grid2op/
-    environment.md            episodes: step/done/horizon, info keys, scenarios
+    environment.md            episodes: step/done, info keys, scenarios
     action_space.md           COMPLETE action reference: every key, exact JSON
     observation.md            how to read state: C3 fields + advanced obs attrs
     scoring.md                reward semantics, what "good" looks like
@@ -25,7 +25,10 @@ recipes/
 Rules of thumb:
 
 - Every code block in here is a command you can run as-is.
-- Numbers in examples are from real `l2rpn_case14_sandbox` runs; your run
-  will differ slightly, the patterns won't.
+- Numbers and element names in examples are from real `l2rpn_case14_sandbox`
+  runs (a small 14-sub grid). Your grid may be different and much bigger:
+  its sizes, redispatchable gens + ramps, curtailable gens, reward scale,
+  protections and opponent are in the **"Grid facts"** section of AGENTS.md.
+  The patterns carry over; the names and numbers don't.
 - `simctl` is the only write path to the grid. Docs and recipes are read-only
   context.

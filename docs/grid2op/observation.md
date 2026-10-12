@@ -1,9 +1,10 @@
 # Observation — reading the grid state
 
-Two levels: `simctl observe` (compact text, what you read every turn) and
+Three views: `simctl observe` (compact text, what you read every turn),
 `simctl observe --detailed` (full JSON — the C3 GRID-STATE shape, one object
-per line/sub/gen). The JSON below is a real snapshot at t=50 of
-`l2rpn_case14_sandbox` (from `contracts/examples/grid-state-t50.json`).
+per line/sub/gen) and `simctl observe --changes` (only what changed, see
+below). The examples are a real `l2rpn_case14_sandbox` run (the JSON is its
+t=50 snapshot); names and numbers differ on other grids.
 
 ## Compact `observe` — the lines
 
@@ -21,8 +22,8 @@ since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [
   lines above 1.0 right now.
 - Line 3: the 3 most loaded LINES, percent of thermal limit (it is a line
   list, not loads).
-- Line 4: generator MW in this order: gen_1_0, gen_2_1, gen_5_2, gen_5_3,
-  gen_7_4, gen_0_5 (the `gens` array of `--detailed`).
+- Line 4: MW of every generator, in gen id order (the same order as the
+  `gens` array of `--detailed`, which has the names).
 - Line 5: **feedback on your last act** — `(t=<step you acted at> <summary>)`,
   then `no trips` or `tripped: [<lines>]` for the most recent step,
   `; overloads now: [...]` if any line is above 1.0, and `max_rho`. It does
@@ -31,17 +32,30 @@ since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [
   authoritative trip check is `lines_down` plus `status: "down"` lines in
   `observe --detailed`.
 
+## `--changes` — only what moved
+
+`simctl observe --changes` reports the same per-entity fields as
+`--detailed`, but only for the lines/subs/gens that changed since your last
+`--detailed` or `--changes` view (the first call, with no earlier view, shows
+everything). Discrete changes (status, overflow, a cooldown starting or
+ending …) always show; continuous ones only above the thresholds printed in its header
+(override with `--rho-eps` / `--mw-eps`). With `--json` it is the same JSON
+shape as `--detailed`, minus the unchanged entities.
+
+Typical loop on a big grid: `observe --detailed` once at the start, then
+each turn `observe` + `observe --changes`.
+
 ## The JSON (`--detailed`) — top level
 
 | field | meaning |
 |---|---|
-| `t`, `max_t` | step 50 of `max_t` (5-min steps) |
+| `t` | current step (50 here; 5-min steps) |
 | `reward` | this step's reward (69.5 here) |
 | `cum_reward` | episode total so far (3323.5 here) |
-| `done`, `cause` | episode over? why: `time_exceeded` (horizon) or `game_over` (blackout); null = running |
+| `done`, `cause` | episode over? why: `time_exceeded` (ran its full length) or `game_over` (blackout); null = running |
 | `delta_min` | 5.0 — minutes per step |
 | `sim_clock` | `2019-01-06 04:10:00` — the grid's wall clock |
-| `n_line`/`n_sub`/`n_gen` | 20 / 14 / 6 (loads: 11) |
+| `n_line`/`n_sub`/`n_gen` | grid size (20 / 14 / 6 on case14) |
 | `max_rho` | hottest line's loading (1.1737 here — OVERLOADED) |
 | `n_down` | lines currently disconnected (1 here) |
 | `n_overflow` | lines above 1.0 right now (1 here) |
@@ -79,7 +93,7 @@ since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [
   status means CONNECTED but still in cooldown after being closed.
 - `overflow` — currently above 1.0 (bool). `cooldown` — steps left before
   the line can be re-closed (0 = not in cooldown). `maint` — steps until the
-  next scheduled maintenance, `-1` = none (the sandbox has no maintenance).
+  next scheduled maintenance, `-1` = none.
 - Example pattern: `0_4_1` is `down` (opened by the operator) and its sibling
   `1_4_4` is at `rho: 1.1737, overflow: true` — keep it hot a third step and
   1_4_4 trips. That's the pattern to catch early. After a trip a line reads
@@ -90,8 +104,8 @@ since your last act (t=0 set_line_status 0_4_1=down): no trips; overloads now: [
 ```json
 { "id": 4, "name": "sub_4", "x": -64.0, "y": -54.0, "type": "load", "p": -6.3 }
 ```
-`type`: `gen` (sub_0, sub_7), `load` (pure consumption), `both` (sub_1,
-sub_2, sub_5 — gen and load on the same sub), `other`. `p` is net MW at the
+`type`: `gen`, `load` (pure consumption), `both` (gen and load on the same
+sub), `other`. `p` is net MW at the
 sub (negative = net import). `x`/`y` are layout coordinates — same numbers
 `render` uses.
 
@@ -101,26 +115,28 @@ sub (negative = net import). `x`/`y` are layout coordinates — same numbers
 { "id": 0, "name": "gen_1_0", "sub": "sub_1", "p": 75.0,
   "renewable": false, "redispatchable": true }
 ```
-`redispatchable: true` = you can `redispatch` it (gen_1_0, gen_2_1, gen_0_5).
-Renewables (gen_5_2, gen_5_3, gen_7_4) can't be redispatched but CAN be
-curtailed (`curtail`), and their `p` moves with the wind/solar chronic.
+`redispatchable: true` = you can `redispatch` it (the full list with ramps
+is in "Grid facts" in AGENTS.md). Renewables (`renewable: true`) can't be
+redispatched but CAN be curtailed (`curtail`), and their `p` moves with the
+wind/solar chronic.
 
 ## Advanced `obs` attributes (what the JSON fields come from)
 
 If you want to go deeper than the C3 JSON, these are the raw grid2op
 `Observation` attributes the backend reads (verified in 1.12.4):
 
-- `obs.rho` — float array [20], loading per line (same as `lines[].rho`)
+- `obs.rho` — float array [n_line], loading per line (same as `lines[].rho`)
 - `obs.line_status` — **bool** array, `True` = connected (C3 renders it as
   the `status` string)
 - `obs.gen_p` / `obs.load_p` — MW per gen / per load
 - Redispatch limits: grid2op has `obs.gen_margin_up` / `gen_margin_down`,
   but **the backend does NOT expose them** — neither `observe` nor
-  `--detailed` carries margins or ramp limits. Use the static per-step ramps:
-  gen_1_0 5 MW, gen_2_1 10 MW, gen_0_5 15 MW (renewables 0). A single move
-  beyond the ramp is rejected as `Ambiguous action` (reward 0). Track your own
-  cumulative total per gen, since nothing in the state shows it.
-- `obs.current_step` / `obs.max_step` — t / horizon
+  `--detailed` carries margins. Use the per-step ramps listed in "Grid
+  facts" in AGENTS.md (renewables 0). A single move
+  beyond the ramp is rejected as `Ambiguous action` (reward 0). Your cumulative
+  redispatch per gen is in `--detailed` as `target_dispatch` (what you asked
+  for) and `actual_dispatch` (what the grid could deliver).
+- `obs.current_step` — t
 - `obs.grid_layout` — `{sub_name: (x, y)}`, what `render` draws from
 - `obs.get_time_stamp()` — the sim clock as a datetime
 - `obs.timestep_overflow` — per line, consecutive steps already spent >1.0

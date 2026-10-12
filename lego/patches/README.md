@@ -50,7 +50,9 @@ applying to a clean checkout and diffing against the live tree).
   1.14.22 binary; a real compaction trace is a test fixture (`tests/agent_loop/fixtures/`).
 - `builtin_swe_agent_loop.py`: one `AgentLoopOutput` per segment; per-worker trial cap
   `HARBOR_MAX_CONCURRENT_TRIALS`.
-- `scaffold/oc.env`: opt-in proactive compaction `OC_CONTEXT_LIMIT` / `OC_OUTPUT_LIMIT` (opencode only
+- `scaffold/oc.env`: opt-in `OC_AGENT_PROMPT_FILE` (replaces opencode's coding persona via `agent.build.prompt`) and
+  `OC_DISABLED_TOOLS` (tool off + permission deny; only a deny removes the schema from the request);
+  opt-in proactive compaction `OC_CONTEXT_LIMIT` / `OC_OUTPUT_LIMIT` (opencode only
   compacts proactively when the model declares `limit.context`; compacts at context − output). Refuses a
   window larger than `MAX_PROMPT + MAX_RESP`, and a threshold < 20k (opencode's own prompt is ~12.6k
   tokens → infinite compaction loop).

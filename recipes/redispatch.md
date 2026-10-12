@@ -2,8 +2,11 @@
 
 **When:** a corridor is hot because a generator is pushing MW into it — or a
 renewable is dumping output the grid can't carry. You move generation
-between the three dispatchable units: `gen_1_0` (sub_1), `gen_2_1` (sub_2),
-`gen_0_5` (sub_0). Renewables can't be redispatched — `curtail` those.
+between the dispatchable units (`redispatchable: true`; the list with ramps
+is in "Grid facts" in AGENTS.md). Renewables can't be redispatched —
+`curtail` those. (Examples below are from an `l2rpn_case14_sandbox` run,
+whose dispatchable gens are `gen_1_0`, `gen_2_1`, `gen_0_5`; names and
+numbers differ on other grids.)
 
 ## The command
 
@@ -15,8 +18,8 @@ simctl act '{"redispatch": {"gen_1_0": -5.0}}'
 ```
 applied redispatch gen_1_0=-5.0 · t=1 · reward=62.28 · new_overloads=[] · illegal=no
 ```
-In `observe`, the `gens:` line (MW in order gen_1_0, gen_2_1, gen_5_2,
-gen_5_3, gen_7_4, gen_0_5) went from `73.2 71.7 36.4 0.0 0.0 69.4` at t=0 to
+In `observe`, the `gens:` line (MW in gen id order; on case14 gen_1_0,
+gen_2_1, gen_5_2, gen_5_3, gen_7_4, gen_0_5) went from `73.2 71.7 36.4 0.0 0.0 69.4` at t=0 to
 `68.3 74.6 36.6 0.0 0.0 74.5` at t=1: gen_1_0 dropped 5 MW and the other
 dispatchable units picked up the balance.
 
@@ -37,8 +40,9 @@ Keep your own running total per gen and undo it when the maneuver is done.
 
 ## Stay inside the per-step ramp
 
-Each gen can only change by its ramp per step: gen_1_0 **5 MW**, gen_2_1
-**10**, gen_0_5 **15**, renewables **0**. The backend does NOT show margins
+Each gen can only change by its ramp per step (listed in "Grid facts"; on
+case14 gen_1_0 **5 MW**, gen_2_1 **10**, gen_0_5 **15**), renewables **0**.
+The backend does NOT show margins
 (no `gen_margin_*` in `observe` or `--detailed`). A bigger Δ is rejected:
 ```
 $ simctl act '{"redispatch": {"gen_1_0": -50.0}}'
@@ -71,5 +75,6 @@ simctl act '{"curtail": {"gen_5_2": 0.5}}'     # gen_5_2 capped at 50%
 ```
 applied curtail gen_5_2=0.5 · t=3 · reward=64.14 · new_overloads=[] · illegal=no
 ```
-Note the key is **`curtail`**, not `curtailment` (the latter is silently
+Only gens listed as curtailable in "Grid facts" take it. Note the key is
+**`curtail`**, not `curtailment` (the latter is silently
 ignored on this env — see `../docs/grid2op/pitfalls.md` #5).
