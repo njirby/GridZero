@@ -206,7 +206,10 @@ base prompt is ~12.6k tokens); 48k works for probes, the config default is 98304
 - Staleness check: update 2 trained on 8 stale trajectories (sampled under version 0). With bypass off,
   `old_log_prob` is recomputed with the CURRENT weights, so `rollout_corr/kl` jumped 4e-4 → 3.5e-2 = one
   update of real policy drift, previously uncorrected. Fix: `ROLLOUT_IS=token`, threshold 2.0 (truncated
-  importance sampling, i.e. decoupled PPO) in the async config.
+  importance sampling, i.e. decoupled PPO) in the async config. Verified (`logs/p5-is-*.log`, exit 0):
+  fresh update — IS mean 1.0001, ESS 0.999, range 0.72–1.31, nothing at the cap; stale update (5 stale
+  trajectories) — IS mean 1.0001, ESS 0.997, range 0.055–2.0 (cap reached), 0.03%/0.07% of tokens
+  beyond the cap, pg_clipfrac 0. The correction only bites on the tokens that drifted.
 - LR 1e-4 on the LoRA moves the policy ~0.035 KL per update and grad_norm rose 0.22 → 0.91; watch it on
   longer runs.
 
