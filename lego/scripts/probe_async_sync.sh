@@ -77,8 +77,10 @@ if [ "$status" = DONE ]; then
 fi
 cleanup
 
+GEN_TP=$(bash -c 'set -a; source "$1" >/dev/null 2>&1; echo "$GEN_TP"' _ "$CONFIG") \
+ROLLOUT_N_GPUS_PER_NODE=$(bash -c 'set -a; source "$1" >/dev/null 2>&1; echo "$ROLLOUT_N_GPUS_PER_NODE"' _ "$CONFIG") \
 "$PY" - "$LOG" "$PSI_LOG" "$status" <<'PY'
-import json, re, sys
+import json, os, re, sys
 import numpy as np
 
 log_path, psi_path, status = sys.argv[1:4]
@@ -143,7 +145,8 @@ for rep in replicas:
         check(change > 1e-3, f"replica {rep} v{v}: vLLM log-probs changed after sync (mean|d|={change:.5f} > 1e-3)")
         check(agree <= 1.25 * floor + 1e-3 and agree < stale,
               f"replica {rep} v{v}: vLLM agrees with trainer v{v} ({agree:.5f} <= 1.25 x floor {floor:.5f}, < stale {stale:.5f})")
-check(len(replicas) == 2, "two vLLM replicas scored")
+n_rep = int(os.environ.get("ROLLOUT_N_GPUS_PER_NODE", "2")) // int(os.environ.get("GEN_TP", "2"))
+check(len(replicas) == n_rep, f"{n_rep} vLLM replica(s) scored (rollout GPUs / GEN_TP)")
 
 # Sync size / time, adapter load
 for m in re.findall(r"\[LORA-SYNC\][^\n]*", text):
