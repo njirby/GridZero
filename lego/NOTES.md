@@ -235,3 +235,19 @@ on the first idf run: validation launched trials ~2 at a time. Earlier async run
 cap. Fix (verl patch): each worker gets HARBOR_MAX_CONCURRENT_TRIALS queue slots. Checked: 16 trials
 concurrent with 2 workers x 8. RAM at 16 idf trials: containers 8 GiB (~0.5 GB each), 6 GB free, 17 GB
 swap -> 16 is the practical max on this 30 GB box.
+
+## 2026-10-12 — first idf_2023 async run (killed before update 1)
+`2b-lora-idf-async-20261012-175337`, gridzero_2b_lora_idf_async.env: 1 scenario x GRPO group 64 per
+update, one TP=2 vLLM on cards 2-3, 16 concurrent trials (2 workers x 8), staleness 1. Killed at
+~1h15 to fix rollout throughput first; no update completed.
+- Base-model validation (32 val scenarios, before training): reward vs do-nothing mean -41.5k;
+  4/32 survived 288 steps, 4/32 beat DN; turns mean 105 (5..401); 23 min wall.
+- First group (c201, 64 rollouts): median rollout reached t=98 in 108 turns, ~6.5 min (max 17 min,
+  400-turn cap). The group took ~45 min end to end; the next group filled freed slots during the
+  tail (pipeline overlaps), but the trainer waits for the slowest rollout.
+- Bottleneck = vLLM decode. Per-turn time ~3.6 s, all model (tools ~0.01 s). The TP=2 server's
+  aggregate generation plateaus at ~520 tok/s from ~10 concurrent requests (per stream 77 tok/s at
+  3-4 reqs -> 35 tok/s at 16); KV cache 12-17% used, prefix hit 98.6%, GPUs 2-3 at 92-100%,
+  trainer GPUs idle. TP=1 single-stream was 78-100 tok/s; its plateau is unmeasured.
+- Next: benchmark vLLM TP=1 vs TP=2 at 4/8/16 concurrent on replayed turns; consider
+  staleness 2-3 so slow tails don't stall updates.
